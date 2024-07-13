@@ -4,44 +4,89 @@
     <title>Welcome to My Website</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #000;
+            background-color: #121212;
             color: #fff;
+            line-height: 1.6;
         }
         .container {
             padding: 20px;
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
         }
         header {
             display: flex;
             align-items: center;
             padding: 20px 0;
-            border-bottom: 1px solid #333;
+            border-bottom: 2px solid #444;
         }
         #profile-picture {
             margin-right: 20px;
         }
         #profile-picture img {
-            max-width: 100px;
+            max-width: 120px;
             border-radius: 50%;
-            display: block;
+            border: 2px solid #4CAF50;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
         #introduction {
             flex: 1;
         }
+        #introduction h2 {
+            margin: 0 0 10px;
+            font-size: 24px;
+            color: #4CAF50;
+        }
         #additional-text {
             margin-top: 20px;
             padding: 20px;
-            background-color: #222;
+            background-color: #1e1e1e;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
-        a {
+        #additional-text h2 {
+            font-size: 22px;
+            color: #4CAF50;
+            margin-top: 0;
+        }
+        #additional-text ul {
+            padding: 0;
+            list-style: none;
+        }
+        #additional-text ul li {
+            margin: 10px 0;
+        }
+        #additional-text ul li a {
             color: #4CAF50;
             text-decoration: none;
+            transition: color 0.3s;
+        }
+        #additional-text ul li a:hover {
+            color: #66bb6a;
+        }
+        footer {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #1e1e1e;
+            text-align: center;
+            border-top: 2px solid #444;
+        }
+        footer p {
+            margin: 0;
+            font-size: 14px;
+            color: #777;
+        }
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                text-align: center;
+            }
+            #profile-picture {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -63,7 +108,8 @@
             </ul>
         </div>
     </div>
+    <footer>
+        <p>&copy; 2024 Sebastian Bauer. All rights reserved.</p>
+    </footer>
 </body>
 </html>
-
-
