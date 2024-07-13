@@ -1,9 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Welcome to My Website!</title>
+    <title>Welcome to My Website</title>
     <style>
-        /* Your existing CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 20px;
+            padding: 20px;
+        }
+        header {
+            grid-column: 1 / -1;
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        nav {
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        nav ul li {
+            margin: 10px 0;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: #4CAF50;
+        }
+        #introduction, #profile-picture {
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #introduction h2, #profile-picture h2 {
+            color: #4CAF50;
+        }
+        #profile-picture img {
+            max-width: 100%;
+            border-radius: 50%;
+            display: block;
+            margin: 0 auto;
+        }
+        footer {
+            grid-column: 1 / -1;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -11,22 +68,26 @@
         <header>
             <h1>Welcome to My Personal Website</h1>
         </header>
+        <nav>
+            <ul>
+                <li><a href="#introduction">About Me</a></li>
+                <li><a href="education.html">Education Section</a></li>
+                <li><a href="sports.html">Sports Section</a></li>
+                <li><a href="#profile-picture">Profile Picture</a></li>
+            </ul>
+        </nav>
         <section id="introduction">
             <h2>About Me</h2>
             <p>Hello! I'm [Your Name], a professional with a passion for education and sports. I've dedicated my career to learning and teaching others, and I love staying active and engaged in various sports activities. This website is a reflection of my work and interests. Feel free to explore the Education and Sports sections to know more about my journey and passions.</p>
-        </section>
-        <section id="links">
-            <h2>Explore My Work</h2>
-            <ul>
-                <li><a href="education.html">Education Section</a> - Discover my educational background and teaching philosophy.</li>
-                <li><a href="sports.html">Sports Section</a> - Dive into my sports interests and achievements.</li>
-            </ul>
         </section>
         <section id="profile-picture">
             <h2>Profile Picture</h2>
             <img src="profile_pic.jpg" alt="Profile Picture">
         </section>
     </div>
+    <footer>
+        <p>&copy; 2024 [Your Name]. All rights reserved.</p>
+    </footer>
 </body>
 </html>
 
