@@ -25,11 +25,6 @@
             text-align: center;
             margin-bottom: 20px;
         }
-        h1 {
-            color: #2c3e50;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
         .selection-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -44,8 +39,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer;
-            text-decoration: none;
-            color: inherit;
         }
         .selection-card:hover {
             transform: translateY(-5px);
@@ -67,10 +60,15 @@
             border-radius: 4px;
             overflow: hidden;
         }
-        .visualization video, .visualization img {
+        .visualization video {
             width: 100%;
             height: auto;
             display: block;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 20px;
         }
         .explanation {
             color: #666;
@@ -115,9 +113,14 @@
             border-radius: 4px;
             margin: 20px 0;
             transition: background-color 0.2s;
+            cursor: pointer;
+            border: none;
         }
         .back-button:hover {
             background-color: #34495e;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
@@ -126,34 +129,21 @@
     <div id="selection-page" class="container">
         <h1>CMCB Lab Visualizations</h1>
         <div class="selection-grid">
-            <a href="message-passing.html" class="selection-card">
+            <div class="selection-card" onclick="showVisualization('message-passing')">
                 <img src="/api/placeholder/400/300" alt="Message Passing Preview">
                 <h2>Message Passing</h2>
                 <p>Visualize message passing in graph neural networks</p>
-            </a>
-            <a href="smlm.html" class="selection-card">
+            </div>
+            <div class="selection-card" onclick="showVisualization('smlm')">
                 <img src="/api/placeholder/400/300" alt="SMLM Preview">
                 <h2>SMLM</h2>
                 <p>Single Molecule Localization Microscopy visualization</p>
-            </a>
+            </div>
         </div>
     </div>
-</body>
-</html>
 
-<!-- message-passing.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Message Passing - CMCB Lab</title>
-    <style>
-        /* Copy all styles from above */
-    </style>
-</head>
-<body>
-    <div class="container">
+    <!-- Message Passing Page -->
+    <div id="message-passing-page" class="container hidden">
         <h1>Message Passing in Graph Neural Networks</h1>
         <div class="visualization">
             <video autoplay loop muted playsinline>
@@ -166,24 +156,11 @@
             Colored particles show the flow of information between nodes, with each node's color
             influencing its neighbors through multiple layers of message passing.
         </div>
-        <a href="index.html" class="back-button">Back to Selection</a>
+        <button class="back-button" onclick="showSelectionPage()">Back to Selection</button>
     </div>
-</body>
-</html>
 
-<!-- smlm.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SMLM Visualization - CMCB Lab</title>
-    <style>
-        /* Copy all styles from above */
-    </style>
-</head>
-<body>
-    <div class="container">
+    <!-- SMLM Page -->
+    <div id="smlm-page" class="container hidden">
         <h1>Single Molecule Localization Microscopy (SMLM)</h1>
         <div class="visualization">
             <video autoplay loop muted playsinline>
@@ -218,7 +195,32 @@
                 <p>Shows the conventional microscope view.</p>
             </div>
         </div>
-        <a href="index.html" class="back-button">Back to Selection</a>
+        <button class="back-button" onclick="showSelectionPage()">Back to Selection</button>
     </div>
+
+    <script>
+        function showVisualization(type) {
+            // Hide selection page
+            document.getElementById('selection-page').classList.add('hidden');
+            
+            // Show selected visualization
+            if (type === 'message-passing') {
+                document.getElementById('message-passing-page').classList.remove('hidden');
+                document.getElementById('smlm-page').classList.add('hidden');
+            } else if (type === 'smlm') {
+                document.getElementById('smlm-page').classList.remove('hidden');
+                document.getElementById('message-passing-page').classList.add('hidden');
+            }
+        }
+
+        function showSelectionPage() {
+            // Hide all visualization pages
+            document.getElementById('message-passing-page').classList.add('hidden');
+            document.getElementById('smlm-page').classList.add('hidden');
+            
+            // Show selection page
+            document.getElementById('selection-page').classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
