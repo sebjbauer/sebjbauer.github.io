@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Scientific Visualization</title>
+    <title>SMLM Visualization - CMCB Lab</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -11,7 +11,7 @@
             padding: 20px;
             background-color: #f5f5f5;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             min-height: 100vh;
         }
@@ -23,6 +23,7 @@
             max-width: 800px;
             width: 90%;
             text-align: center;
+            margin-bottom: 20px;
         }
         .visualization {
             margin: 20px 0;
@@ -37,24 +38,74 @@
             font-size: 24px;
             margin-bottom: 20px;
         }
-        .caption {
+        .explanation {
             color: #666;
             font-size: 16px;
-            line-height: 1.5;
-            margin-top: 20px;
+            line-height: 1.6;
+            margin: 20px 0;
+            text-align: left;
+            padding: 0 20px;
+        }
+        .panel-description {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 20px 0;
+            gap: 10px;
+        }
+        .panel {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .panel h3 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin: 0 0 10px 0;
+        }
+        .panel p {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+            text-align: left;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Interactive Visualization</h1>
+        <h1>Single Molecule Localization Microscopy (SMLM)</h1>
         <div class="visualization">
-            <img src="MessagePassing.gif" alt="Message Passing Animation" />
+            <img src="SMLM_Imaging_CMCB.gif" alt="SMLM Visualization of CMCB Logo" />
         </div>
-        <div class="caption">
-            Animated visualization from the scientific poster.
-            <br>
-            Click the image to replay the animation.
+        <div class="explanation">
+            This visualization demonstrates how Single Molecule Localization Microscopy (SMLM) works. 
+            SMLM achieves super-resolution by exploiting the blinking behavior of fluorophores, 
+            allowing us to locate individual molecules with high precision.
+        </div>
+        <div class="panel-description">
+            <div class="panel">
+                <h3>Panel 1: True Structure</h3>
+                <p>Shows the underlying structure with currently active fluorophores highlighted. Only a small subset of fluorophores is active at any time.</p>
+            </div>
+            <div class="panel">
+                <h3>Panel 2: PSF Image</h3>
+                <p>Displays how the microscope actually sees the active fluorophores, with each molecule appearing as a diffraction-limited spot.</p>
+            </div>
+            <div class="panel">
+                <h3>Panel 3: Localizations</h3>
+                <p>Shows the precisely determined positions of active fluorophores in the current frame.</p>
+            </div>
+            <div class="panel">
+                <h3>Panel 4: Accumulated</h3>
+                <p>Builds up the super-resolution image by accumulating all localizations over time.</p>
+            </div>
+            <div class="panel">
+                <h3>Panel 5: Conventional</h3>
+                <p>Shows how the sample would appear in a conventional fluorescence microscope.</p>
+            </div>
         </div>
     </div>
 </body>
