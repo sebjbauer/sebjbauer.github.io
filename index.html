@@ -27,11 +27,17 @@
         }
         .visualization {
             margin: 20px 0;
-        }
-        .visualization img {
-            max-width: 100%;
-            height: auto;
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            background-color: #000;
             border-radius: 4px;
+            overflow: hidden;
+        }
+        .visualization video {
+            width: 100%;
+            height: auto;
+            display: block;
         }
         h1 {
             color: #2c3e50;
@@ -78,7 +84,10 @@
     <div class="container">
         <h1>Single Molecule Localization Microscopy (SMLM)</h1>
         <div class="visualization">
-            <img src="SMLM_Imaging_CMCB.gif" alt="SMLM Visualization of CMCB Logo" />
+            <video autoplay loop muted playsinline>
+                <source src="SMLM_Imaging_CMCB.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
         </div>
         <div class="explanation">
             This visualization demonstrates how Single Molecule Localization Microscopy (SMLM) works. 
