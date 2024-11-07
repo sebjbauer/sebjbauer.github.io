@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SMLM Visualization - CMCB Lab</title>
+    <title>CMCB Lab Visualizations</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -25,6 +25,39 @@
             text-align: center;
             margin-bottom: 20px;
         }
+        h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .selection-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .selection-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .selection-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
         .visualization {
             margin: 20px 0;
             width: 100%;
@@ -34,15 +67,10 @@
             border-radius: 4px;
             overflow: hidden;
         }
-        .visualization video {
+        .visualization video, .visualization img {
             width: 100%;
             height: auto;
             display: block;
-        }
-        h1 {
-            color: #2c3e50;
-            font-size: 24px;
-            margin-bottom: 20px;
         }
         .explanation {
             color: #666;
@@ -78,6 +106,80 @@
             margin: 0;
             text-align: left;
         }
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2c3e50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px 0;
+            transition: background-color 0.2s;
+        }
+        .back-button:hover {
+            background-color: #34495e;
+        }
+    </style>
+</head>
+<body>
+    <!-- Selection Page -->
+    <div id="selection-page" class="container">
+        <h1>CMCB Lab Visualizations</h1>
+        <div class="selection-grid">
+            <a href="message-passing.html" class="selection-card">
+                <img src="/api/placeholder/400/300" alt="Message Passing Preview">
+                <h2>Message Passing</h2>
+                <p>Visualize message passing in graph neural networks</p>
+            </a>
+            <a href="smlm.html" class="selection-card">
+                <img src="/api/placeholder/400/300" alt="SMLM Preview">
+                <h2>SMLM</h2>
+                <p>Single Molecule Localization Microscopy visualization</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+
+<!-- message-passing.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Message Passing - CMCB Lab</title>
+    <style>
+        /* Copy all styles from above */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Message Passing in Graph Neural Networks</h1>
+        <div class="visualization">
+            <video autoplay loop muted playsinline>
+                <source src="MessagePassing.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <div class="explanation">
+            This visualization demonstrates how message passing works in Graph Neural Networks.
+            Colored particles show the flow of information between nodes, with each node's color
+            influencing its neighbors through multiple layers of message passing.
+        </div>
+        <a href="index.html" class="back-button">Back to Selection</a>
+    </div>
+</body>
+</html>
+
+<!-- smlm.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SMLM Visualization - CMCB Lab</title>
+    <style>
+        /* Copy all styles from above */
     </style>
 </head>
 <body>
@@ -97,25 +199,26 @@
         <div class="panel-description">
             <div class="panel">
                 <h3>Panel 1: True Structure</h3>
-                <p>Shows the underlying structure with currently active fluorophores highlighted. Only a small subset of fluorophores is active at any time.</p>
+                <p>Shows the underlying structure with currently active fluorophores highlighted.</p>
             </div>
             <div class="panel">
                 <h3>Panel 2: PSF Image</h3>
-                <p>Displays how the microscope actually sees the active fluorophores, with each molecule appearing as a diffraction-limited spot.</p>
+                <p>Displays how the microscope actually sees the active fluorophores.</p>
             </div>
             <div class="panel">
                 <h3>Panel 3: Localizations</h3>
-                <p>Shows the precisely determined positions of active fluorophores in the current frame.</p>
+                <p>Shows the precisely determined positions of active fluorophores.</p>
             </div>
             <div class="panel">
                 <h3>Panel 4: Accumulated</h3>
-                <p>Builds up the super-resolution image by accumulating all localizations over time.</p>
+                <p>Builds up the super-resolution image over time.</p>
             </div>
             <div class="panel">
                 <h3>Panel 5: Conventional</h3>
-                <p>Shows how the sample would appear in a conventional fluorescence microscope.</p>
+                <p>Shows the conventional microscope view.</p>
             </div>
         </div>
+        <a href="index.html" class="back-button">Back to Selection</a>
     </div>
 </body>
 </html>
