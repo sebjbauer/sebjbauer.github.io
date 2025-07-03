@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SMLMFlow - CMCB Lab</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 30px;
+        }
+        
+        .main-title {
+            color: #2c3e50;
+            font-size: 2.5em;
+            font-weight: normal;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #6c757d;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        
+        .technique-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .technique-btn {
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 2px solid #dee2e6;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .technique-btn:hover {
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+        }
+        
+        .technique-btn.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .visualization-container {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 30px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .visualization-container img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 4px;
+        }
+        
+        .placeholder {
+            text-align: center;
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+        
+        .back-link {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 1em;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .technique-info {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+            display: none;
+        }
+        
+        .technique-info.active {
+            display: block;
+        }
+        
+        .technique-info h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .technique-info p {
+            color: #495057;
+            margin: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .main-title {
+                font-size: 2em;
+            }
+            
+            .technique-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .technique-btn {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Back to Main Lab</a>
+        
+        <div class="header">
+            <h1 class="main-title">SMLMFlow</h1>
+            <p class="subtitle">Prediction example of the different photophysics models</p>
+        </div>
+        
+        <div class="technique-buttons">
+            <button class="technique-btn" onclick="showTechnique('STORM')">STORM</button>
+            <button class="technique-btn" onclick="showTechnique('PALM')">PALM</button>
+            <button class="technique-btn" onclick="showTechnique('Unknown')">Unknown</button>
+        </div>
+        
+        <div class="visualization-container" id="visualization-display">
+            <div class="placeholder">
+                <p>Select a microscopy technique above to view its visualization</p>
+            </div>
+        </div>
+        
+        <div class="technique-info" id="storm-info">
+            <h3>STORM (Stochastic Optical Reconstruction Microscopy)</h3>
+            <p>STORM achieves super-resolution by controlling the fluorescence of individual molecules, allowing precise localization of single fluorophores with nanometer accuracy.</p>
+        </div>
+        
+        <div class="technique-info" id="palm-info">
+            <h3>PALM (Photoactivated Localization Microscopy)</h3>
+            <p>PALM uses photoactivatable fluorescent proteins to achieve single-molecule localization, enabling detailed visualization of protein distributions in living cells.</p>
+        </div>
+        
+        <div class="technique-info" id="unknown-info">
+            <h3>Unknown Technique</h3>
+            <p>This represents experimental or novel SMLM approaches that are being developed or studied in the laboratory.</p>
+        </div>
+    </div>
+
+    <script>
+        function showTechnique(technique) {
+            const display = document.getElementById('visualization-display');
+            const buttons = document.querySelectorAll('.technique-btn');
+            const infoBoxes = document.querySelectorAll('.technique-info');
+            
+            // Remove active class from all buttons and info boxes
+            buttons.forEach(btn => btn.classList.remove('active'));
+            infoBoxes.forEach(info => info.classList.remove('active'));
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Show corresponding GIF
+            const gifSrc = technique + '.gif';
+            display.innerHTML = `<img src="${gifSrc}" alt="${technique} Visualization" />`;
+            
+            // Show corresponding info box
+            const infoId = technique.toLowerCase() + '-info';
+            const infoBox = document.getElementById(infoId);
+            if (infoBox) {
+                infoBox.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
