@@ -383,6 +383,14 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 #profile .hiker circle { fill: var(--text); }
 #profile .hiker .pack { fill: var(--accent); }
 #profile .hiker .pole { stroke: var(--muted); stroke-width: 1; }
+#profile .hiker .cup, #profile .hiker .sit-legs { display: none; }
+#profile .hiker .sit-legs { fill: none; stroke: var(--text); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+#profile .hiker.sitting .walk-legs { display: none; }
+#profile .hiker.sitting .cup, #profile .hiker.sitting .sit-legs { display: inline; }
+#profile .hiker.sitting .hk-upper { transform: translateY(4px); }
+#profile .hiker .cup rect { fill: var(--accent); }
+#profile .hiker .steam { fill: none; stroke: var(--muted); stroke-width: .8; stroke-linecap: round; animation: steam 2.4s ease-in-out infinite; }
+@keyframes steam { 0%, 100% { opacity: .2; } 50% { opacity: .9; } }
 
 .cv-table { width: 100%; border-collapse: collapse; font-size: 17px; margin-bottom: 24px; }
 .cv-table th { text-align: left; font-weight: 400; color: var(--muted); font-size: 14px; padding: 0 16px 8px 0; border-bottom: 1px solid var(--line); }
@@ -437,6 +445,13 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 .pub-venue { margin: 2px 0 0; color: var(--muted); font-size: 15px; font-style: italic; }
 .pub-type { font-style: normal; font-size: 12px; letter-spacing: .02em; color: var(--text); border: 1px solid var(--line-strong); border-radius: 4px; padding: 1px 6px; margin-right: 6px; }
 #publications .text-link { margin-top: 8px; }
+.pub-cite { margin: 6px 0 0; display: flex; gap: 14px; }
+.pub-cite button, .copied-note { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+.pub-cite button:hover { color: var(--accent); }
+.pub-cite button.copied { color: var(--edu); text-decoration: none; }
+.copied-note { cursor: default; text-decoration: none; color: var(--edu); margin-left: 10px; font-size: 14px; }
+span.pub-title { display: inline; }
+.pub-type.award-type { border-color: var(--accent); color: var(--accent); }
 
 /* skills */
 .skills { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 0 36px; }

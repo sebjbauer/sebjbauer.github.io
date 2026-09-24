@@ -62,24 +62,31 @@ const SITE = {
   ],
 
   // PUBLICATIONS: newest year first. Put your own name exactly as in `me` so it is shown in bold.
+  // journal / volume / issue / pages / doi are used for "Copy citation" and "BibTeX".
   me: 'S. Bauer',
   publications: [
     { year: 2026, type: 'Preprint', title: 'SMLMFlow: Improving Structural Resolution in Single Molecule Localization Microscopy with Flow Matching',
-      authors: 'S. Bauer, L. Panconi, I. Cunha, E. Latron, D. Sage, R. Peters, J. Griffié', venue: 'bioRxiv', url: 'https://doi.org/10.64898/2026.06.11.731424' },
+      authors: 'S. Bauer, L. Panconi, I. Cunha, E. Latron, D. Sage, R. Peters, J. Griffié', journal: 'bioRxiv', doi: '10.64898/2026.06.11.731424' },
     { year: 2026, type: 'Journal article', title: 'Dual-Color Expansion Microscopy of Membrane Proteins Using Bioorthogonal Labeling',
-      authors: 'S. Edwards, B. Meineke, S. Bauer, H. Blom, S. Elsässer, H. Brismar', venue: 'Nano Letters 26(4), 1321–1326', url: 'https://pubs.acs.org/doi/10.1021/acs.nanolett.5c05301' },
+      authors: 'S. Edwards, B. Meineke, S. Bauer, H. Blom, S. Elsässer, H. Brismar', journal: 'Nano Letters', volume: 26, issue: 4, pages: '1321–1326', doi: '10.1021/acs.nanolett.5c05301' },
     { year: 2025, type: 'Preprint', title: 'AI4CellFate: Interpretable Early Cell Fate Prediction with Generative AI',
-      authors: 'I. Cunha, L. Panconi, S. Bauer, M. Gestin, E. Latron, E. Sahai, A. Le Marois, J. Griffié', venue: 'bioRxiv', url: 'https://www.biorxiv.org/content/10.1101/2025.05.12.653464v1' },
+      authors: 'I. Cunha, L. Panconi, S. Bauer, M. Gestin, E. Latron, E. Sahai, A. Le Marois, J. Griffié', journal: 'bioRxiv', doi: '10.1101/2025.05.12.653464' },
     { year: 2025, type: 'Preprint', title: '6S RNA facilitates bacterial virulence and adaptation at the epithelial barrier',
-      authors: 'O. Sarigöz, V. D. Valeriano, U. Avican, H. Wang, K. Nilsson, N. Hasanzade, F. Mahmood, A. Fahlgren, S. Bauer, J. Griffié, M. Fällman, K. Avican', venue: 'bioRxiv', url: 'https://www.biorxiv.org/content/10.1101/2025.10.07.681022v1' },
+      authors: 'O. Sarigöz, V. D. Valeriano, U. Avican, H. Wang, K. Nilsson, N. Hasanzade, F. Mahmood, A. Fahlgren, S. Bauer, J. Griffié, M. Fällman, K. Avican', journal: 'bioRxiv', doi: '10.1101/2025.10.07.681022' },
     { year: 2024, type: 'Review', title: 'Machine learning in microscopy – insights, opportunities and challenges',
-      authors: 'I. Cunha, E. Latron, S. Bauer, D. Sage, J. Griffié', venue: 'Journal of Cell Science 137(20), jcs262095', url: 'https://doi.org/10.1242/jcs.262095' },
+      authors: 'I. Cunha, E. Latron, S. Bauer, D. Sage, J. Griffié', journal: 'Journal of Cell Science', volume: 137, issue: 20, pages: 'jcs262095', doi: '10.1242/jcs.262095' },
     { year: 2023, type: 'Conference abstract', title: 'Expansion microscopy and bioorthogonal labeling with non-canonical amino acids enables cluster analysis of Na,K-ATPase in the plasma membrane',
-      authors: 'S. Edwards, S. Bauer, P. Graef, B. Meineke, S. Elsässer, H. Brismar', venue: 'Physiology 38(S1), 5732753', url: 'https://journals.physiology.org/doi/abs/10.1152/physiol.2023.38.S1.5732753' },
+      authors: 'S. Edwards, S. Bauer, P. Graef, B. Meineke, S. Elsässer, H. Brismar', journal: 'Physiology', volume: 38, issue: 'S1', pages: '5732753', doi: '10.1152/physiol.2023.38.S1.5732753' },
     { year: 2023, type: 'Conference abstract', title: 'Click chemistry, FRET-FCS, and expansion microscopy reveal that Na,K-ATPase forms complexes in the plasma membrane',
-      authors: 'H. Brismar, S. Edwards, S. Bauer, B. Meineke, S. Elsässer, S. Wennmalm', venue: 'Physiology 38(S1), 5732603', url: 'https://journals.physiology.org/doi/abs/10.1152/physiol.2023.38.S1.5732603' },
+      authors: 'H. Brismar, S. Edwards, S. Bauer, B. Meineke, S. Elsässer, S. Wennmalm', journal: 'Physiology', volume: 38, issue: 'S1', pages: '5732603', doi: '10.1152/physiol.2023.38.S1.5732603' },
     { year: 2023, type: "Master's thesis", title: "Co-evolutional analysis of the Na⁺,K⁺-ATPase's β-subunit dimerization",
-      authors: 'S. Bauer', venue: 'KTH Royal Institute of Technology', url: 'https://kth.diva-portal.org/smash/record.jsf?pid=diva2:1768469' },
+      authors: 'S. Bauer', school: 'KTH Royal Institute of Technology', url: 'https://kth.diva-portal.org/smash/record.jsf?pid=diva2:1768469' },
+  ],
+
+  // TALKS, POSTERS AND AWARDS: newest year first. type: 'Talk', 'Poster' or 'Award'.
+  // `where` is the event or institution; `url` (slides, poster, announcement) is optional.
+  talks: [
+    { year: 2016, type: 'Award', title: 'Best physics thesis in Vienna', where: 'High-school final thesis: aerodynamics in road cycling' },
   ],
 
   skills: {
@@ -614,6 +621,43 @@ function renderEducation() {
   $('#eduList').querySelectorAll('li').forEach((li) => li.addEventListener('click', (ev) => { if (!ev.target.closest('a')) selectEntry(li.dataset.k); }));
 }
 
+// "Journal 26(4), 1321–1326" from the structured fields
+const venueOf = (p) => p.school ? p.school
+  : `${p.journal}${p.volume ? ` ${p.volume}${p.issue ? `(${p.issue})` : ''}` : ''}${p.pages ? `, ${p.pages}` : ''}`;
+const linkOf = (p) => p.url || `https://doi.org/${p.doi}`;
+
+// "S. Edwards, B. Meineke" → ["Edwards, S.", "Meineke, B."]
+const surnameFirst = (authors) => authors.split(', ').map((a) => { const parts = a.split(' '); const last = parts.pop(); return `${last}, ${parts.join(' ')}`; });
+
+function citationText(p) {
+  const names = surnameFirst(p.authors);
+  const who = names.length > 1 ? `${names.slice(0, -1).join(', ')}, & ${names.at(-1)}` : names[0];
+  // APA style: "Journal, 26(4), 1321–1326." or "[Master's thesis, School]."
+  const source = p.school ? `[Master's thesis, ${p.school}]`
+    : [p.journal, p.volume ? `${p.volume}${p.issue ? `(${p.issue})` : ''}` : '', p.pages].filter(Boolean).join(', ');
+  return `${who} (${p.year}). ${p.title}. ${source}.${p.doi ? ` https://doi.org/${p.doi}` : ` ${p.url}`}`;
+}
+
+function bibtex(p) {
+  const first = p.authors.split(', ')[0].split(' ').pop().normalize('NFD').replace(/[^A-Za-z]/g, '').toLowerCase();
+  const word = p.title.split(/\W+/).find((w) => w.length > 3)?.toLowerCase() || 'paper';
+  const kind = p.school ? 'mastersthesis' : p.type === 'Preprint' ? 'misc' : 'article';
+  const f = [['title', `{${p.title}}`], ['author', surnameFirst(p.authors).join(' and ')], ['year', p.year]];
+  if (p.school) f.push(['school', p.school], ['url', p.url]);
+  else if (p.type === 'Preprint') f.push(['howpublished', p.journal], ['doi', p.doi]);
+  else { f.push(['journal', p.journal]); if (p.volume) f.push(['volume', p.volume]); if (p.issue) f.push(['number', p.issue]); if (p.pages) f.push(['pages', String(p.pages).replace('–', '--')]); f.push(['doi', p.doi]); }
+  return `@${kind}{${first}${p.year}${word},\n${f.map(([k, v]) => `  ${k} = {${v}}`).join(',\n')}\n}`;
+}
+
+// copy text, then show "Copied" on the button for two seconds
+async function copyTo(btn, text) {
+  try { await navigator.clipboard.writeText(text); } catch { return; }
+  const label = btn.textContent;
+  btn.textContent = 'Copied';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = label; btn.classList.remove('copied'); }, 1800);
+}
+
 // Publications grouped by year, your name in bold
 function renderPublications() {
   const years = [...new Set(SITE.publications.map((p) => p.year))].sort((a, b) => b - a);
@@ -623,12 +667,35 @@ function renderPublications() {
       <h3>${y}</h3>
       <ol>${SITE.publications.filter((p) => p.year === y).map((p) => `
         <li>
-          <a class="pub-title" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title)}</a>
+          <a class="pub-title" href="${esc(linkOf(p))}" target="_blank" rel="noopener">${esc(p.title)}</a>
           <p class="pub-authors">${bold(p.authors)}</p>
-          <p class="pub-venue"><span class="pub-type">${esc(p.type)}</span> ${esc(p.venue)}</p>
+          <p class="pub-venue"><span class="pub-type">${esc(p.type)}</span> ${esc(venueOf(p))}</p>
+          <p class="pub-cite"><button type="button" data-cite="text" data-i="${SITE.publications.indexOf(p)}">Copy citation</button><button type="button" data-cite="bib" data-i="${SITE.publications.indexOf(p)}">BibTeX</button></p>
         </li>`).join('')}</ol>
     </div>`).join('');
   $('#scholarLink').href = SITE.scholar;
+  $('#pubList').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-cite]');
+    if (!btn) return;
+    const p = SITE.publications[+btn.dataset.i];
+    copyTo(btn, btn.dataset.cite === 'bib' ? bibtex(p) : citationText(p));
+  });
+}
+
+// Talks, posters and awards grouped by year
+function renderTalks() {
+  const list = SITE.talks;
+  if (!list.length) { $('#talks').hidden = true; return; }
+  const years = [...new Set(list.map((t) => t.year))].sort((a, b) => b - a);
+  $('#talkList').innerHTML = years.map((y) => `
+    <div class="pub-year">
+      <h3>${y}</h3>
+      <ol>${list.filter((t) => t.year === y).map((t) => `
+        <li>
+          ${t.url ? `<a class="pub-title" href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.title)}</a>` : `<span class="pub-title">${esc(t.title)}</span>`}
+          <p class="pub-venue"><span class="pub-type ${t.type === 'Award' ? 'award-type' : ''}">${esc(t.type)}</span> ${esc(t.where)}</p>
+        </li>`).join('')}</ol>
+    </div>`).join('');
 }
 
 // The table is the readable CV; the profile above is its map.
@@ -687,6 +754,16 @@ function renderContent() {
     ['contact.vcf', 'Add to contacts'],
   ].map(([href, label]) => `<li><a href="${esc(href)}"${external(href)}${href.startsWith('mailto:') ? ` title="${esc(SITE.email)}"` : ''}>${label}${href.endsWith('.vcf') ? iconDown : iconOut}</a></li>`).join('');
 
+  const mail = $('#contactLinks a[href^="mailto:"]');
+  mail.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(SITE.email); } catch { return; }
+    const note = document.createElement('span');
+    note.className = 'copied-note';
+    note.textContent = 'Address copied';
+    mail.after(note);
+    setTimeout(() => note.remove(), 2200);
+  });
+
   $('#cvDownload').href = SITE.cvPdf;
   $('#year').textContent = new Date().getFullYear();
 }
@@ -715,6 +792,7 @@ const COMMANDS = {
   <b class="warn">route cv</b>      the career trail
   <b class="warn">education</b>     schools and degrees
   <b class="warn">papers</b>        publications
+  <b class="warn">talks</b>         talks, posters and awards
   <b class="warn">waypoint</b> &lt;n&gt;  details of one stage
   <b class="warn">skills</b>        equipment check
   <b class="warn">projects</b>      marked routes
@@ -732,7 +810,7 @@ const COMMANDS = {
   <b class="warn">iss</b>           where the space station is right now
   <b class="warn">timelapse</b>     a whole day in 20 seconds (or: timelapse year)
   <b class="warn">download cv</b>   the official PDF
-  <b class="warn">goto</b> &lt;place&gt;   about | timeline | cv | education | publications | skills | projects | contact
+  <b class="warn">goto</b> &lt;place&gt;   about | timeline | cv | education | talks | publications | skills | projects | contact
   <b class="warn">fika</b>          mandatory break
   <b class="warn">clear</b>, <b class="warn">exit</b>
 Tip: Tab completes, ↑ repeats. Some commands are not listed.`,
@@ -764,8 +842,10 @@ ${esc(w.text)}`;
   education: () => 'Education route:\n' + [...SITE.education].reverse().map((e) =>
     `  ${(e.from + '–' + e.to).padEnd(10)} ${esc(e.title)}\n  ${''.padEnd(10)} <span class="cmd">${esc(e.org)}</span>`).join('\n'),
 
+  talks: () => 'Talks, posters and awards:\n' + SITE.talks.map((t) => `  ${t.year}  ${esc(t.type).padEnd(7)} ${esc(t.title)}\n        <span class="cmd">${esc(t.where)}</span>`).join('\n'),
+
   papers: () => `Publications (${SITE.publications.length}):\n` + SITE.publications.map((p) =>
-    `  ${p.year}  <a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title)}</a>\n        <span class="cmd">${esc(p.type)}, ${esc(p.venue)}</span>`).join('\n') +
+    `  ${p.year}  <a href="${esc(linkOf(p))}" target="_blank" rel="noopener">${esc(p.title)}</a>\n        <span class="cmd">${esc(p.type)}, ${esc(venueOf(p))}</span>`).join('\n') +
     `\nAll on <a href="${esc(SITE.scholar)}" target="_blank" rel="noopener">Google Scholar</a>.`,
 
   skills: () => 'Equipment check:\n' + Object.entries(SITE.skills).map(([g, items]) => `  [<span class="ok">✓</span>] ${esc(g)}: ${items.map(esc).join(', ')}`).join('\n'),
@@ -802,7 +882,7 @@ The sun is ${up ? 'up, so this site is in light mode' : 'down, so this site is i
   },
 
   'download cv': () => { const a = document.createElement('a'); a.href = SITE.cvPdf; a.download = ''; a.click(); return `Downloading <a href="${esc(SITE.cvPdf)}">${esc(SITE.cvPdf)}</a>…`; },
-  goto: (arg) => { if (!['about', 'timeline', 'cv', 'education', 'publications', 'skills', 'projects', 'contact'].includes(arg)) return 'Usage: goto about | timeline | cv | education | publications | skills | projects | contact'; setTimeout(() => goTo(arg), 300); return `Navigating to ${arg}…`; },
+  goto: (arg) => { if (!['about', 'timeline', 'cv', 'education', 'publications', 'talks', 'skills', 'projects', 'contact'].includes(arg)) return 'Usage: goto about | timeline | cv | education | publications | talks | skills | projects | contact'; setTimeout(() => goTo(arg), 300); return `Navigating to ${arg}…`; },
 
   fika: () => `Starting mandatory fika…
       ( (
@@ -911,6 +991,7 @@ renderProfile();
 renderEducation();
 renderCvTable();
 renderPublications();
+renderTalks();
 renderContent();
 tickCoords();
 // the first colours are in place: allow smooth fades from now on

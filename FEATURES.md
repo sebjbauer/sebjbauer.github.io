@@ -18,6 +18,7 @@ This file is not part of the website (see `_config.yml`), it only lives in the r
 | `iss` | no value; shows a pretend ISS pass across the sky (needs `sky=night`) |
 | `card` | no value; the clean 1200 × 630 scene used for the link-preview image |
 | `timelapse` | `day` or `year`; plays the time-lapse right after loading |
+| `fika` | no value; the hiker takes a coffee break whatever the time |
 
 These only change what *you* see in that browser tab. Normal visitors always get the live version.
 
@@ -135,6 +136,7 @@ Based on the date in Vienna.
 - **The cottage:** clicking the red cottage switches its light and chimney smoke on or off (no message). On its own, the light is on in the evening, and the chimney smokes in the evening and in autumn and winter.
 - **The deer:** appears at the forest edge only at **dusk and dawn**, and sometimes lowers its head to graze. Clicking it makes it run into the forest (it comes back after 90 seconds).
 - **The Timeline section (mountain trail):** from 2008 to today, above the Career and Education sections. Orange circles (year above the line) mark where each job starts, green diamonds (year below) where each degree starts; a bigger diamond around a circle means both started that year. Every period is shaded faintly under the line; clicking a marker, a Career table row or an Education entry highlights that period. The line turns dashed after today.
+- **Fika:** from 15:00 to 15:15 Vienna time, the hiker sits down on the trail with a steaming cup of coffee.
 - **The hiker:** a small figure with an orange backpack walks along the trail to the latest job when the Career section comes into view. Hovering over or clicking any marker makes them walk there.
 
 ## Life in the landscape
@@ -159,6 +161,36 @@ Everything pauses when the top of the page is scrolled out of view.
 ## Tab icon
 
 The small icon in the browser tab is a **sun during the day** and **tonight's moon phase at night**, drawn live.
+
+## Publications: copy citation and BibTeX
+
+Under every publication there are two small buttons: **Copy citation** (APA style, e.g. "Edwards, S., …, & Brismar, H. (2026). Title. Nano Letters, 26(4), 1321–1326. https://doi.org/…") and **BibTeX**. Both copy to the clipboard and show "Copied". They're built from the fields in `publications` in `script.js` (journal, volume, issue, pages, doi), so new papers get them automatically.
+
+## Email
+
+Clicking **Email** in Contact opens the visitor's mail app *and* copies the address, with a short "Address copied" note, for people without a mail app.
+
+## Talks, posters and awards
+
+A section after Publications (and "Talks" in the menu), grouped by year like the publications, with a Talk / Poster / Award label. Fill it in `talks` in `script.js`:
+
+```js
+{ year: 2026, type: 'Talk', title: 'Title of the talk', where: 'Conference, City', url: 'https://…' },
+```
+
+`url` is optional (slides, poster PDF, programme). If the list is ever empty, the whole section hides itself. Terminal: `talks`.
+
+## Visitor statistics (GoatCounter)
+
+The site sends a cookie-free page count to GoatCounter; no personal data, no consent banner needed. Preview links like `?sky=night` are counted as the normal page.
+
+- **Dashboard:** https://sebjbauer.goatcounter.com (visitors per day, which pages, referrers such as LinkedIn or Google, countries, browsers, screen sizes).
+- **One-time setup:** create a free account at https://www.goatcounter.com/signup with the code **sebjbauer**. Until the account exists, nothing is counted.
+- Visits from `localhost` (testing on your Mac) are not counted.
+
+## Google: who this page is about
+
+Invisible structured data in `index.html` (the `application/ld+json` block) tells Google the name, positions, affiliations (Stockholm University, SciLifeLab, AITHYRA), alumni of (KTH, TU Wien), Vienna, and the profiles (Google Scholar, LinkedIn, GitHub, Bluesky, X). Update it if positions change. You can test it at https://search.google.com/test/rich-results.
 
 ## Link preview
 
@@ -237,6 +269,7 @@ Tab completes commands, ↑ repeats the last one.
 | `smlm` | Microscope stars (clear nights only) |
 | `badges` | Trail badges found so far |
 | `iss` | Where the space station is right now |
+| `talks` | Talks, posters and awards |
 | `timelapse` | A whole day in 20 seconds; `timelapse year` for the seasons |
 | `download cv` | Downloads `cv.pdf` |
 | `goto contact` | Scrolls to a section (`about`, `timeline`, `cv`, `education`, `publications`, `skills`, `projects`, `contact`) |

@@ -249,6 +249,8 @@ skyHooks.push(({ d }) => {
 });
 
 /* ---------------- the hiker on the career trail ---------------- */
+// Fika: from 15:00 to 15:15 Vienna time the hiker sits down with a coffee (preview: ?fika)
+const fikaTime = () => params.has('fika') || (localHour() >= 15 && localHour() < 15.25);
 function setupHiker() {
   const svg = $('#profile'), trail = svg.querySelector('.trail');
   const total = trail.getTotalLength();
@@ -259,11 +261,14 @@ function setupHiker() {
   const start = svg.querySelector('.wp.active') || svg.querySelector('.wp');
 
   svg.insertAdjacentHTML('beforeend', `<g class="hiker" aria-hidden="true"><g class="hk">
-    <rect class="pack" x="-5.5" y="-17" width="4" height="7" rx="1.2"/>
-    <circle cx="0" cy="-20" r="3"/>
-    <line x1="0" y1="-17" x2="0" y2="-9"/>
-    <line class="leg a" x1="0" y1="-9" x2="-2" y2="0"/><line class="leg b" x1="0" y1="-9" x2="2" y2="0"/>
-    <line class="pole" x1="1" y1="-14" x2="5" y2="0"/>
+    <g class="hk-upper">
+      <rect class="pack" x="-5.5" y="-17" width="4" height="7" rx="1.2"/>
+      <circle cx="0" cy="-20" r="3"/>
+      <line x1="0" y1="-17" x2="0" y2="-9"/>
+      <g class="cup"><rect x="2.4" y="-14" width="2.6" height="3" rx=".6"/><path class="steam" d="M3.2 -15.5 q-1 -1.5 0 -3 M4.4 -15.5 q1 -1.5 0 -3"/><line x1="0" y1="-14" x2="2.6" y2="-12.6"/></g>
+    </g>
+    <g class="walk-legs"><line class="leg a" x1="0" y1="-9" x2="-2" y2="0"/><line class="leg b" x1="0" y1="-9" x2="2" y2="0"/><line class="pole" x1="1" y1="-14" x2="5" y2="0"/></g>
+    <path class="sit-legs" d="M0 -5 L4 -7.5 L6 0"/>
   </g></g>`);
   const g = svg.querySelector('.hiker'), hk = g.querySelector('.hk'), legA = g.querySelector('.leg.a'), legB = g.querySelector('.leg.b');
 
@@ -272,6 +277,7 @@ function setupHiker() {
     const pt = trail.getPointAtLength(pos);
     g.setAttribute('transform', `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
     const walking = Math.abs(target - pos) > 0.5;
+    g.classList.toggle('sitting', !walking && fikaTime());
     const swing = walking ? Math.sin(t / 110) * 3 : 0;
     legA.setAttribute('x2', (-swing).toFixed(2)); legB.setAttribute('x2', swing.toFixed(2));
     hk.setAttribute('transform', target < pos ? 'scale(-1 1)' : '');
@@ -291,6 +297,7 @@ function setupHiker() {
   svg.addEventListener('mouseleave', () => { const a = svg.querySelector('.wp.active'); if (a) { target = stops[a.dataset.k]; go(); } });
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; go(); }, { threshold: 0.4 }).observe(svg);
   place(0);
+  setInterval(() => { if (!raf) place(0); }, 30000); // sit down for fika at 15:00, get up at 15:15
 }
 
 /* ---------------- the deer (dusk and dawn only) ---------------- */
