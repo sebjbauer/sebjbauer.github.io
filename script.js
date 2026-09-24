@@ -4,8 +4,13 @@
    ===================================================================== */
 const SITE = {
   name: 'Sebastian Bauer',
-  intro: 'Placeholder: one sentence on what you do. Based in Vienna, Austria.',
-  role: 'placeholder job title',
+  // The lines under your name at the top. [Text](link) becomes a link.
+  headline: [
+    'PhD Student in Bioinformatics @[Stockholm University](https://www.su.se) and @[SciLifeLab](https://www.scilifelab.se)',
+    'Guest Researcher @[AITHYRA](https://aithyra.at)',
+  ],
+  location: 'Vienna, Austria',
+  role: 'PhD student in Bioinformatics, guest researcher at AITHYRA',
   // One line about what you're doing right now, and when you last updated it (YYYY-MM).
   now: { text: "Placeholder: what you're working on, reading or training for right now.", updated: '2026-09' },
   email: 'sebastian.bauer@scilifelab.se',
@@ -192,7 +197,7 @@ function paintSky() {
   const p = isDay ? (h - sunT.rise) / (sunT.set - sunT.rise) : (((h - sunT.set) + 24) % 24) / nightLen;
   if (sun.classList.contains('moon') === isDay) sun.classList.toggle('moon', !isDay);
   const narrow = innerWidth < 760;
-  const left = ((narrow ? 20 : 48) + p * (narrow ? 70 : 46)).toFixed(2) + '%', top = ((narrow ? 58 : 62) - Math.sin(p * Math.PI) * (narrow ? 12 : 44)).toFixed(2) + '%';
+  const left = ((narrow ? 20 : 48) + p * (narrow ? 70 : 46)).toFixed(2) + '%', top = ((narrow ? 63 : 62) - Math.sin(p * Math.PI) * (narrow ? 6 : 44)).toFixed(2) + '%';
   if (sun.style.left !== left) sun.style.left = left;
   if (sun.style.top !== top) sun.style.top = top;
   skyHooks.forEach((fn) => fn({ h, d, isDay, sunT }));
@@ -629,7 +634,10 @@ const external = (url) => url.startsWith('http') ? ' target="_blank" rel="noopen
 const iconOut = '<svg class="i" aria-hidden="true"><use href="#i-out"/></svg>';
 
 function renderContent() {
-  $('#heroLine').textContent = SITE.intro;
+  // [Text](url) → link
+  const linkify = (t) => esc(t).replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => `<a href="${url}" target="_blank" rel="noopener">${label}</a>`);
+  $('#heroLines').innerHTML = SITE.headline.map((l) => `<span>${linkify(l)}</span>`).join('');
+  $('#heroPlace').textContent = SITE.location;
   $('#nowText').textContent = SITE.now.text;
   const [ny, nm] = SITE.now.updated.split('-').map(Number);
   $('#nowDate').textContent = `Updated ${new Date(ny, nm - 1).toLocaleString('en-GB', { month: 'long', year: 'numeric' })}`;

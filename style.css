@@ -162,7 +162,12 @@ kbd {
   font-size: clamp(52px, 9.5vw, 96px); line-height: 0.95; letter-spacing: -0.035em;
   font-weight: 600; margin: 0; text-wrap: balance;
 }
-.hero-line { font-size: clamp(19px, 2vw, 24px); line-height: 1.4; margin: 20px 0 0; max-width: 32ch; }
+.hero-line { font-size: clamp(18px, 1.9vw, 23px); line-height: 1.45; margin: 20px 0 0; max-width: 44ch; }
+.hero-line span { display: block; }
+.hero-line a { text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
+.hero-line a:hover { color: inherit; text-decoration-thickness: 2px; }
+.hero-place { display: flex; align-items: center; gap: 6px; font-size: clamp(16px, 1.6vw, 19px); margin: 10px 0 0; }
+.hero-place .i { width: 1.05em; height: 1.05em; }
 .hero-time { font-size: 15px; color: var(--hero-soft); margin: 14px 0 0; }
 
 /* ---------- live weather ---------- */
@@ -260,12 +265,14 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 .section .body { border-top: 1px solid var(--line); padding-top: 18px; margin: 0; }
 
 /* about */
-.about { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 36px; align-items: start; }
-.photo {
-  aspect-ratio: 4 / 5; background: var(--raised);
-  display: grid; place-items: center; color: var(--muted); font-size: 14px; overflow: hidden;
+.about { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 36px; align-items: start; }
+/* cut-out portrait standing in front of a soft disc, like the sun behind the mountains */
+.photo { position: relative; aspect-ratio: 1; }
+.photo::before {
+  content: ''; position: absolute; left: 6%; right: 6%; top: 10%; aspect-ratio: 1; border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg));
 }
-.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo img { position: relative; width: 100%; height: 100%; object-fit: contain; display: block; }
 .about p { margin: 0 0 16px; max-width: 62ch; color: var(--muted); }
 .about .now { color: var(--text); font-size: 17px; margin: 0 0 22px; }
 .now strong { font-weight: 600; margin-right: 6px; }
@@ -434,7 +441,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
   .section { grid-template-columns: minmax(0, 1fr); padding-top: 72px; }
   .section h2 { border-top: 0; padding-top: 0; margin-bottom: 12px; }
   .about { grid-template-columns: minmax(0, 1fr); gap: 24px; }
-  .photo { max-width: 180px; }
+  .photo { max-width: 220px; }
   .skills { grid-template-columns: minmax(0, 1fr); }
   .skills dt { border-bottom: 0; padding-bottom: 0; }
   .skills dd:first-of-type { padding-top: 0; }
