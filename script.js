@@ -62,7 +62,11 @@ const PHASES = {
 let forcedHour = null;
 // Live conditions, filled in by extras.js from real weather data
 const live = { overcast: 0, particle: null, fog: 0 };
-const skyHooks = [];   // extras.js hooks in here: fn({ h, d, isDay, sunT })
+const skyHooks = [];
+// Only touch the page when a value really changes: on phones every change restyles the whole landscape.
+const varCache = {};
+function setVar(k, v) { v = String(v); if (varCache[k] !== v) { varCache[k] = v; document.documentElement.style.setProperty(k, v); } }
+function setData(k, v) { if (document.documentElement.dataset[k] !== v) document.documentElement.dataset[k] = v; }   // extras.js hooks in here: fn({ h, d, isDay, sunT })
 
 const hex2rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 const rgb2hex = (c) => '#' + c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
@@ -119,18 +123,18 @@ function paintSky() {
     v.skyBot = mix(v.skyBot, grey, live.overcast * 0.5);
     v.stars *= 1 - live.overcast; v.aurora *= 1 - live.overcast;
   }
-  root.setProperty('--cloud', mix(mix('#F7F8FA', '#9AA3AB', live.overcast), '#23272B', d));
-  root.setProperty('--fog', mix('#E6E9EC', '#1C1F22', d));
-  root.setProperty('--fog-o', live.fog);
-  root.setProperty('--sky-top', v.skyTop); root.setProperty('--sky-bot', v.skyBot);
-  root.setProperty('--far', v.far); root.setProperty('--mid', v.mid);
-  root.setProperty('--snow', v.snow); root.setProperty('--lake', v.lake);
-  root.setProperty('--sun', v.sun); root.setProperty('--stars', v.stars);
-  root.setProperty('--aurora', v.aurora); root.setProperty('--window', v.window);
-  document.documentElement.dataset.night = v.stars > 0.04 || v.aurora > 0.02 ? 'yes' : 'no';
+  setVar('--cloud', mix(mix('#F7F8FA', '#9AA3AB', live.overcast), '#23272B', d));
+  setVar('--fog', mix('#E6E9EC', '#1C1F22', d));
+  setVar('--fog-o', live.fog);
+  setVar('--sky-top', v.skyTop); setVar('--sky-bot', v.skyBot);
+  setVar('--far', v.far); setVar('--mid', v.mid);
+  setVar('--snow', v.snow); setVar('--lake', v.lake);
+  setVar('--sun', v.sun); setVar('--stars', v.stars);
+  setVar('--aurora', v.aurora); setVar('--window', v.window);
+  setData('night', v.stars > 0.04 || v.aurora > 0.02 ? 'yes' : 'no');
   const bright = (lum(v.skyTop) + lum(v.skyBot)) / 2 > 0.42;
-  root.setProperty('--hero-ink', bright ? '#111111' : '#EDEDED');
-  root.setProperty('--hero-soft', bright ? '#3D3D3B' : '#C9C9C6');
+  setVar('--hero-ink', bright ? '#111111' : '#EDEDED');
+  setVar('--hero-soft', bright ? '#3D3D3B' : '#C9C9C6');
 
   // page colours fade from white to black through twilight where you work
   const isDay = h >= sunT.rise && h < sunT.set;
@@ -140,10 +144,11 @@ function paintSky() {
   const sun = $('#sun');
   const nightLen = 24 - (sunT.set - sunT.rise);
   const p = isDay ? (h - sunT.rise) / (sunT.set - sunT.rise) : (((h - sunT.set) + 24) % 24) / nightLen;
-  sun.classList.toggle('moon', !isDay);
+  if (sun.classList.contains('moon') === isDay) sun.classList.toggle('moon', !isDay);
   const narrow = innerWidth < 760;
-  sun.style.left = (narrow ? 20 : 48) + p * (narrow ? 70 : 46) + '%';
-  sun.style.top = (narrow ? 58 : 62) - Math.sin(p * Math.PI) * (narrow ? 12 : 44) + '%';
+  const left = ((narrow ? 20 : 48) + p * (narrow ? 70 : 46)).toFixed(2) + '%', top = ((narrow ? 58 : 62) - Math.sin(p * Math.PI) * (narrow ? 12 : 44)).toFixed(2) + '%';
+  if (sun.style.left !== left) sun.style.left = left;
+  if (sun.style.top !== top) sun.style.top = top;
   skyHooks.forEach((fn) => fn({ h, d, isDay, sunT }));
 }
 
@@ -163,16 +168,16 @@ function applyTheme(d) {
   // the background fades smoothly; text flips where both inks have the same contrast
   const lightInk = lum(bg) < 0.46;
   const ink = lightInk ? DARK : LIGHT;
-  st.setProperty('--bg', bg);
-  st.setProperty('--text', ink.text);
-  st.setProperty('--accent', ink.accent);
-  st.setProperty('--muted', mix(ink.text, bg, 0.4));
-  st.setProperty('--raised', mix(bg, ink.text, 0.04));
-  st.setProperty('--line', mix(bg, ink.text, 0.1));
-  st.setProperty('--line-strong', mix(bg, ink.text, 0.2));
-  st.setProperty('--tree', mix(LIGHT.tree, DARK.tree, d));
-  root.dataset.theme = lightInk ? 'dark' : 'light';
-  document.querySelector('meta[name="theme-color"]').content = bg;
+  setVar('--bg', bg);
+  setVar('--text', ink.text);
+  setVar('--accent', ink.accent);
+  setVar('--muted', mix(ink.text, bg, 0.4));
+  setVar('--raised', mix(bg, ink.text, 0.04));
+  setVar('--line', mix(bg, ink.text, 0.1));
+  setVar('--line-strong', mix(bg, ink.text, 0.2));
+  setVar('--tree', mix(LIGHT.tree, DARK.tree, d));
+  setData('theme', lightInk ? 'dark' : 'light');
+  const meta = document.querySelector('meta[name="theme-color"]'); if (meta.content !== bg) meta.content = bg;
   applySeason(d, bg);
 }
 
@@ -194,10 +199,10 @@ function currentSeason() {
 
 function applySeason(d, bg) {
   const name = currentSeason(), season = SEASONS[name], root = document.documentElement, st = root.style;
-  root.dataset.season = name;
-  st.setProperty('--ground', season.ground ? mix(season.ground[0], season.ground[1], d) : bg);
-  season.leaves.forEach((c, i) => st.setProperty(`--leaf-${i + 1}`, mix(c, '#0C0C0C', d * 0.85)));
-  st.setProperty('--flower-o', (1 - d * 0.75).toFixed(2));
+  setData('season', name);
+  setVar('--ground', season.ground ? mix(season.ground[0], season.ground[1], d) : bg);
+  season.leaves.forEach((c, i) => setVar(`--leaf-${i + 1}`, mix(c, '#0C0C0C', d * 0.85)));
+  setVar('--flower-o', (1 - d * 0.75).toFixed(2));
   // real rain or snow wins over the seasonal decoration
   weather.set(live.particle || { winter: 'snow', autumn: 'leaves', spring: 'petals', summer: d > 0.6 ? 'fireflies' : null }[name], season.leaves, d);
 }
@@ -328,16 +333,16 @@ const weather = (() => {
 })();
 
 function renderStars() {
-  const svg = $('#stars');
   let seed = 7;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  let out = '';
+  const layers = ['', '', '', ''];
   for (let i = 0; i < 140; i++) {
-    const x = rnd() * 1440, y = rnd() * 360, r = 0.4 + rnd() * 1.2;
-    const tw = rnd() < 0.3 ? ` class="tw" style="animation-delay:${(rnd() * 4).toFixed(1)}s"` : '';
-    out += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(2)}" opacity="${(0.4 + rnd() * 0.6).toFixed(2)}"${tw}/>`;
+    const x = rnd() * 1440, y = rnd() * 360, r = 0.4 + rnd() * 1.2, o = 0.4 + rnd() * 0.6;
+    const layer = rnd() < 0.3 ? 1 + Math.floor(rnd() * 3) : 0; // 30% twinkle, split over three layers
+    layers[layer] += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(2)}" opacity="${o.toFixed(2)}"/>`;
   }
-  svg.innerHTML = out;
+  $('#starfield').innerHTML = layers.map((c, i) =>
+    `<svg class="${i ? `tw tw${i}` : ''}" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMin slice">${c}</svg>`).join('');
 }
 
 function renderTrees() {

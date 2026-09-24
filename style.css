@@ -53,7 +53,7 @@ body {
   font-variant-numeric: tabular-nums;
   caret-color: var(--accent);
   -webkit-font-smoothing: antialiased;
-  transition: background-color .6s, color .6s;
+  transition: background-color .6s;
 }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
 a:hover { color: var(--accent); }
@@ -90,18 +90,30 @@ kbd {
   color: var(--hero-ink);
 }
 .sky-layer { position: absolute; inset: 0; width: 100%; height: 100%; }
-#stars { opacity: var(--stars); transition: opacity 2s; }
-#stars circle { fill: #fff; }
-#stars .tw { animation: twinkle 4s ease-in-out infinite; }
+.starfield { position: absolute; inset: 0; opacity: var(--stars); transition: opacity 2s; pointer-events: none; }
+.starfield svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.starfield circle { fill: #fff; }
+.starfield .tw { will-change: opacity; animation: twinkle 4s ease-in-out infinite; }
+.starfield .tw2 { animation-delay: -1.4s; animation-duration: 5s; }
+.starfield .tw3 { animation-delay: -2.7s; animation-duration: 3.6s; }
 @keyframes twinkle { 50% { opacity: .25; } }
-/* The blurred aurora is drawn once; only the whole layer moves, which phones handle on the GPU. */
-.aurora { opacity: var(--aurora); transition: opacity 2s; will-change: transform; animation: aurora 18s ease-in-out infinite alternate; }
+/* Northern lights from soft colour fades: no blur filter, only the whole layer moves (GPU-friendly). */
+.aurora {
+  position: absolute; left: 28%; right: -8%; top: 4%; height: 46%; pointer-events: none;
+  opacity: var(--aurora); transition: opacity 2s; will-change: transform; animation: aurora 18s ease-in-out infinite alternate;
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0, rgba(0, 0, 0, .5) 13px, #000 26px);
+  mask: repeating-linear-gradient(90deg, #000 0, rgba(0, 0, 0, .5) 13px, #000 26px);
+}
+.aur { position: absolute; }
+.a1 { left: 16%; right: 0; top: 22%; height: 38%; transform: rotate(-8deg); background: radial-gradient(closest-side, rgba(127, 224, 176, .55), rgba(127, 224, 176, .18) 55%, rgba(127, 224, 176, 0)); }
+.a2 { left: 34%; right: 0; top: 4%; height: 32%; transform: rotate(-5deg); background: radial-gradient(closest-side, rgba(143, 217, 200, .42), rgba(156, 140, 255, .14) 55%, rgba(156, 140, 255, 0)); }
+.a3 { left: 2%; right: 46%; top: 40%; height: 30%; transform: rotate(-11deg); background: radial-gradient(closest-side, rgba(95, 200, 150, .38), rgba(95, 200, 150, 0)); }
 @keyframes aurora {
   0% { transform: translateX(0) scaleY(1); }
   100% { transform: translateX(-50px) scaleY(1.12); }
 }
-[data-night="no"] #stars, [data-night="no"] .aurora { visibility: hidden; animation-play-state: paused; }
-[data-night="no"] #stars .tw { animation-play-state: paused; }
+[data-night="no"] .starfield, [data-night="no"] .aurora { visibility: hidden; }
+[data-night="no"] .starfield .tw, [data-night="no"] .aurora { animation-play-state: paused; }
 .hero.off *, .hero.off *::before { animation-play-state: paused !important; }
 .sun {
   position: absolute; width: 52px; height: 52px; border-radius: 50%;
@@ -138,7 +150,7 @@ kbd {
   animation: spin 80s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-#trees path { fill: var(--tree); transition: fill .6s; }
+#trees path { fill: var(--tree); }
 .l-snow { fill: var(--snow); transition: fill 1.5s; }
 .l-cross { stroke: var(--snow); stroke-width: 2; fill: none; }
 .l-lake { fill: var(--lake); transition: fill 1.5s; }
@@ -222,7 +234,9 @@ kbd {
 .shooting-star.caught { animation: caught .6s ease-out forwards; }
 .shooting-star.caught::before { background: linear-gradient(to right, #F2C94C, rgba(242, 201, 76, 0)); }
 @keyframes caught { to { transform: scale(1.6) rotate(-22deg); opacity: 0; } }
-.aurora-storm .aurora { opacity: 1 !important; filter: saturate(1.7) brightness(1.4); transition: opacity 1s; }
+.aurora-storm .aurora { opacity: 1 !important; transition: opacity 1s; }
+.aurora-storm .a1, .aurora-storm .a2, .aurora-storm .a3 { opacity: 1; filter: none; }
+.aurora-storm .a1 { background: radial-gradient(closest-side, rgba(127, 240, 180, .85), rgba(127, 240, 180, .3) 55%, rgba(127, 240, 180, 0)); }
 .aurora-storm .aurora { animation-duration: 4s; }
 
 .toast {

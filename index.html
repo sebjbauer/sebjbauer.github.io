@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=202609242135">
 </head>
 <body>
 
@@ -32,27 +32,10 @@
 
 <!-- ============ HERO: live sky + Austria/Sweden landscape ============ -->
 <section class="hero" id="top">
-  <svg class="sky-layer" id="stars" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMin slice" aria-hidden="true"></svg>
+  <div class="starfield" id="starfield" aria-hidden="true"></div>
 
-  <svg class="sky-layer aurora" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
-    <defs>
-      <filter id="blur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="22"/></filter>
-      <linearGradient id="aur1" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#7FE0B0" stop-opacity="0"/>
-        <stop offset=".55" stop-color="#7FE0B0" stop-opacity=".55"/>
-        <stop offset="1" stop-color="#3FB58A" stop-opacity="0"/>
-      </linearGradient>
-      <linearGradient id="aur2" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#9C8CFF" stop-opacity="0"/>
-        <stop offset=".5" stop-color="#8FD9C8" stop-opacity=".4"/>
-        <stop offset="1" stop-color="#7FE0B0" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-    <g filter="url(#blur)">
-      <path class="aur a1" fill="url(#aur1)" d="M760 60 C900 120 1000 40 1120 110 C1220 170 1320 90 1440 140 L1440 330 C1320 280 1220 360 1120 300 C1000 230 900 310 760 250 Z"/>
-      <path class="aur a2" fill="url(#aur2)" d="M900 20 C1020 90 1120 10 1240 70 C1330 115 1400 60 1440 80 L1440 240 C1380 220 1320 270 1230 230 C1120 180 1020 250 900 190 Z"/>
-    </g>
-  </svg>
+  <!-- northern lights: soft colour fades, no blur filter (blur is very slow on iPhones) -->
+  <div class="aurora" aria-hidden="true"><div class="aur a1"></div><div class="aur a2"></div><div class="aur a3"></div></div>
 
   <div class="sun" id="sun" aria-hidden="true"></div>
 
@@ -222,7 +205,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="script.js"></script>
-<script src="extras.js"></script>
+<script src="script.js?v=202609242135"></script>
+<script src="extras.js?v=202609242135"></script>
 </body>
 </html>

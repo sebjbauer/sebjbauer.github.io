@@ -211,7 +211,7 @@ function setupCottage() {
 // smoke rises from the chimney when the stove is lit (evenings, and colder seasons)
 skyHooks.push(({ d }) => {
   const cold = ['winter', 'autumn'].includes(currentSeason()) || live.particle === 'snow';
-  document.documentElement.dataset.smoke = d > 0.5 || (cold && d > 0.2) ? 'on' : 'off';
+  setData('smoke', d > 0.5 || (cold && d > 0.2) ? 'on' : 'off');
 });
 
 /* ---------------- the hiker on the career trail ---------------- */
