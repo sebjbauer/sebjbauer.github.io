@@ -49,7 +49,7 @@ Everything at the top of the page follows the real conditions in **Vienna** (set
 - **Stars:** they appear after sunset and some twinkle.
 - **Northern lights:** faint green light over the Swedish side of the landscape, at night only.
 - **Clock:** "It's 21:05:19 in Vienna." ticks every second and handles summer and winter time automatically.
-- **Greeting:** changes with the time of day, in German and Swedish ("Guten Morgen, god morgon.").
+- **Greeting:** changes with the time of day, in English, German and Swedish ("Good morning · Guten Morgen · God morgon.").
 
 ## Light and dark mode
 
@@ -87,9 +87,9 @@ Based on the date in Vienna.
 
 | Holiday | When | What appears |
 |---|---|---|
-| Christmas | 24–26 December | Decorated Christmas tree with a star next to the cottage, blinking lights on the cottage roof, greeting "Frohe Weihnachten, god jul." |
-| Easter Sunday | Calculated each year (2026: 5 April, 2027: 28 March) | Coloured eggs and a bunny in the meadow, greeting "Frohe Ostern, glad påsk." |
-| Midsommar | Swedish Midsummer Eve (Friday 19–25 June) and the Saturday after | Flower-covered maypole next to the cottage, greeting "Glad midsommar!" |
+| Christmas | 24–26 December | Decorated Christmas tree with a star next to the cottage, blinking lights on the cottage roof, greeting "Merry Christmas · Frohe Weihnachten · God jul." |
+| Easter Sunday | Calculated each year (2026: 5 April, 2027: 28 March) | Coloured eggs and a bunny in the meadow, greeting "Happy Easter · Frohe Ostern · Glad påsk." |
+| Midsommar | Swedish Midsummer Eve (Friday 19–25 June) and the Saturday after | Flower-covered maypole next to the cottage, greeting "Happy Midsummer · Glad midsommar!" |
 
 ## Things visitors can find and click
 

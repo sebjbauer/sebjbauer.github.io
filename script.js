@@ -452,12 +452,13 @@ function fitLandscape() {
 /* ---------------- hero text ---------------- */
 let specialGreeting = () => null; // extras.js sets this on Christmas, Easter and Midsommar
 
+// Greeting in English, German and Swedish
 function greeting(h) {
-  if (h < 5) return 'God natt, or rather, still up?';
-  if (h < 11) return 'Guten Morgen, god morgon.';
-  if (h < 17) return 'Servus, hej.';
-  if (h < 22) return 'Guten Abend, god kväll.';
-  return 'Gute Nacht, god natt.';
+  if (h < 5) return 'Still up? · Noch wach? · Fortfarande vaken?';
+  if (h < 11) return 'Good morning · Guten Morgen · God morgon.';
+  if (h < 17) return 'Hello · Servus · Hej.';
+  if (h < 22) return 'Good evening · Guten Abend · God kväll.';
+  return 'Good night · Gute Nacht · God natt.';
 }
 
 function tickClock() {

@@ -132,7 +132,7 @@ function holidayToday() {
   return null;
 }
 
-const HOLIDAY_GREETING = { christmas: 'Frohe Weihnachten, god jul.', easter: 'Frohe Ostern, glad påsk.', midsommar: 'Glad midsommar!' };
+const HOLIDAY_GREETING = { christmas: 'Merry Christmas · Frohe Weihnachten · God jul.', easter: 'Happy Easter · Frohe Ostern · Glad påsk.', midsommar: 'Happy Midsummer · Glad midsommar!' };
 specialGreeting = () => HOLIDAY_GREETING[holidayToday()] || null;
 
 function applyHoliday() {
