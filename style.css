@@ -61,6 +61,8 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 a:hover { color: var(--accent); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
 ::selection { background: var(--accent); color: var(--bg); }
+.skip-link { position: absolute; left: 16px; top: -60px; z-index: 100; background: var(--text); color: var(--bg); padding: 10px 14px; border-radius: 6px; text-decoration: none; }
+.skip-link:focus { top: 12px; }
 kbd {
   font-family: var(--mono); font-size: 0.72em; line-height: 1;
   border: 1px solid currentColor; border-radius: 3px; padding: 2px 4px; opacity: .8;
@@ -162,6 +164,12 @@ kbd {
 .l-shimmer { stroke: var(--snow); stroke-width: 1.2; opacity: .35; }
 .window { fill: #F4C95D; opacity: var(--window); }
 
+/* a soft shade behind the hero text, only visible at dawn and dusk when the sky alone isn't enough */
+.hero-text::before {
+  content: ''; position: absolute; inset: 0 -10px; z-index: -1; pointer-events: none; border-radius: 40px;
+  background: var(--hero-shade, transparent); box-shadow: 0 0 70px 50px var(--hero-shade, transparent);
+}
+.hero-text { isolation: isolate; }
 .hero-text { position: absolute; z-index: 2; left: clamp(16px, 5vw, 64px); right: 16px; top: 22vh; max-width: 900px; }
 .hero h1 {
   font-size: clamp(52px, 9.5vw, 96px); line-height: 0.95; letter-spacing: -0.035em;

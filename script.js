@@ -131,6 +131,11 @@ const hex2rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 const rgb2hex = (c) => '#' + c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
 const mix = (a, b, t) => (typeof a === 'number' ? a + (b - a) * t : rgb2hex(hex2rgb(a).map((v, i) => v + (hex2rgb(b)[i] - v) * t)));
 const lum = (h) => { const [r, g, b] = hex2rgb(h).map((v) => v / 255); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+// WCAG contrast ratio between two colours (1 to 21)
+const relLum = (h) => { const [r, g, b] = hex2rgb(h).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const contrast = (a, b) => { const [x, y] = [relLum(a), relLum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+// move `color` towards `ink` just enough to reach `min` contrast on `bg` (keeps the page readable at twilight)
+const readable = (color, bg, ink, min = 4.5) => { let c = color; for (let t = 0.1; contrast(c, bg) < min && t <= 1; t += 0.1) c = mix(color, ink, t); return c; };
 const fmtHour = (h) => { const m = Math.round((((h % 24) + 24) % 24) * 60); return `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
 
 function localHour() {
@@ -195,9 +200,22 @@ function paintSky() {
   setVar('--sun', v.sun); setVar('--stars', v.stars);
   setVar('--aurora', v.aurora); setVar('--window', v.window);
   setData('night', v.stars > 0.04 || v.aurora > 0.02 ? 'yes' : 'no');
-  const bright = (lum(v.skyTop) + lum(v.skyBot)) / 2 > 0.42;
-  setVar('--hero-ink', bright ? '#111111' : '#EDEDED');
-  setVar('--hero-soft', bright ? '#3D3D3B' : '#C9C9C6');
+  // Text over the sky: pick white or near-black against three points of the sky behind it. At dawn
+  // and dusk no ink works everywhere, so a soft shade appears behind the text, only as strong as
+  // needed for 4.5:1 contrast (invisible most of the day).
+  const behind = [0.2, 0.42, 0.65].map((k) => mix(v.skyTop, v.skyBot, k));
+  const worstOn = (ink, bgs) => Math.min(...bgs.map((b) => contrast(ink, b)));
+  const heroInk = worstOn('#FFFFFF', behind) >= worstOn('#111111', behind) ? '#FFFFFF' : '#111111';
+  const shadeColor = heroInk === '#FFFFFF' ? '#000000' : '#FFFFFF';
+  let shade = 0;
+  while (shade < 0.7 && worstOn(heroInk, behind.map((b) => mix(b, shadeColor, shade))) < 4.5) shade += 0.05;
+  const shaded = behind.map((b) => mix(b, shadeColor, shade));
+  let soft = mix(heroInk, behind[2], 0.25);
+  for (let k = 0.1; k <= 1 && worstOn(soft, shaded) < 4.5; k += 0.1) soft = mix(mix(heroInk, behind[2], 0.25), heroInk, k);
+  const [sr, sg, sb] = hex2rgb(shadeColor);
+  setVar('--hero-ink', heroInk);
+  setVar('--hero-soft', soft);
+  setVar('--hero-shade', `rgba(${sr}, ${sg}, ${sb}, ${shade.toFixed(2)})`);
 
   // page colours fade from white to black through twilight where you work
   const isDay = h >= sunT.rise && h < sunT.set;
@@ -245,16 +263,18 @@ function applyTheme(d) {
   const root = document.documentElement, st = root.style;
   const pageD = themeMode === 'light' ? 0 : themeMode === 'dark' ? 1 : d;
   const bg = mix(LIGHT.bg, DARK.bg, pageD);
-  // the background fades smoothly; text flips where both inks have the same contrast
-  const lightInk = lum(bg) < 0.46;
+  // The background fades smoothly; the text uses whichever ink reads better on it. On the grey of
+  // twilight the ink is pushed towards pure black or white, so every text colour stays ≥ 4.5:1.
+  const lightInk = contrast(DARK.text, bg) >= contrast(LIGHT.text, bg);
   const ink = lightInk ? DARK : LIGHT;
+  const text = readable(ink.text, bg, lightInk ? '#FFFFFF' : '#000000');
   setVar('--bg', bg);
-  setVar('--text', ink.text);
+  setVar('--text', text);
   const [accentLight, accentDark] = accentPair();
-  setVar('--accent', lightInk ? accentDark : accentLight);
+  setVar('--accent', readable(lightInk ? accentDark : accentLight, bg, text));
   setVar('--accent-night', accentDark); // the terminal is always dark
-  setVar('--edu', ink.edu);
-  setVar('--muted', mix(ink.text, bg, 0.4));
+  setVar('--edu', readable(ink.edu, bg, text));
+  setVar('--muted', readable(mix(text, bg, 0.4), bg, text));
   setVar('--raised', mix(bg, ink.text, 0.04));
   setVar('--line', mix(bg, ink.text, 0.1));
   setVar('--line-strong', mix(bg, ink.text, 0.2));
@@ -663,7 +683,8 @@ async function copyTo(btn, text) {
 // Publications grouped by year, your name in bold
 function renderPublications() {
   const years = [...new Set(SITE.publications.map((p) => p.year))].sort((a, b) => b - a);
-  const bold = (authors) => esc(authors).replace(esc(SITE.me), `<strong>${esc(SITE.me)}</strong>`);
+  // keep every name together ("R. Peters" never breaks after the initial), and put your own name in bold
+  const bold = (authors) => esc(authors).replace(esc(SITE.me), `<strong>${esc(SITE.me)}</strong>`).replace(/(\S) (?=\S)(?![^<]*>)/g, (m, c) => (c === ',' ? m : `${c}\u00a0`));
   $('#pubList').innerHTML = years.map((y) => `
     <div class="pub-year">
       <h3>${y}</h3>

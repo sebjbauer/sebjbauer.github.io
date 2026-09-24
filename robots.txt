@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://sebjbauer.github.io/sitemap.xml

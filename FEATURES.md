@@ -326,6 +326,14 @@ Tab completes commands, ↑ repeats the last one.
 | `hej`, `servus` | Greetings back |
 | `rm -rf /` | "Avalanche warning. Permission denied." |
 
+## Quality (checked 24 September 2026)
+
+- **Readability:** every text colour keeps at least 4.5:1 contrast at every moment: through twilight, in every season, and over the live sky (a soft shade appears behind the name at dawn and dusk only when needed).
+- **Keyboard and screen readers:** a "Skip to content" link appears when pressing Tab; all buttons have names; the photo has a description.
+- **Google:** page title "Sebastian Bauer · PhD student in Bioinformatics", a canonical address, `robots.txt` and `sitemap.xml`, plus the structured data described above.
+- **Size:** about 115 KB for a first visit (page, styles, scripts, fonts); the photo only loads when scrolling to About.
+- **Tested:** all links and DOIs work; the HTML passes the W3C validator; no script errors in Safari's engine (iPhone size) or Chrome.
+
 ## Where things live in the code
 
 | What | File |
@@ -338,6 +346,7 @@ Tab completes commands, ↑ repeats the last one.
 | Notes: the list of published notes / the notes themselves | `notes/notes.json` / `notes/*.md` |
 | Page for a single note, and the Markdown renderer | `note.html`, `notes.js` |
 | Link-preview image | `og-image.jpg` |
+| For search engines | `robots.txt`, `sitemap.xml` |
 | Landscape drawing (mountains, trees, cottage, deer, decorations) | `index.html`, inside the hero section |
 | Colours, fonts, layout, animations | `style.css` |
 
