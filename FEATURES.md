@@ -180,6 +180,41 @@ A section after Publications (and "Talks" in the menu), grouped by year like the
 
 `url` is optional (slides, poster PDF, programme). If the list is ever empty, the whole section hides itself. Terminal: `talks`.
 
+## Notes (short posts)
+
+A **Notes** section (and "Notes" in the menu) appears on the home page as soon as the first note exists. Each note gets its own page, `note.html?n=<name>`, in the same style, with light/dark following daylight in Vienna and the seasonal accent colour.
+
+**To publish a note:**
+
+1. Create a text file in the `notes/` folder, e.g. `notes/flow-matching.md`, starting like this:
+
+   ```
+   ---
+   title: What flow matching does for microscopy
+   date: 2026-10-01
+   summary: One sentence shown in the list on the home page.
+   ---
+   Your text. **Bold**, *italic*, [a link](https://example.com), `code`.
+
+   # A heading
+
+   - a list
+   - of points
+
+   > A quote.
+
+   ![Figure caption](notes/figure.png)
+   ```
+
+2. Add the file name to `notes/notes.json`, which is a list: `["flow-matching.md"]`. With several notes: `["flow-matching.md", "second-note.md"]`. The order doesn't matter; the site sorts them by date, newest first.
+3. `git add .`, `git commit -m "New note"`, `git push`.
+
+Images go in the `notes/` folder too. Or just send the text to Claude and ask it to publish the note.
+
+## Last updated
+
+The footer shows "Last updated 24 September 2026", the date of the latest push to GitHub (read from the GitHub API; if that isn't reachable, the line is simply left out).
+
 ## Visitor statistics (GoatCounter)
 
 The site sends a cookie-free page count to GoatCounter; no personal data, no consent banner needed. Preview links like `?sky=night` are counted as the normal page.
@@ -256,7 +291,7 @@ Tab completes commands, ↑ repeats the last one.
 | `waypoint 1` … | Details of one career stage (also highlights it on the page) |
 | `skills` | Skills as an "equipment check" |
 | `projects` | Projects as "marked routes" |
-| `contact` | Email, LinkedIn, GitHub, Google Scholar, Bluesky, X |
+| `contact` | Email, LinkedIn, GitHub, Google Scholar, ORCID, Bluesky, X |
 | `now` | The "Now" line |
 | `weather` | Live weather in Vienna |
 | `weather rain` | Simulates weather (`clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`, `frost`, `rainbow`); `weather live` goes back |
@@ -300,6 +335,8 @@ Tab completes commands, ↑ repeats the last one.
 | Moon, weather, holidays, shooting stars, cottage, hiker, deer, riddle | `extras.js` |
 | Microscope stars, penguin, cyclist, skier, birds, ducks, ice skater, badges | `gadgets.js` |
 | Contact card | `contact.vcf` |
+| Notes: the list of published notes / the notes themselves | `notes/notes.json` / `notes/*.md` |
+| Page for a single note, and the Markdown renderer | `note.html`, `notes.js` |
 | Link-preview image | `og-image.jpg` |
 | Landscape drawing (mountains, trees, cottage, deer, decorations) | `index.html`, inside the hero section |
 | Colours, fonts, layout, animations | `style.css` |

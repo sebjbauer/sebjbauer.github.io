@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en" class="note-page">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notes · Sebastian Bauer</title>
+  <meta name="description" content="Notes by Sebastian Bauer.">
+  <meta name="theme-color" content="#0A0A0A">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=20260924232547">
+  <script>
+    // Same colours as the home page: white while the sun is up in Vienna, black after dark
+    // (or the visitor's own choice from the switch), with the seasonal accent colour.
+    (function () {
+      const tz = 'Europe/Vienna', lat = 48.21, lon = 16.37, now = new Date(), rad = Math.PI / 180;
+      const parts = new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: 'numeric', minute: 'numeric', month: 'numeric', day: 'numeric', hourCycle: 'h23' }).formatToParts(now);
+      const get = (t) => +parts.find((p) => p.type === t).value;
+      const hour = get('hour') + get('minute') / 60, month = get('month'), day = get('day');
+      const doy = Math.floor((Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - Date.UTC(now.getUTCFullYear(), 0, 0)) / 864e5);
+      const g = 2 * Math.PI / 365 * (doy - 1);
+      const eqt = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+      const decl = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+      const ha = Math.acos(Math.min(1, Math.max(-1, (Math.cos(90.833 * rad) - Math.sin(lat * rad) * Math.sin(decl)) / (Math.cos(lat * rad) * Math.cos(decl))))) / rad;
+      const offset = Math.round(((hour - (now.getUTCHours() + now.getUTCMinutes() / 60) + 36) % 24 - 12) * 4) / 4;
+      const rise = (720 - 4 * (lon + ha) - eqt) / 60 + offset, set = (720 - 4 * (lon - ha) - eqt) / 60 + offset;
+      let mode = 'auto'; try { mode = localStorage.getItem('themeMode') || 'auto'; } catch (e) { /* private mode */ }
+      const dark = mode === 'dark' || (mode === 'auto' && (hour < rise || hour >= set));
+      const season = month === 12 && day >= 24 && day <= 26 ? 'christmas' : month === 12 || month <= 2 ? 'winter' : month <= 5 ? 'spring' : month <= 8 ? 'summer' : 'autumn';
+      const accents = { spring: ['#B23A6A', '#F29AC0'], summer: ['#8A6100', '#F2C14E'], autumn: ['#B8520F', '#F2A15A'], winter: ['#2B6CA3', '#8CC4EE'], christmas: ['#B42318', '#F07A6E'] };
+      const r = document.documentElement.style;
+      const set_ = (k, v) => r.setProperty(k, v);
+      if (!dark) { set_('--bg', '#FFFFFF'); set_('--text', '#111111'); set_('--muted', '#6F6F6F'); set_('--raised', '#F5F5F5'); set_('--line', '#E7E7E7'); set_('--line-strong', '#CFCFCF'); }
+      set_('--accent', accents[season][dark ? 1 : 0]);
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      document.querySelector('meta[name="theme-color"]').content = dark ? '#0A0A0A' : '#FFFFFF';
+    })();
+  </script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-back" viewBox="0 0 16 16"><path d="M13 8H3M7.5 3.5 3 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<header class="nav scrolled">
+  <a class="nav-name" href="./">Sebastian Bauer</a>
+  <nav aria-label="Site"><a href="./#notes">All notes</a></nav>
+</header>
+
+<main class="note-main">
+  <a class="text-link note-back" href="./#notes"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg> All notes</a>
+  <article class="note" id="note">
+    <p class="note-loading">Loading…</p>
+  </article>
+</main>
+
+<footer class="footer">
+  <span>© <span id="year"></span> Sebastian Bauer</span>
+  <a href="./">Back to the home page</a>
+</footer>
+
+<script src="notes.js?v=20260924232547"></script>
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+  (async () => {
+    const el = document.getElementById('note');
+    const slug = new URLSearchParams(location.search).get('n');
+    try {
+      const note = (await loadNotes()).find((n) => n.slug === slug);
+      if (!note) throw new Error('not found');
+      document.title = `${note.title} · Sebastian Bauer`;
+      el.innerHTML = `<h1>${escNote(note.title)}</h1><p class="note-date">${escNote(noteDate(note.date))}</p>${renderMarkdown(note.body)}`;
+    } catch (e) {
+      el.innerHTML = '<h1>Note not found</h1><p>This note doesn\'t exist (anymore). <a href="./#notes">See all notes</a>.</p>';
+    }
+  })();
+</script>
+</body>
+</html>

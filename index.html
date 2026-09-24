@@ -69,11 +69,17 @@
   ],
   "sameAs": [
     "https://scholar.google.com/citations?user=Dqq0FUYAAAAJ",
+    "https://orcid.org/0009-0009-7265-1527",
     "https://www.linkedin.com/in/sebjbauer/",
     "https://github.com/sebjbauer",
     "https://bsky.app/profile/sebjbauer.bsky.social",
     "https://x.com/sebjbauer"
-  ]
+  ],
+  "identifier": {
+    "@type": "PropertyValue",
+    "propertyID": "ORCID",
+    "value": "0009-0009-7265-1527"
+  }
 }
   </script>
   <!-- visitor statistics: GoatCounter (no cookies, no personal data). Dashboard: https://sebjbauer.goatcounter.com -->
@@ -83,7 +89,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260924231947">
+  <link rel="stylesheet" href="style.css?v=20260924232547">
 </head>
 <body>
 
@@ -314,7 +320,10 @@
     <h2>Publications</h2>
     <div class="body">
       <div class="pub-list" id="pubList"></div>
-      <a class="text-link" id="scholarLink" href="#" target="_blank" rel="noopener">All publications on Google Scholar <svg class="i"><use href="#i-out"/></svg></a>
+      <p class="pub-links">
+        <a class="text-link" id="scholarLink" href="#" target="_blank" rel="noopener">All publications on Google Scholar <svg class="i"><use href="#i-out"/></svg></a>
+        <a class="text-link" id="orcidLink" href="#" target="_blank" rel="noopener">ORCID <svg class="i"><use href="#i-out"/></svg></a>
+      </p>
     </div>
   </section>
 
@@ -322,6 +331,12 @@
   <section class="section" id="talks">
     <h2>Talks, posters and awards</h2>
     <div class="body"><div class="pub-list" id="talkList"></div></div>
+  </section>
+
+  <!-- ============ NOTES (hidden until the first note is published) ============ -->
+  <section class="section" id="notes" hidden>
+    <h2>Notes</h2>
+    <ol class="body projects" id="noteList"></ol>
   </section>
 
   <!-- ============ SKILLS ============ -->
@@ -346,7 +361,7 @@
 </main>
 
 <footer class="footer">
-  <span>© <span id="year"></span> Sebastian Bauer</span>
+  <span>© <span id="year"></span> Sebastian Bauer <time class="updated" id="lastUpdated"></time></span>
   <span>There's a GPS terminal hidden in this site. Press <kbd>~</kbd> to open it.</span>
 </footer>
 
@@ -366,8 +381,9 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="script.js?v=20260924231947"></script>
-<script src="extras.js?v=20260924231947"></script>
-<script src="gadgets.js?v=20260924231947"></script>
+<script src="notes.js?v=20260924232547"></script>
+<script src="script.js?v=20260924232547"></script>
+<script src="extras.js?v=20260924232547"></script>
+<script src="gadgets.js?v=20260924232547"></script>
 </body>
 </html>

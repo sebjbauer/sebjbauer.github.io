@@ -28,6 +28,8 @@ const SITE = {
   },
   // Google Scholar profile, linked from Publications, Contact and the terminal
   scholar: 'https://scholar.google.com/citations?user=Dqq0FUYAAAAJ&hl=en',
+  orcid: 'https://orcid.org/0009-0009-7265-1527',
+  repo: 'sebjbauer/sebjbauer.github.io', // for "Last updated" in the footer
 
   // CAREER: jobs and research positions. Oldest first; each entry is a waypoint on the career trail.
   cv: [
@@ -674,6 +676,7 @@ function renderPublications() {
         </li>`).join('')}</ol>
     </div>`).join('');
   $('#scholarLink').href = SITE.scholar;
+  $('#orcidLink').href = SITE.orcid;
   $('#pubList').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-cite]');
     if (!btn) return;
@@ -748,6 +751,7 @@ function renderContent() {
     [`mailto:${SITE.email}`, 'Email'],
     [SITE.linkedin, 'LinkedIn'],
     [SITE.scholar, 'Google Scholar'],
+    [SITE.orcid, 'ORCID'],
     [SITE.github, 'GitHub'],
     [SITE.bluesky, 'Bluesky'],
     [SITE.x, 'X (Twitter)'],
@@ -766,6 +770,32 @@ function renderContent() {
 
   $('#cvDownload').href = SITE.cvPdf;
   $('#year').textContent = new Date().getFullYear();
+  showLastUpdated();
+}
+
+// Notes: listed from notes/notes.json (see notes.js); the section and menu item appear with the first note
+async function renderNotes() {
+  let notes = [];
+  try { notes = await loadNotes(); } catch { return; }
+  if (!notes.length) return;
+  $('#noteList').innerHTML = notes.map((n) => `
+    <li><a href="note.html?n=${encodeURIComponent(n.slug)}">
+      <span class="name">${esc(n.title)}</span>
+      <span class="desc">${esc(n.summary)}</span>
+      <span class="where">${esc(noteDate(n.date))}</span></a></li>`).join('');
+  $('#notes').hidden = false;
+  $('.nav nav a[href="#talks"]').insertAdjacentHTML('afterend', '<a href="#notes">Notes</a>');
+}
+
+// "Last updated 24 September 2026": the date of the latest push to GitHub
+async function showLastUpdated() {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${SITE.repo}/commits?per_page=1`);
+    const [latest] = await res.json();
+    const date = new Date(latest.commit.committer.date);
+    $('#lastUpdated').textContent = `Last updated ${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: TZ })}`;
+    $('#lastUpdated').dateTime = date.toISOString();
+  } catch { /* offline or rate-limited: just leave it out */ }
 }
 
 /* ---------------- GPS terminal ---------------- */
@@ -846,7 +876,7 @@ ${esc(w.text)}`;
 
   papers: () => `Publications (${SITE.publications.length}):\n` + SITE.publications.map((p) =>
     `  ${p.year}  <a href="${esc(linkOf(p))}" target="_blank" rel="noopener">${esc(p.title)}</a>\n        <span class="cmd">${esc(p.type)}, ${esc(venueOf(p))}</span>`).join('\n') +
-    `\nAll on <a href="${esc(SITE.scholar)}" target="_blank" rel="noopener">Google Scholar</a>.`,
+    `\nAll on <a href="${esc(SITE.scholar)}" target="_blank" rel="noopener">Google Scholar</a> and <a href="${esc(SITE.orcid)}" target="_blank" rel="noopener">ORCID</a>.`,
 
   skills: () => 'Equipment check:\n' + Object.entries(SITE.skills).map(([g, items]) => `  [<span class="ok">✓</span>] ${esc(g)}: ${items.map(esc).join(', ')}`).join('\n'),
 
@@ -857,6 +887,7 @@ ${esc(w.text)}`;
   linkedin  <a href="${esc(SITE.linkedin)}" target="_blank" rel="noopener">${esc(SITE.linkedin.replace(/^https?:\/\/(www\.)?/, ''))}</a>
   github    <a href="${esc(SITE.github)}" target="_blank" rel="noopener">${esc(SITE.github.replace(/^https?:\/\//, ''))}</a>
   scholar   <a href="${esc(SITE.scholar)}" target="_blank" rel="noopener">Google Scholar</a>
+  orcid     <a href="${esc(SITE.orcid)}" target="_blank" rel="noopener">${esc(SITE.orcid.replace('https://orcid.org/', ''))}</a>
   bluesky   <a href="${esc(SITE.bluesky)}" target="_blank" rel="noopener">@sebjbauer.bsky.social</a>
   x         <a href="${esc(SITE.x)}" target="_blank" rel="noopener">@sebjbauer</a>`,
 
@@ -992,6 +1023,7 @@ renderEducation();
 renderCvTable();
 renderPublications();
 renderTalks();
+renderNotes();
 renderContent();
 tickCoords();
 // the first colours are in place: allow smooth fades from now on
