@@ -199,8 +199,8 @@ function paintSky() {
 }
 
 /* ---------------- day/night page colours ---------------- */
-const LIGHT = { bg: '#FFFFFF', text: '#111111', accent: '#B8520F', tree: '#1F3A31' };
-const DARK = { bg: '#0A0A0A', text: '#EDEDED', accent: '#F2A15A', tree: '#0A0A0A' };
+const LIGHT = { bg: '#FFFFFF', text: '#111111', accent: '#B8520F', edu: '#2C7A68', tree: '#1F3A31' };
+const DARK = { bg: '#0A0A0A', text: '#EDEDED', accent: '#F2A15A', edu: '#7CC4AE', tree: '#0A0A0A' };
 
 // 0 = full daylight, 1 = full night. Fades over roughly an hour of twilight.
 function darkness(h, { rise, set }) {
@@ -217,6 +217,7 @@ function applyTheme(d) {
   setVar('--bg', bg);
   setVar('--text', ink.text);
   setVar('--accent', ink.accent);
+  setVar('--edu', ink.edu);
   setVar('--muted', mix(ink.text, bg, 0.4));
   setVar('--raised', mix(bg, ink.text, 0.04));
   setVar('--line', mix(bg, ink.text, 0.1));
@@ -484,10 +485,15 @@ function yearValue(y) {
 
 function renderProfile() {
   const svg = $('#profile');
-  const W = 1000, H = 300, low = 235, high = 75, pad = 24;
-  const roles = SITE.cv.map((w, i) => ({ w, i, a: yearValue(w.from), b: yearValue(w.to) }));
-  const y0 = Math.min(...roles.map((r) => r.a)) - 0.7, y1 = Math.max(...roles.map((r) => r.b)) + 0.5;
+  const W = 1000, H = 300, low = 232, high = 78, pad = 24;
+  // every career and education entry, keyed 'job-0', 'edu-2', …
+  const entries = [
+    ...SITE.education.map((w, i) => ({ w, k: `edu-${i}`, type: 'edu', a: yearValue(w.from), b: yearValue(w.to) })),
+    ...SITE.cv.map((w, i) => ({ w, k: `job-${i}`, type: 'job', a: yearValue(w.from), b: yearValue(w.to) })),
+  ];
+  const y0 = Math.min(...entries.map((r) => r.a)) - 0.7, y1 = yearValue('now') + 0.6;
   const X = (y) => pad + ((y - y0) / (y1 - y0)) * (W - 2 * pad);
+  const nowX = X(yearValue('now'));
 
   // a gently rising trail with a few natural bumps
   const pts = [];
@@ -503,48 +509,55 @@ function renderProfile() {
   const trail = svg.querySelector('.trail'), total = trail.getTotalLength();
   const yAt = (x) => { let lo = 0, hi = total; for (let k = 0; k < 28; k++) { const m = (lo + hi) / 2; if (trail.getPointAtLength(m).x < x) lo = m; else hi = m; } return trail.getPointAtLength(lo).y; };
 
+  const grad = (id, color) => `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="${high - 20}" x2="0" y2="${H}">
+      <stop offset="0" style="stop-color: var(${color}); stop-opacity: .55"/><stop offset="1" style="stop-color: var(${color}); stop-opacity: 0"/></linearGradient>`;
   let g = `<defs>
     <clipPath id="underTrail"><path d="${area}"/></clipPath>
-    <clipPath id="pastTrail"><rect x="0" y="0" width="${X(yearValue('now')).toFixed(1)}" height="${H}"/></clipPath>
-    <clipPath id="futureTrail"><rect x="${X(yearValue('now')).toFixed(1)}" y="0" width="${W}" height="${H}"/></clipPath>
-    <linearGradient id="spanFill" gradientUnits="userSpaceOnUse" x1="0" y1="${high - 20}" x2="0" y2="${H}">
-      <stop offset="0" style="stop-color: var(--accent); stop-opacity: .55"/>
-      <stop offset="1" style="stop-color: var(--accent); stop-opacity: 0"/>
-    </linearGradient>
+    <clipPath id="pastTrail"><rect x="0" y="0" width="${nowX.toFixed(1)}" height="${H}"/></clipPath>
+    <clipPath id="futureTrail"><rect x="${nowX.toFixed(1)}" y="0" width="${W}" height="${H}"/></clipPath>
+    ${grad('fillJob', '--accent')}${grad('fillEdu', '--edu')}
   </defs>
   <path class="area" d="${area}"/>`;
 
   // the time axis along the bottom
-  const step = y1 - y0 > 12 ? 2 : 1;
-  const thisYear = Math.floor(yearValue('now'));
-  for (let y = Math.ceil(y0); y <= thisYear; y += step) {
+  const step = y1 - y0 > 12 ? 2 : 1, thisYear = Math.floor(yearValue('now'));
+  for (let y = Math.ceil(y0 / step) * step; y <= thisYear; y += step) {
     g += `<line class="tick" x1="${X(y)}" x2="${X(y)}" y1="${H - 22}" y2="${H - 16}"/><text class="axis" x="${X(y)}" y="${H - 4}">${y}</text>`;
   }
 
-  // durations: shaded under the line, clipped to the terrain
-  roles.forEach((r) => {
-    g += `<rect class="span" data-i="${r.i}" x="${X(r.a).toFixed(1)}" y="0" width="${(X(r.b) - X(r.a)).toFixed(1)}" height="${H - 24}" clip-path="url(#underTrail)" fill="url(#spanFill)"/>`;
+  // durations, shaded under the line in the colour of their type
+  entries.forEach((r) => {
+    g += `<rect class="span ${r.type}" data-k="${r.k}" x="${X(r.a).toFixed(1)}" y="0" width="${(X(r.b) - X(r.a)).toFixed(1)}" height="${H - 24}" clip-path="url(#underTrail)" fill="url(#${r.type === 'job' ? 'fillJob' : 'fillEdu'})"/>`;
   });
+
   // solid up to today, dashed for the path ahead (the hiker walks the invisible full trail)
   g += `<path class="trail-ahead" d="${line}" clip-path="url(#futureTrail)"/><path class="trail-past" d="${line}" clip-path="url(#pastTrail)"/><path class="trail" d="${line}"/>`;
 
-  // waypoints at the start of each role
-  roles.forEach((r) => {
-    const x = X(r.a), y = yAt(x), last = r.i === roles.length - 1;
-    g += `<g class="wp" data-i="${r.i}" tabindex="0" role="button" aria-label="${esc(`${r.w.from} to ${r.w.to}: ${r.w.title}`)}">
-      ${last ? `<path class="summit" d="M${x} ${y - 40} l7 12 h-14 Z"/>` : ''}
-      <circle class="ring" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7"/><circle class="core" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5"/>
-      <text x="${x.toFixed(1)}" y="${(y - 17).toFixed(1)}">${esc(r.w.from)}</text></g>`;
+  // legend
+  g += `<g class="legend"><circle class="lg-job" cx="8" cy="14" r="5"/><text x="20" y="18">Career</text>
+    <path class="lg-edu" d="M92 9 l5 5 -5 5 -5 -5 Z"/><text x="104" y="18">Education</text></g>`;
+
+  // start markers: career above the line (circle), education below (diamond)
+  const latest = Math.max(...SITE.cv.map((w) => yearValue(w.from)));
+  const jobStarts = new Set(SITE.cv.map((w) => w.from));
+  entries.forEach((r) => {
+    const x = X(r.a), y = yAt(x), job = r.type === 'job';
+    const label = `${r.w.from} to ${r.w.to}: ${r.w.title}`;
+    g += `<g class="wp ${r.type}" data-k="${r.k}" data-x="${x.toFixed(1)}" tabindex="0" role="button" aria-label="${esc(label)}">
+      ${job && r.a === latest ? `<path class="summit" d="M${x} ${y - 40} l7 12 h-14 Z"/>` : ''}
+      ${job ? `<circle class="ring" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7"/><circle class="core" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5"/>`
+            : (() => { const d = jobStarts.has(r.w.from) ? 11 : 6; // bigger when a job starts the same year, so it frames the circle
+                return `<path class="diamond" d="M${x.toFixed(1)} ${(y - d).toFixed(1)} l${d} ${d} ${-d} ${d} ${-d} ${-d} Z"/>`; })()}
+      <text x="${x.toFixed(1)}" y="${(job ? y - 17 : y + 24).toFixed(1)}">${esc(r.w.from)}</text></g>`;
   });
   svg.innerHTML = g;
 
-  const spans = svg.querySelectorAll('.span');
   svg.querySelectorAll('.wp').forEach((el) => {
-    const i = +el.dataset.i, pick = () => selectWaypoint(i);
-    el.addEventListener('click', pick);
-    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
-    el.addEventListener('mouseenter', () => spans[i].classList.add('hover'));
-    el.addEventListener('mouseleave', () => spans[i].classList.remove('hover'));
+    const k = el.dataset.k, span = svg.querySelector(`.span[data-k="${k}"]`);
+    el.addEventListener('click', () => selectEntry(k));
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectEntry(k); } });
+    el.addEventListener('mouseenter', () => span.classList.add('hover'));
+    el.addEventListener('mouseleave', () => span.classList.remove('hover'));
   });
 }
 
@@ -557,8 +570,8 @@ function linkRow(links) {
 
 // Education: a vertical route, newest at the top
 function renderEducation() {
-  $('#eduList').innerHTML = [...SITE.education].reverse().map((e) => `
-    <li>
+  $('#eduList').innerHTML = SITE.education.map((e, i) => ({ e, i })).reverse().map(({ e, i }) => `
+    <li data-k="edu-${i}">
       <span class="tl-years">${esc(e.from)}–${esc(e.to)}</span>
       <div class="tl-body">
         <h3>${esc(e.title)}</h3>
@@ -568,6 +581,7 @@ function renderEducation() {
         ${linkRow(e.links)}
       </div>
     </li>`).join('');
+  $('#eduList').querySelectorAll('li').forEach((li) => li.addEventListener('click', (ev) => { if (!ev.target.closest('a')) selectEntry(li.dataset.k); }));
 }
 
 // Publications grouped by year, your name in bold
@@ -591,21 +605,24 @@ function renderPublications() {
 function renderCvTable() {
   const rows = SITE.cv.map((w, i) => ({ w, i })).reverse();
   $('#cvTable tbody').innerHTML = rows.map(({ w, i }) => `
-    <tr data-i="${i}">
+    <tr data-k="job-${i}">
       <td class="years">${esc(w.from)}–${esc(w.to)}</td>
       <td><span class="role">${esc(w.title)}</span><span class="org">${esc(w.org)}</span><span class="note">${esc(w.text)}</span>${linkRow(w.links)}</td>
       <td class="where">${esc(w.place)}</td>
     </tr>`).join('');
-  $('#cvTable tbody').querySelectorAll('tr').forEach((tr) => tr.addEventListener('click', () => selectWaypoint(+tr.dataset.i)));
+  $('#cvTable tbody').querySelectorAll('tr').forEach((tr) => tr.addEventListener('click', () => selectEntry(tr.dataset.k)));
   selectWaypoint(SITE.cv.length - 1);
 }
 
 const waypointHooks = []; // extras.js: the hiker walks to the selected waypoint
-function selectWaypoint(i) {
-  waypointHooks.forEach((fn) => fn(i));
-  document.querySelectorAll('#profile .wp, #profile .span').forEach((el) => el.classList.toggle('active', +el.dataset.i === i));
-  document.querySelectorAll('#cvTable tbody tr').forEach((tr) => tr.classList.toggle('active', +tr.dataset.i === i));
+// Select a career ('job-1') or education ('edu-3') entry: highlights its marker, its shaded period
+// and its row in the Career table or Education list.
+function selectEntry(k) {
+  waypointHooks.forEach((fn) => fn(k));
+  document.querySelectorAll('#profile .wp, #profile .span, #cvTable tbody tr, #eduList li')
+    .forEach((el) => el.classList.toggle('active', el.dataset.k === k));
 }
+const selectWaypoint = (i) => selectEntry(`job-${i}`); // career stage by number (terminal: waypoint 1…)
 
 /* ---------------- skills, projects, contact ---------------- */
 const external = (url) => url.startsWith('http') ? ' target="_blank" rel="noopener"' : '';
@@ -830,8 +847,8 @@ fitLandscape();
 paintSky();
 tickClock();
 renderProfile();
-renderCvTable();
 renderEducation();
+renderCvTable();
 renderPublications();
 renderContent();
 tickCoords();

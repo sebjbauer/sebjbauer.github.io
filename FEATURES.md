@@ -96,7 +96,8 @@ Based on the date in Vienna.
 - **Shooting stars:** at night, one crosses the sky every 15 to 50 seconds. Clicking it "catches" it ("Make a wish."). The browser remembers how many each visitor has caught.
 - **The cottage:** clicking the red cottage switches its light and chimney smoke on or off (no message). On its own, the light is on in the evening, and the chimney smokes in the evening and in autumn and winter.
 - **The deer:** appears at the forest edge only at **dusk and dawn**, and sometimes lowers its head to graze. Clicking it makes it run into the forest (it comes back after 90 seconds).
-- **The hiker:** a small figure with an orange backpack walks up the career trail to the summit when the Career section comes into view. Hovering over or clicking a waypoint makes them walk there.
+- **The career trail:** a timeline from 2008 to today. Orange circles (year above the line) mark where each job starts, green diamonds (year below) where each degree starts; a bigger diamond around a circle means both started that year. Every period is shaded faintly under the line; clicking a marker, a Career table row or an Education entry highlights that period. The line turns dashed after today.
+- **The hiker:** a small figure with an orange backpack walks along the trail to the latest job when the Career section comes into view. Hovering over or clicking any marker makes them walk there.
 
 ## The riddle (northern lights on demand)
 

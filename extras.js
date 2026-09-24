@@ -218,10 +218,11 @@ skyHooks.push(({ d }) => {
 function setupHiker() {
   const svg = $('#profile'), trail = svg.querySelector('.trail');
   const total = trail.getTotalLength();
-  // length along the trail at each waypoint
-  const wpX = [...svg.querySelectorAll('.wp .ring')].map((c) => +c.getAttribute('cx'));
+  // length along the trail at each marker, by key ('job-1', 'edu-3', …)
   const lengthAtX = (x) => { let lo = 0, hi = total; for (let i = 0; i < 30; i++) { const mid = (lo + hi) / 2; if (trail.getPointAtLength(mid).x < x) lo = mid; else hi = mid; } return lo; };
-  const stops = wpX.map(lengthAtX);
+  const stops = {};
+  svg.querySelectorAll('.wp').forEach((el) => { stops[el.dataset.k] = lengthAtX(+el.dataset.x); });
+  const start = svg.querySelector('.wp.active') || svg.querySelector('.wp');
 
   svg.insertAdjacentHTML('beforeend', `<g class="hiker" aria-hidden="true"><g class="hk">
     <rect class="pack" x="-5.5" y="-17" width="4" height="7" rx="1.2"/>
@@ -232,7 +233,7 @@ function setupHiker() {
   </g></g>`);
   const g = svg.querySelector('.hiker'), hk = g.querySelector('.hk'), legA = g.querySelector('.leg.a'), legB = g.querySelector('.leg.b');
 
-  let pos = 0, target = stops[stops.length - 1], visible = false, raf = 0, last = 0;
+  let pos = 0, target = stops[start.dataset.k], visible = false, raf = 0, last = 0;
   const place = (t) => {
     const pt = trail.getPointAtLength(pos);
     g.setAttribute('transform', `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
@@ -251,9 +252,9 @@ function setupHiker() {
   };
   const go = () => { if (!raf && visible && !reduceMotion) raf = requestAnimationFrame(step); if (reduceMotion) { pos = target; place(0); } };
 
-  waypointHooks.push((i) => { target = stops[i]; go(); });
-  svg.querySelectorAll('.wp').forEach((el) => el.addEventListener('mouseenter', () => { target = stops[+el.dataset.i]; go(); }));
-  svg.addEventListener('mouseleave', () => { const a = svg.querySelector('.wp.active'); if (a) { target = stops[+a.dataset.i]; go(); } });
+  waypointHooks.push((k) => { target = stops[k]; go(); });
+  svg.querySelectorAll('.wp').forEach((el) => el.addEventListener('mouseenter', () => { target = stops[el.dataset.k]; go(); }));
+  svg.addEventListener('mouseleave', () => { const a = svg.querySelector('.wp.active'); if (a) { target = stops[a.dataset.k]; go(); } });
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; go(); }, { threshold: 0.4 }).observe(svg);
   place(0);
 }
