@@ -8,7 +8,7 @@ const SITE = {
   role: 'placeholder job title',
   // One line about what you're doing right now, and when you last updated it (YYYY-MM).
   now: { text: "Placeholder: what you're working on, reading or training for right now.", updated: '2026-09' },
-  email: 'hello@example.com',
+  email: 'sebastian.bauer@scilifelab.se',
   linkedin: 'https://www.linkedin.com/in/sebjbauer/',
   github: 'https://github.com/sebjbauer',
   bluesky: 'https://bsky.app/profile/sebjbauer.bsky.social',
