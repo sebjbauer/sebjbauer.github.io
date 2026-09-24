@@ -9,8 +9,10 @@ const SITE = {
   // One line about what you're doing right now, and when you last updated it (YYYY-MM).
   now: { text: "Placeholder: what you're working on, reading or training for right now.", updated: '2026-09' },
   email: 'hello@example.com',
-  linkedin: 'https://www.linkedin.com/in/your-profile',
+  linkedin: 'https://www.linkedin.com/in/sebjbauer/',
   github: 'https://github.com/sebjbauer',
+  bluesky: 'https://bsky.app/profile/sebjbauer.bsky.social',
+  x: 'https://x.com/sebjbauer',
   cvPdf: 'cv.pdf',
   // Where you live and work right now ('at' or 'se'). The clock, weather, moon,
   // sunrise/sunset and light/dark mode all follow this place.
@@ -630,6 +632,8 @@ function renderContent() {
     [SITE.linkedin, 'LinkedIn'],
     [SITE.scholar, 'Google Scholar'],
     [SITE.github, 'GitHub'],
+    [SITE.bluesky, 'Bluesky'],
+    [SITE.x, 'X (Twitter)'],
   ].map(([href, label]) => `<li><a href="${esc(href)}"${external(href)}>${label}${iconOut}</a></li>`).join('');
 
   $('#cvDownload').href = SITE.cvPdf;
@@ -717,7 +721,9 @@ ${esc(w.text)}`;
   mail      <a href="mailto:${esc(SITE.email)}">${esc(SITE.email)}</a>
   linkedin  <a href="${esc(SITE.linkedin)}" target="_blank" rel="noopener">${esc(SITE.linkedin.replace(/^https?:\/\/(www\.)?/, ''))}</a>
   github    <a href="${esc(SITE.github)}" target="_blank" rel="noopener">${esc(SITE.github.replace(/^https?:\/\//, ''))}</a>
-  scholar   <a href="${esc(SITE.scholar)}" target="_blank" rel="noopener">Google Scholar</a>`,
+  scholar   <a href="${esc(SITE.scholar)}" target="_blank" rel="noopener">Google Scholar</a>
+  bluesky   <a href="${esc(SITE.bluesky)}" target="_blank" rel="noopener">@sebjbauer.bsky.social</a>
+  x         <a href="${esc(SITE.x)}" target="_blank" rel="noopener">@sebjbauer</a>`,
 
   sky: (arg) => {
     if (arg === 'live' || !arg) { forcedHour = null; paintSky(); return `Sky synced to the real time in ${esc(base().city)}.`; }

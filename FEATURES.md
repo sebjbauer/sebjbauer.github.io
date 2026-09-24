@@ -128,7 +128,7 @@ Tab completes commands, ↑ repeats the last one.
 | `waypoint 1` … | Details of one career stage (also highlights it on the page) |
 | `skills` | Skills as an "equipment check" |
 | `projects` | Projects as "marked routes" |
-| `contact` | Email, LinkedIn, GitHub, Google Scholar |
+| `contact` | Email, LinkedIn, GitHub, Google Scholar, Bluesky, X |
 | `now` | The "Now" line |
 | `weather` | Live weather in Vienna |
 | `weather rain` | Simulates weather (`clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`); `weather live` goes back |
