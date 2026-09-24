@@ -49,7 +49,7 @@ const SITE = {
   // EDUCATION: schools and degrees. Oldest first.
   education: [
     { from: '2008', to: '2016', title: 'High school diploma (Matura)', org: 'Kollegium Kalksburg', place: 'Vienna, AT',
-      text: 'Final thesis on aerodynamics in road cycling.', award: 'Award for the best physics thesis in Vienna' },
+      text: 'Final thesis on aerodynamics in road cycling.', award: '1st place, Hans Riegel-Fachpreis in physics, region Vienna' },
     { from: '2017', to: '2020', title: 'BSc Technical Physics', org: 'TU Wien', place: 'Vienna, AT',
       text: "Bachelor's thesis in quantum optics, in the lab of Philipp Haslinger.",
       links: [['Haslinger Lab', 'https://www.haslingerlab.com']] },
@@ -88,7 +88,7 @@ const SITE = {
   // TALKS, POSTERS AND AWARDS: newest year first. type: 'Talk', 'Poster' or 'Award'.
   // `where` is the event or institution; `url` (slides, poster, announcement) is optional.
   talks: [
-    { year: 2016, type: 'Award', title: 'Best physics thesis in Vienna', where: 'High-school final thesis: aerodynamics in road cycling' },
+    { year: 2016, type: 'Award', title: '1st place, Hans Riegel-Fachpreis in physics, region Vienna', where: 'For the high-school final thesis on aerodynamics in road cycling' },
   ],
 
   skills: {
