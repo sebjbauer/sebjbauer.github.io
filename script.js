@@ -4,14 +4,16 @@
    ===================================================================== */
 const SITE = {
   name: 'Sebastian Bauer',
-  intro: 'Placeholder: one sentence on what you do. Living between Austria and Sweden.',
+  intro: 'Placeholder: one sentence on what you do. Based in Vienna, Austria.',
   role: 'placeholder job title',
+  // One line about what you're doing right now, and when you last updated it (YYYY-MM).
+  now: { text: "Placeholder: what you're working on, reading or training for right now.", updated: '2026-09' },
   email: 'hello@example.com',
   linkedin: 'https://www.linkedin.com/in/your-profile',
   github: 'https://github.com/sebjbauer',
   cvPdf: 'cv.pdf',
-  // Where you work right now ('at' or 'se'). Light and dark mode follow real
-  // sunrise and sunset there: white while the sun is up, black after dark.
+  // Where you live and work right now ('at' or 'se'). The clock, weather, moon,
+  // sunrise/sunset and light/dark mode all follow this place.
   workBase: 'at',
   places: {
     at: { country: 'Austria', city: 'Vienna', lat: 48.21, lon: 16.37 },
@@ -35,8 +37,8 @@ const SITE = {
   },
   projects: [
     { name: 'Project one', text: 'A one-line description of the project.', url: '#', where: 'Vienna' },
-    { name: 'Project two', text: 'A one-line description of the project.', url: '#', where: 'Stockholm' },
-    { name: 'This website', text: 'Live sky, two countries, one hidden GPS terminal.', url: 'https://github.com/sebjbauer', where: 'Both' },
+    { name: 'Project two', text: 'A one-line description of the project.', url: '#', where: 'Vienna' },
+    { name: 'This website', text: 'Live sky, two countries, one hidden GPS terminal.', url: 'https://github.com/sebjbauer', where: 'Vienna' },
   ],
 };
 
@@ -45,7 +47,8 @@ const SITE = {
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const TZ = 'Europe/Stockholm'; // Austria and Sweden share a time zone
+const TZ = 'Europe/Vienna'; // same rules as Stockholm, including summer time
+const base = () => SITE.places[SITE.workBase];
 const fmtCoord = (p) => `${p.lat.toFixed(2)}°N ${p.lon.toFixed(2)}°E`;
 const altitude = (i) => Math.round((500 + i * (1800 / Math.max(1, SITE.cv.length - 1))) / 10) * 10;
 
@@ -57,6 +60,9 @@ const PHASES = {
   dusk:  { skyTop: '#26295A', skyBot: '#EE8657', far: '#584A6B', mid: '#2C3B40', snow: '#F4BFA0', lake: '#7D5263', sun: '#FFB36B', stars: .35, aurora: .2, window: .8 },
 };
 let forcedHour = null;
+// Live conditions, filled in by extras.js from real weather data
+const live = { overcast: 0, particle: null, fog: 0 };
+const skyHooks = [];   // extras.js hooks in here: fn({ h, d, isDay, sunT })
 
 const hex2rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 const rgb2hex = (c) => '#' + c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
@@ -90,13 +96,13 @@ function keyframes({ rise, set }) {
 }
 
 function skyPreset(name) {
-  const { rise, set } = sunTimes(SITE.places[SITE.workBase]);
+  const { rise, set } = sunTimes(base());
   return { dawn: rise + 0.3, day: (rise + set) / 2, dusk: set, night: 23.5 }[name];
 }
 
 function paintSky() {
   const h = forcedHour ?? localHour();
-  const sunT = sunTimes(SITE.places[SITE.workBase]);
+  const sunT = sunTimes(base());
   const frames = keyframes(sunT);
   let k = 0;
   while (k < frames.length - 2 && h >= frames[k + 1][0]) k++;
@@ -105,6 +111,17 @@ function paintSky() {
   const a = PHASES[p0], b = PHASES[p1], root = document.documentElement.style;
   const v = {};
   for (const key in a) v[key] = mix(a[key], b[key], t);
+  const d = darkness(h, sunT);
+  // clouds grey out the sky; heavy overcast hides stars and northern lights
+  if (live.overcast > 0) {
+    const grey = mix('#A7B0B8', '#101316', d);
+    v.skyTop = mix(v.skyTop, grey, live.overcast * 0.6);
+    v.skyBot = mix(v.skyBot, grey, live.overcast * 0.5);
+    v.stars *= 1 - live.overcast; v.aurora *= 1 - live.overcast;
+  }
+  root.setProperty('--cloud', mix(mix('#F7F8FA', '#9AA3AB', live.overcast), '#23272B', d));
+  root.setProperty('--fog', mix('#E6E9EC', '#1C1F22', d));
+  root.setProperty('--fog-o', live.fog);
   root.setProperty('--sky-top', v.skyTop); root.setProperty('--sky-bot', v.skyBot);
   root.setProperty('--far', v.far); root.setProperty('--mid', v.mid);
   root.setProperty('--snow', v.snow); root.setProperty('--lake', v.lake);
@@ -116,7 +133,7 @@ function paintSky() {
 
   // page colours fade from white to black through twilight where you work
   const isDay = h >= sunT.rise && h < sunT.set;
-  applyTheme(darkness(h, sunT));
+  applyTheme(d);
 
   // sun by day, moon by night; both travel along an arc on the right half
   const sun = $('#sun');
@@ -126,6 +143,7 @@ function paintSky() {
   const narrow = innerWidth < 760;
   sun.style.left = (narrow ? 20 : 48) + p * (narrow ? 70 : 46) + '%';
   sun.style.top = (narrow ? 58 : 62) - Math.sin(p * Math.PI) * (narrow ? 12 : 44) + '%';
+  skyHooks.forEach((fn) => fn({ h, d, isDay, sunT }));
 }
 
 /* ---------------- day/night page colours ---------------- */
@@ -179,14 +197,15 @@ function applySeason(d, bg) {
   st.setProperty('--ground', season.ground ? mix(season.ground[0], season.ground[1], d) : bg);
   season.leaves.forEach((c, i) => st.setProperty(`--leaf-${i + 1}`, mix(c, '#0C0C0C', d * 0.85)));
   st.setProperty('--flower-o', (1 - d * 0.75).toFixed(2));
-  weather.set({ winter: 'snow', autumn: 'leaves', spring: 'petals', summer: d > 0.6 ? 'fireflies' : null }[name], season.leaves);
+  // real rain or snow wins over the seasonal decoration
+  weather.set(live.particle || { winter: 'snow', autumn: 'leaves', spring: 'petals', summer: d > 0.6 ? 'fireflies' : null }[name], season.leaves);
 }
 
 /* ---------------- weather particles (snow, leaves, petals, fireflies) ---------------- */
 const weather = (() => {
   const cv = $('#weather'), ctx = cv.getContext('2d');
   let kind = null, parts = [], visible = true, raf = 0, palette = [];
-  const counts = { snow: 110, leaves: 26, petals: 16, fireflies: 34 };
+  const counts = { snow: 110, leaves: 26, petals: 16, fireflies: 34, rain: 150, drizzle: 70 };
 
   function resize() {
     const r = devicePixelRatio || 1;
@@ -199,6 +218,7 @@ const weather = (() => {
     p.y = anywhere ? Math.random() * H : -12;
     p.phase = Math.random() * Math.PI * 2;
     if (kind === 'snow') { p.r = 0.8 + Math.random() * 2.2; p.vy = 0.25 + p.r * 0.28; }
+    if (kind === 'rain' || kind === 'drizzle') { p.len = kind === 'rain' ? 12 + Math.random() * 8 : 6 + Math.random() * 4; p.vy = kind === 'rain' ? 10 + Math.random() * 4 : 4 + Math.random() * 2; }
     if (kind === 'leaves' || kind === 'petals') {
       p.s = kind === 'leaves' ? 4 + Math.random() * 4 : 2.5 + Math.random() * 2;
       p.vy = 0.45 + Math.random() * 0.7; p.rot = Math.random() * 6; p.vr = (Math.random() - 0.5) * 0.06;
@@ -217,6 +237,13 @@ const weather = (() => {
         const a = Math.max(0, Math.sin(t / 600 + p.phase)) ** 3;
         ctx.fillStyle = `rgba(244, 226, 122, ${a})`;
         ctx.beginPath(); ctx.arc(p.x, p.y, 1.8, 0, 7); ctx.fill();
+        continue;
+      }
+      if (kind === 'rain' || kind === 'drizzle') {
+        p.y += p.vy; p.x -= p.vy * 0.12;
+        if (p.y > H + 20) { spawn(p, false); p.x += 60; }
+        ctx.strokeStyle = 'rgba(205, 214, 226, 0.5)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + p.len * 0.12, p.y - p.len); ctx.stroke();
         continue;
       }
       p.y += p.vy;
@@ -318,6 +345,8 @@ function fitLandscape() {
 }
 
 /* ---------------- hero text ---------------- */
+let specialGreeting = () => null; // extras.js sets this on Christmas, Easter and Midsommar
+
 function greeting(h) {
   if (h < 5) return 'God natt, or rather, still up?';
   if (h < 11) return 'Guten Morgen, god morgon.';
@@ -327,9 +356,11 @@ function greeting(h) {
 }
 
 function tickClock() {
-  $('#clock').textContent = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(new Date());
-  $('#greet').textContent = greeting(localHour());
-  $('#cities').textContent = `${SITE.places.at.city} and ${SITE.places.se.city}`;
+  const now = new Date();
+  $('#clock').textContent = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
+  $('#clock').dateTime = now.toISOString();
+  $('#greet').textContent = specialGreeting() || greeting(localHour());
+  $('#cities').textContent = base().city;
 }
 
 /* ---------------- CV elevation profile ---------------- */
@@ -397,7 +428,9 @@ function renderCvTable() {
   selectWaypoint(SITE.cv.length - 1);
 }
 
+const waypointHooks = []; // extras.js: the hiker walks to the selected waypoint
 function selectWaypoint(i) {
+  waypointHooks.forEach((fn) => fn(i));
   document.querySelectorAll('#profile .wp').forEach((el) => el.classList.toggle('active', +el.dataset.i === i));
   document.querySelectorAll('#cvTable tbody tr').forEach((tr) => tr.classList.toggle('active', +tr.dataset.i === i));
 }
@@ -408,6 +441,9 @@ const iconOut = '<svg class="i" aria-hidden="true"><use href="#i-out"/></svg>';
 
 function renderContent() {
   $('#heroLine').textContent = SITE.intro;
+  $('#nowText').textContent = SITE.now.text;
+  const [ny, nm] = SITE.now.updated.split('-').map(Number);
+  $('#nowDate').textContent = `Updated ${new Date(ny, nm - 1).toLocaleString('en-GB', { month: 'long', year: 'numeric' })}`;
 
   $('#skillList').innerHTML = Object.entries(SITE.skills).map(([group, items]) =>
     `<dt>${esc(group)}</dt><dd>${items.map(esc).join(', ')}</dd>`).join('');
@@ -455,10 +491,14 @@ const COMMANDS = {
   <b class="warn">skills</b>        equipment check
   <b class="warn">projects</b>      marked routes
   <b class="warn">contact</b>       send a signal
-  <b class="warn">weather</b>       live weather, AT and SE
+  <b class="warn">now</b>           what I'm up to
+  <b class="warn">weather</b>       live weather in Vienna
+  <b class="warn">sun</b>           sunrise and sunset
+  <b class="warn">moon</b>          tonight's moon
   <b class="warn">sky</b> &lt;mode&gt;    dawn | day | dusk | night | live
-  <b class="warn">sun</b>           sunrise and sunset where I work
   <b class="warn">season</b> &lt;name&gt;  winter | spring | summer | autumn | live
+  <b class="warn">holiday</b> &lt;name&gt; christmas | easter | midsommar | live
+  <b class="warn">riddle</b>        for the curious
   <b class="warn">download cv</b>   the official PDF
   <b class="warn">goto</b> &lt;place&gt;   about | cv | skills | projects | contact
   <b class="warn">fika</b>          mandatory break
@@ -467,16 +507,13 @@ Tip: Tab completes, ↑ repeats. Some commands are not listed.`,
 
   whoami: () => `${esc(SITE.name)}
 Role: ${esc(SITE.role)}
-Home base: split between ${SITE.places.at.country} and ${SITE.places.se.country}.`,
+Based in: ${esc(base().city)}, ${esc(base().country)}.`,
 
-  whereami: () => {
-    const { at, se } = SITE.places;
-    return `Position fix acquired:
-  ◤ ${esc(at.city)}, ${esc(at.country)}    ${fmtCoord(at)}
-  ◢ ${esc(se.city)}, ${esc(se.country)}   ${fmtCoord(se)}
-Distance between bases: ~${Math.round(haversine(at, se)).toLocaleString('en')} km.
-Current heading: <span class="ok">it depends on the season.</span>`;
-  },
+  whereami: () => `Position fix acquired:
+  ${esc(base().city)}, ${esc(base().country)}   ${fmtCoord(base())}
+Local time: ${$('#clock').textContent}`,
+
+  now: () => `${esc(SITE.now.text)}\n<span class="cmd">${esc($('#nowDate').textContent)}</span>`,
 
   'route cv': () => {
     const rows = SITE.cv.map((w, i) => `  ${i === SITE.cv.length - 1 ? '<span class="warn">▲</span>' : '●'} ${(w.from + '–' + w.to).padEnd(10)} ${esc(w.title).padEnd(26)} ${altitude(i).toLocaleString('en').padStart(5)} m`).reverse();
@@ -501,21 +538,8 @@ ${esc(w.text)}`;
   linkedin  <a href="${esc(SITE.linkedin)}" target="_blank" rel="noopener">${esc(SITE.linkedin.replace(/^https?:\/\/(www\.)?/, ''))}</a>
   github    <a href="${esc(SITE.github)}" target="_blank" rel="noopener">${esc(SITE.github.replace(/^https?:\/\//, ''))}</a>`,
 
-  weather: async () => {
-    const { at, se } = SITE.places;
-    try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${at.lat},${se.lat}&longitude=${at.lon},${se.lon}&current=temperature_2m,weather_code`;
-      const [a, s] = await (await fetch(url)).json();
-      const line = (p, d) => `  ${esc(p.city).padEnd(10)} ${String(Math.round(d.current.temperature_2m)).padStart(3)}°C  ${WEATHER[d.current.weather_code] || 'weather'}`;
-      const diff = Math.round(a.current.temperature_2m - s.current.temperature_2m);
-      return `Live weather:\n${line(at, a)}\n${line(se, s)}\n${diff > 0 ? `Austria is ${diff}° warmer. Sweden says: "lagom".` : diff < 0 ? `Sweden is ${-diff}° warmer. Rare, enjoy it.` : 'Same temperature. Suspicious.'}`;
-    } catch {
-      return '<span class="warn">No satellite connection.</span> Try again later.';
-    }
-  },
-
   sky: (arg) => {
-    if (arg === 'live' || !arg) { forcedHour = null; paintSky(); return 'Sky synced to the real time in Austria and Sweden.'; }
+    if (arg === 'live' || !arg) { forcedHour = null; paintSky(); return `Sky synced to the real time in ${esc(base().city)}.`; }
     if (!['dawn', 'day', 'dusk', 'night'].includes(arg)) return 'Usage: sky dawn | day | dusk | night | live';
     forcedHour = skyPreset(arg); paintSky();
     return `Sky set to ${arg}. ${arg === 'night' ? 'Look north for the northern lights.' : ''}Scroll up to see it.`;
@@ -529,7 +553,7 @@ ${esc(w.text)}`;
   },
 
   sun: () => {
-    const place = SITE.places[SITE.workBase], { rise, set } = sunTimes(place);
+    const place = base(), { rise, set } = sunTimes(place);
     const up = localHour() >= rise && localHour() < set;
     return `${esc(place.city)} today: sunrise ${fmtHour(rise)}, sunset ${fmtHour(set)}.
 The sun is ${up ? 'up, so this site is in light mode' : 'down, so this site is in dark mode'}.`;
@@ -560,13 +584,6 @@ Break complete. Productivity +20%.`,
 };
 const HIDDEN = ['ls', 'cat .secret', 'cat about.txt', 'cat trail.gpx', 'sudo hire-me', 'hej', 'servus', 'rm -rf /'];
 
-function haversine(a, b) {
-  const R = 6371, rad = (d) => d * Math.PI / 180;
-  const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(x));
-}
-
 async function run(raw) {
   const cmd = raw.trim().replace(/\s+/g, ' ');
   if (!cmd) return;
@@ -585,9 +602,8 @@ function openGps() {
   input.focus();
   if (!booted) {
     booted = true;
-    const { at, se } = SITE.places;
     print(`GPS-TRAIL v1.0 · satellites: 7 <span class="warn">▂▄▆█</span>
-Position fix: ${fmtCoord(at)} (AT) · ${fmtCoord(se)} (SE)
+Position fix: ${esc(base().city)} ${fmtCoord(base())}
 <span class="ok">Ready.</span> Type <b class="warn">help</b> to see what you can do.`);
   }
 }
@@ -601,7 +617,7 @@ input.addEventListener('keydown', (e) => {
     e.preventDefault();
     const v = input.value.toLowerCase();
     const hits = Object.keys(COMMANDS).filter((c) => c.startsWith(v) && !HIDDEN.includes(c));
-    if (hits.length === 1) input.value = hits[0] + (['waypoint', 'sky', 'goto'].includes(hits[0]) ? ' ' : '');
+    if (hits.length === 1) input.value = hits[0] + (['waypoint', 'sky', 'goto', 'season', 'holiday'].includes(hits[0]) ? ' ' : '');
     else if (hits.length > 1) print(hits.join('  '), 'cmd');
   }
   else if (e.key === 'Escape') closeGps();
@@ -613,13 +629,7 @@ document.addEventListener('keydown', (e) => {
   if (['~', '`', '§', '^'].includes(e.key) || e.code === 'Backquote') { e.preventDefault(); gps.hidden ? openGps() : closeGps(); }
 });
 
-// header coordinates alternate between both bases
-let coordFlip = false;
-function tickCoords() {
-  const p = coordFlip ? SITE.places.se : SITE.places.at;
-  $('#gpsCoords').textContent = `${coordFlip ? 'SE' : 'AT'} ${fmtCoord(p)}`;
-  coordFlip = !coordFlip;
-}
+function tickCoords() { $('#gpsCoords').textContent = fmtCoord(base()); }
 
 /* ---------------- boot ---------------- */
 const skyParam = new URLSearchParams(location.search).get('sky');
@@ -636,7 +646,8 @@ renderProfile();
 renderCvTable();
 renderContent();
 tickCoords();
-setInterval(() => { paintSky(); tickClock(); }, 30000);
-setInterval(tickCoords, 4000);
+setInterval(paintSky, 30000);
+// tick the clock exactly on each new second
+setTimeout(() => { tickClock(); setInterval(tickClock, 1000); }, 1000 - (Date.now() % 1000));
 addEventListener('resize', () => { fitLandscape(); paintSky(); });
 addEventListener('scroll', () => $('.nav').classList.toggle('scrolled', scrollY > innerHeight * 0.6), { passive: true });
