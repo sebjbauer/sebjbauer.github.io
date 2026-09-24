@@ -1,0 +1,4 @@
+# Files that stay in the repository but are not published on the website
+exclude:
+  - FEATURES.md
+  - README.md
