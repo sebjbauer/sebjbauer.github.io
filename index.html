@@ -1,169 +1,166 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CMCB Lab Visualizations</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            padding: 20px;
-            max-width: 1200px;
-            width: 90%;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            justify-items: center;
-        }
-        .preview-card {
-            background-color: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-            width: 100%;
-            max-width: 400px;
-        }
-        .preview-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-        }
-        .preview-card img {
-            width: 400px;
-            height: 300px;
-            object-fit: cover;
-        }
-        .preview-card h2 {
-            padding: 15px;
-            margin: 0;
-            color: #2c3e50;
-            text-align: center;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.9);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-content {
-            width: 90%;
-            max-width: 1000px;
-            position: relative;
-        }
-        .modal-content video {
-            width: 100%;
-            border-radius: 8px;
-        }
-        .modal-title {
-            color: white;
-            text-align: center;
-            margin: 0;
-            padding-bottom: 20px;
-            font-size: 24px;
-        }
-        .close-button {
-            position: absolute;
-            top: -40px;
-            right: 0;
-            color: white;
-            font-size: 30px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 5px;
-        }
-        .close-button:hover {
-            color: #ddd;
-        }
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-            .preview-card {
-                max-width: 100%;
-            }
-            .preview-card img {
-                width: 100%;
-                height: auto;
-            }
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sebastian Bauer</title>
+  <meta name="description" content="Sebastian Bauer, living between Austria and Sweden.">
+  <meta name="theme-color" content="#0F1A17">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="preview-card" onclick="window.location.href='GNN/'">
-            <img src="MessagePassing.jpg" alt="Message Passing Preview" width="400" height="300">
-            <h2>GNN<br>(Click here)</h2>
-        </div>
-        <div class="preview-card" onclick="window.location.href='SMLM/'">
-            <img src="SMLM.jpg" alt="SMLM Preview" width="400" height="300">
-            <h2>SMLM (Click here)</h2>
-        </div>
-        <div class="preview-card" onclick="window.location.href='SMLMFlow/'">
-            <img src="SMLMFlow_preview.jpg" alt="SMLMFlow Preview" width="400" height="300">
-            <h2>SMLMFlow<br>(Click here)</h2>
-        </div>
+
+<!-- Small inline icons, used with <svg><use href="#i-…"/></svg> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-down" viewBox="0 0 16 16"><path d="M8 2.5v10M3.5 8.5 8 13l4.5-4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-out" viewBox="0 0 16 16"><path d="M5 11 11 5M6 4.5h5.5V10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<header class="nav">
+  <a class="nav-name" href="#top">Sebastian Bauer</a>
+  <nav aria-label="Sections">
+    <a href="#about">About</a>
+    <a href="#cv">Career</a>
+    <a href="#projects">Projects</a>
+    <a href="#contact">Contact</a>
+    <button class="nav-term" id="termOpen" type="button">Terminal <kbd>~</kbd></button>
+  </nav>
+</header>
+
+<!-- ============ HERO: live sky + Austria/Sweden landscape ============ -->
+<section class="hero" id="top">
+  <svg class="sky-layer" id="stars" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMin slice" aria-hidden="true"></svg>
+
+  <svg class="sky-layer aurora" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+    <defs>
+      <filter id="blur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="22"/></filter>
+      <linearGradient id="aur1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#7FE0B0" stop-opacity="0"/>
+        <stop offset=".55" stop-color="#7FE0B0" stop-opacity=".55"/>
+        <stop offset="1" stop-color="#3FB58A" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="aur2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#9C8CFF" stop-opacity="0"/>
+        <stop offset=".5" stop-color="#8FD9C8" stop-opacity=".4"/>
+        <stop offset="1" stop-color="#7FE0B0" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <g filter="url(#blur)">
+      <path class="aur a1" fill="url(#aur1)" d="M760 60 C900 120 1000 40 1120 110 C1220 170 1320 90 1440 140 L1440 330 C1320 280 1220 360 1120 300 C1000 230 900 310 760 250 Z"/>
+      <path class="aur a2" fill="url(#aur2)" d="M900 20 C1020 90 1120 10 1240 70 C1330 115 1400 60 1440 80 L1440 240 C1380 220 1320 270 1230 230 C1120 180 1020 250 900 190 Z"/>
+    </g>
+  </svg>
+
+  <div class="sun" id="sun" aria-hidden="true"></div>
+
+  <svg class="landscape" id="landscape" viewBox="0 0 1440 520" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <!-- far range: sharp Alps (left) flattening into Swedish fjäll (right) -->
+    <path class="l-far" d="M0 520 L0 300 L90 232 L150 270 L240 150 L300 210 L350 180 L430 120 L520 230 L600 200 L680 262 L760 252 L860 272 C960 244 1040 232 1120 250 C1200 266 1280 236 1360 246 L1440 252 L1440 520 Z"/>
+    <path class="l-snow" d="M430 120 L390 150 L405 146 L418 156 L432 147 L445 155 L454 150 Z"/>
+    <path class="l-snow" d="M240 150 L221 175 L233 171 L243 180 L254 172 L265 175 Z"/>
+    <path class="l-snow" d="M90 232 L76 243 L86 241 L94 247 L102 241 Z"/>
+    <!-- summit cross on the highest Alpine peak -->
+    <path class="l-cross" d="M430 120 V102 M424 108 H436"/>
+
+    <!-- mid hills -->
+    <path class="l-mid" d="M0 520 L0 380 L120 330 L200 362 L300 312 L400 352 L520 332 L640 372 C760 342 860 334 960 362 C1040 350 1080 332 1160 345 C1240 358 1320 340 1440 352 L1440 520 Z"/>
+
+    <!-- near ground + lake + stuga -->
+    <path class="l-near" id="groundPath" d="M0 520 L0 430 C200 410 400 440 600 425 C760 412 860 440 960 446 L1440 446 L1440 520 Z"/>
+    <path class="l-lake" d="M930 452 C1040 444 1300 444 1440 449 L1440 488 C1300 494 1040 492 930 476 Z"/>
+    <path class="l-shimmer" d="M1010 462 H1090 M1150 470 H1260 M1300 460 H1380"/>
+    <g id="trees"></g>
+    <g class="stuga">
+      <rect x="1180" y="430" width="30" height="17" fill="#9E2B25"/>
+      <path d="M1175 431 L1195 417 L1215 431 Z" fill="#2A1A18"/>
+      <path d="M1180 430 V447 M1210 430 V447" stroke="#F3EEE6" stroke-width="1.5"/>
+      <rect class="window" x="1190" y="435" width="7" height="6"/>
+      <rect x="1180" y="449" width="30" height="10" fill="#9E2B25" opacity=".25"/>
+    </g>
+    <path class="l-near" d="M900 486 C1100 481 1300 490 1440 485 L1440 520 L900 520 Z"/>
+  </svg>
+
+  <div class="hero-text">
+    <h1>Sebastian Bauer</h1>
+    <p class="hero-line" id="heroLine">Placeholder: one sentence on what you do. Living between Austria and Sweden.</p>
+    <p class="hero-time"><span id="greet"></span> It's <time id="clock">--:--</time> in <span id="cities"></span>.</p>
+  </div>
+</section>
+
+<main>
+  <!-- ============ ABOUT ============ -->
+  <section class="section" id="about">
+    <h2>About</h2>
+    <div class="body about">
+      <div class="photo"><!-- Replace with: <img src="photo.jpg" alt="Sebastian Bauer"> --><span>Photo</span></div>
+      <div>
+        <p class="lead">A short, personal intro goes here: who you are, what you do, and what you care about. Two or three sentences are plenty.</p>
+        <p>A second paragraph can add something more human, like why you split your life between the Alps and Sweden, or what you do when you're not working.</p>
+        <dl class="facts">
+          <div><dt>Based in</dt><dd>Austria and Sweden</dd></div>
+          <div><dt>Speaks</dt><dd>German, English, Swedish</dd></div>
+        </dl>
+      </div>
     </div>
+  </section>
 
-    <!-- Modal for video playback -->
-    <div class="modal" id="videoModal">
-        <div class="modal-content">
-            <button class="close-button" onclick="closeVideo()">&times;</button>
-            <h2 class="modal-title" id="videoTitle"></h2>
-            <video id="modalVideo" autoplay loop muted playsinline>
-                <source src="" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        </div>
+  <!-- ============ CV: topographic elevation profile + table ============ -->
+  <section class="section" id="cv">
+    <h2>Career</h2>
+    <div class="body">
+      <div class="topo"><svg id="profile" viewBox="0 0 1000 300" role="group" aria-label="Career as an elevation profile. Select a waypoint to highlight it in the table below."></svg></div>
+      <table class="cv-table" id="cvTable">
+        <thead><tr><th scope="col">Years</th><th scope="col">Role</th><th scope="col">Where</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <a class="text-link" id="cvDownload" href="cv.pdf" download>Download the full CV as PDF <svg class="i"><use href="#i-down"/></svg></a>
     </div>
+  </section>
 
-    <script>
-        const modal = document.getElementById('videoModal');
-        const video = document.getElementById('modalVideo');
-        const title = document.getElementById('videoTitle');
+  <!-- ============ SKILLS ============ -->
+  <section class="section" id="skills">
+    <h2>Skills</h2>
+    <dl class="body skills" id="skillList"></dl>
+  </section>
 
-        function showVideo(videoSrc, videoTitle) {
-            video.src = videoSrc;
-            title.textContent = videoTitle;
-            modal.style.display = 'flex';
-            video.play();
-        }
+  <!-- ============ PROJECTS ============ -->
+  <section class="section" id="projects">
+    <h2>Projects</h2>
+    <ol class="body projects" id="projectList"></ol>
+  </section>
 
-        function closeVideo() {
-            modal.style.display = 'none';
-            video.pause();
-            video.src = '';
-        }
+  <!-- ============ CONTACT ============ -->
+  <section class="section contact" id="contact">
+    <h2>Contact</h2>
+    <div class="body">
+      <p class="big"><a id="mailLink" href="mailto:hello@example.com">hello@example.com</a></p>
+      <ul class="links" id="contactLinks"></ul>
+    </div>
+  </section>
+</main>
 
-        // Close modal when clicking outside the video
-        modal.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                closeVideo();
-            }
-        });
+<footer class="footer">
+  <span>© <span id="year"></span> Sebastian Bauer</span>
+  <span>There's a GPS terminal hidden in this site. Press <kbd>~</kbd> to open it.</span>
+</footer>
 
-        // Handle escape key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeVideo();
-            }
-        });
-    </script>
+<!-- ============ GPS TERMINAL ============ -->
+<div class="gps" id="gps" role="dialog" aria-label="GPS terminal" hidden>
+  <div class="gps-head">
+    <span>GPS-TRAIL v1.0</span>
+    <span id="gpsCoords" class="gps-coords"></span>
+    <button id="termClose" type="button" aria-label="Close terminal">×</button>
+  </div>
+  <div class="gps-out" id="gpsOut"></div>
+  <form class="gps-in" id="gpsForm" autocomplete="off">
+    <label for="gpsCmd">$</label>
+    <input id="gpsCmd" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="help">
+  </form>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
