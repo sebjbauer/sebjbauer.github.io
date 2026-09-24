@@ -282,6 +282,52 @@ ${status}`;
   }
 };
 
+/* ---------------- time-lapse ---------------- */
+// `timelapse`: a whole day in 20 seconds. `timelapse year`: the four seasons in 20 seconds.
+let lapsing = false;
+function timelapse(mode) {
+  lapsing = true;
+  const saved = { hour: forcedHour, season: forcedSeason, particle: live.particle };
+  const root = document.documentElement, seasons = ['winter', 'spring', 'summer', 'autumn'];
+  const DURATION = 20000;
+  if (mode === 'year') live.particle = null; // show each season's own snow, petals or leaves
+  clockPaused = true;
+  root.classList.add('timelapse');
+  // A plain timer (not animation frames), so it always ends after 20 s, even in a background tab.
+  // About 15 pictures a second is plenty, and kind to phones.
+  const t0 = performance.now();
+  const step = () => {
+    const k = Math.min(1, (performance.now() - t0) / DURATION);
+    if (mode === 'year') {
+      forcedSeason = seasons[Math.min(3, Math.floor(k * 4))];
+      forcedHour = skyPreset('day');
+      $('#clock').textContent = forcedSeason;
+    } else {
+      forcedHour = (k * 24) % 24;
+      $('#clock').textContent = fmtHour(forcedHour);
+      $('#greet').textContent = greeting(forcedHour);
+    }
+    paintSky();
+    if (k < 1) return setTimeout(step, 66);
+    forcedHour = saved.hour; forcedSeason = saved.season; live.particle = saved.particle;
+    clockPaused = false;
+    root.classList.remove('timelapse');
+    paintSky(); tickClock();
+    lapsing = false;
+  };
+  step();
+}
+
+COMMANDS.timelapse = (arg) => {
+  if (lapsing) return 'A time-lapse is already running. Look up.';
+  if (reduceMotion) return 'This one needs animations, which are turned off on your device.';
+  if (arg && arg !== 'year') return 'Usage: timelapse | timelapse year';
+  closeGps();
+  scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => timelapse(arg), 600);
+  return arg === 'year' ? 'Winter, spring, summer, autumn: here we go.' : 'Midnight to midnight in 20 seconds…';
+};
+
 /* ---------------- schedule ---------------- */
 setTimeout(ride, 6000);
 every(35, 90, ride);
@@ -295,6 +341,7 @@ setTimeout(checkIss, 3000);
 if (params.has('ride')) setTimeout(ride, 800);
 if (params.has('penguin')) setTimeout(penguinWalk, 800);
 if (params.has('smlm')) setTimeout(() => (lastSky.d >= 0.75 ? smlmShow() : toast('The microscope only works at night.')), 900);
+if (params.has('timelapse')) setTimeout(() => timelapse(params.get('timelapse') === 'year' ? 'year' : ''), 900);
 if (params.has('iss')) { // preview: a pass from west-south-west to east over 40 seconds
   clearTimeout(issTimer);
   issDot.classList.add('show', 'demo');

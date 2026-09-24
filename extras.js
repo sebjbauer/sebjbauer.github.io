@@ -171,6 +171,7 @@ specialGreeting = () => HOLIDAY_GREETING[holidayToday()] || null;
 function applyHoliday() {
   document.documentElement.dataset.holiday = holidayToday() || 'none';
   tickClock();
+  paintSky(); // Christmas turns the accent red
 }
 
 COMMANDS.holiday = (arg) => {

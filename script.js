@@ -207,8 +207,21 @@ function paintSky() {
 }
 
 /* ---------------- day/night page colours ---------------- */
-const LIGHT = { bg: '#FFFFFF', text: '#111111', accent: '#B8520F', edu: '#2C7A68', tree: '#1F3A31' };
-const DARK = { bg: '#0A0A0A', text: '#EDEDED', accent: '#F2A15A', edu: '#7CC4AE', tree: '#0A0A0A' };
+// The accent colour follows the season (and Christmas): [on the white page, on the black page].
+// Every pair is readable as text: at least 4.9:1 contrast.
+const ACCENTS = {
+  spring: ['#B23A6A', '#F29AC0'],     // blossom pink
+  summer: ['#8A6100', '#F2C14E'],     // sun yellow
+  autumn: ['#B8520F', '#F2A15A'],     // leaf orange
+  winter: ['#2B6CA3', '#8CC4EE'],     // icy blue
+  christmas: ['#B42318', '#F07A6E'],  // Christmas red
+};
+function accentPair() {
+  const holiday = typeof holidayToday === 'function' ? holidayToday() : null; // holidays live in extras.js
+  return ACCENTS[holiday === 'christmas' ? 'christmas' : currentSeason()];
+}
+const LIGHT = { bg: '#FFFFFF', text: '#111111', edu: '#2C7A68', tree: '#1F3A31' };
+const DARK = { bg: '#0A0A0A', text: '#EDEDED', edu: '#7CC4AE', tree: '#0A0A0A' };
 
 // 0 = full daylight, 1 = full night. Fades over roughly an hour of twilight.
 function darkness(h, { rise, set }) {
@@ -228,7 +241,9 @@ function applyTheme(d) {
   const ink = lightInk ? DARK : LIGHT;
   setVar('--bg', bg);
   setVar('--text', ink.text);
-  setVar('--accent', ink.accent);
+  const [accentLight, accentDark] = accentPair();
+  setVar('--accent', lightInk ? accentDark : accentLight);
+  setVar('--accent-night', accentDark); // the terminal is always dark
   setVar('--edu', ink.edu);
   setVar('--muted', mix(ink.text, bg, 0.4));
   setVar('--raised', mix(bg, ink.text, 0.04));
@@ -468,7 +483,9 @@ function greeting(h) {
   return 'Good night · Gute Nacht · God natt.';
 }
 
+let clockPaused = false; // the time-lapse shows its own time
 function tickClock() {
+  if (clockPaused) return;
   const now = new Date();
   $('#clock').textContent = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
   $('#clock').dateTime = now.toISOString();
@@ -713,6 +730,7 @@ const COMMANDS = {
   <b class="warn">smlm</b>          point the microscope at the stars (clear nights only)
   <b class="warn">badges</b>        what you've discovered so far
   <b class="warn">iss</b>           where the space station is right now
+  <b class="warn">timelapse</b>     a whole day in 20 seconds (or: timelapse year)
   <b class="warn">download cv</b>   the official PDF
   <b class="warn">goto</b> &lt;place&gt;   about | timeline | cv | education | publications | skills | projects | contact
   <b class="warn">fika</b>          mandatory break

@@ -471,7 +471,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 
 /* ---------- GPS terminal ---------- */
 .gps {
-  --line: #262626; --line-strong: #3A3A3A; --text: #EDEDED; --muted: #A3A3A0; --accent: #F2A15A;
+  --line: #262626; --line-strong: #3A3A3A; --text: #EDEDED; --muted: #A3A3A0; --accent: var(--accent-night, #F2A15A);
   position: fixed; right: 24px; bottom: 24px; z-index: 50;
   width: min(520px, calc(100vw - 32px)); height: min(460px, calc(100vh - 120px));
   display: flex; flex-direction: column;
@@ -526,6 +526,9 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
   .landscape { height: 36%; }
   .gps { right: 16px; bottom: 16px; }
 }
+
+/* ---------- time-lapse: no smoothing, every picture is a new moment ---------- */
+.timelapse *, .timelapse *::before, .timelapse body { transition: none !important; }
 
 /* ---------- link-preview card (?card) ---------- */
 .card .nav, .card .hero-time, .card .weather, .card .birds, .card .iss, .card .toast { display: none !important; }

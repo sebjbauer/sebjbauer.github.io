@@ -17,6 +17,7 @@ This file is not part of the website (see `_config.yml`), it only lives in the r
 | `ride`, `penguin`, `birds` | no value; sends out the cyclist, the penguin or the birds right away |
 | `iss` | no value; shows a pretend ISS pass across the sky (needs `sky=night`) |
 | `card` | no value; the clean 1200 × 630 scene used for the link-preview image |
+| `timelapse` | `day` or `year`; plays the time-lapse right after loading |
 
 These only change what *you* see in that browser tab. Normal visitors always get the live version.
 
@@ -47,6 +48,8 @@ These only change what *you* see in that browser tab. Normal visitors always get
 | Rainbow | https://sebjbauer.github.io/?sky=day&season=summer&weather=rainbow |
 | ISS pass (pretend) | https://sebjbauer.github.io/?sky=night&weather=clear&iss |
 | Link-preview scene | https://sebjbauer.github.io/?card&sky=dusk&weather=clear&season=summer |
+| A day in 20 seconds | https://sebjbauer.github.io/?weather=clear&timelapse=day |
+| A year in 20 seconds | https://sebjbauer.github.io/?weather=clear&timelapse=year |
 
 If a link still shows an older version, press **Cmd + Option + R** in Safari (or open a private window) to skip the browser's saved copy.
 
@@ -72,6 +75,24 @@ Everything at the top of the page follows the real conditions in **Vienna** (set
 - It doesn't switch at once: the background fades from white through grey to black over about an hour around sunset, and back around sunrise.
 - The text flips from black to white once, at the point where white becomes easier to read.
 - The GPS terminal always stays dark.
+
+## Seasonal accent colour
+
+The accent colour (links, the career trail, highlights, the terminal prompt) follows the season, in a darker shade on the white page and a lighter one at night. All are readable as text (at least 4.9:1 contrast).
+
+| When | Colour | On white | On black |
+|---|---|---|---|
+| Spring (Mar–May) | blossom pink | `#B23A6A` | `#F29AC0` |
+| Summer (Jun–Aug) | sun yellow | `#8A6100` | `#F2C14E` |
+| Autumn (Sep–Nov) | leaf orange | `#B8520F` | `#F2A15A` |
+| Winter (Dec–Feb) | icy blue | `#2B6CA3` | `#8CC4EE` |
+| Christmas (24–26 Dec) | red | `#B42318` | `#F07A6E` |
+
+The colours are in `ACCENTS` in `script.js`. The education green stays the same all year.
+
+## Time-lapse
+
+Terminal `timelapse`: a whole day in 20 seconds, midnight to midnight: stars and northern lights, sunrise, the page turning white, sunset, back to night, with the clock and greeting following along. `timelapse year`: winter, spring, summer, autumn in 20 seconds, each with its own landscape, snow, petals or leaves and accent colour. Afterwards everything returns to the real time.
 
 ## Real weather
 
@@ -216,6 +237,7 @@ Tab completes commands, ↑ repeats the last one.
 | `smlm` | Microscope stars (clear nights only) |
 | `badges` | Trail badges found so far |
 | `iss` | Where the space station is right now |
+| `timelapse` | A whole day in 20 seconds; `timelapse year` for the seasons |
 | `download cv` | Downloads `cv.pdf` |
 | `goto contact` | Scrolls to a section (`about`, `timeline`, `cv`, `education`, `publications`, `skills`, `projects`, `contact`) |
 | `fika` | Mandatory Swedish coffee break (ASCII art) |
