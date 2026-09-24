@@ -169,6 +169,7 @@ kbd {
 .hero-place { display: flex; align-items: center; gap: 6px; font-size: clamp(16px, 1.6vw, 19px); margin: 10px 0 0; }
 .hero-place .i { width: 1.05em; height: 1.05em; }
 .hero-time { font-size: 15px; color: var(--hero-soft); margin: 14px 0 0; }
+.hero-clock { white-space: nowrap; } /* the time sentence never breaks in the middle */
 
 /* ---------- live weather ---------- */
 #clouds { overflow: visible; opacity: var(--clouds-o, 0); transition: opacity 3s; will-change: transform; animation: drift 160s linear infinite alternate; }
@@ -454,6 +455,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 @media (max-width: 760px) {
   .nav nav a { display: none; }
   .hero-text { top: 18vh; }
+  .hero-clock { display: block; margin-top: 2px; } /* on phones: greeting on one line, time on the next */
   .landscape { height: 36%; }
   .gps { right: 16px; bottom: 16px; }
 }
