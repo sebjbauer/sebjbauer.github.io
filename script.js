@@ -694,7 +694,7 @@ const COMMANDS = {
   <b class="warn">holiday</b> &lt;name&gt; christmas | easter | midsommar | live
   <b class="warn">riddle</b>        for the curious
   <b class="warn">download cv</b>   the official PDF
-  <b class="warn">goto</b> &lt;place&gt;   about | cv | education | publications | skills | projects | contact
+  <b class="warn">goto</b> &lt;place&gt;   about | timeline | cv | education | publications | skills | projects | contact
   <b class="warn">fika</b>          mandatory break
   <b class="warn">clear</b>, <b class="warn">exit</b>
 Tip: Tab completes, ↑ repeats. Some commands are not listed.`,
@@ -764,7 +764,7 @@ The sun is ${up ? 'up, so this site is in light mode' : 'down, so this site is i
   },
 
   'download cv': () => { const a = document.createElement('a'); a.href = SITE.cvPdf; a.download = ''; a.click(); return `Downloading <a href="${esc(SITE.cvPdf)}">${esc(SITE.cvPdf)}</a>…`; },
-  goto: (arg) => { if (!['about', 'cv', 'education', 'publications', 'skills', 'projects', 'contact'].includes(arg)) return 'Usage: goto about | cv | education | publications | skills | projects | contact'; setTimeout(() => goTo(arg), 300); return `Navigating to ${arg}…`; },
+  goto: (arg) => { if (!['about', 'timeline', 'cv', 'education', 'publications', 'skills', 'projects', 'contact'].includes(arg)) return 'Usage: goto about | timeline | cv | education | publications | skills | projects | contact'; setTimeout(() => goTo(arg), 300); return `Navigating to ${arg}…`; },
 
   fika: () => `Starting mandatory fika…
       ( (

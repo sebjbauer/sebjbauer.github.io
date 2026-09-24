@@ -277,7 +277,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 
 /* career: profile + table */
 .topo {
-  margin: 0 0 8px; overflow-x: auto;
+  margin: 0; overflow-x: auto;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='340' fill='none' stroke='%23A3B5AB' stroke-opacity='.09'%3E%3Cellipse cx='400' cy='110' rx='40' ry='24'/%3E%3Cellipse cx='400' cy='114' rx='82' ry='50'/%3E%3Cellipse cx='392' cy='120' rx='128' ry='80'/%3E%3Cellipse cx='384' cy='126' rx='180' ry='112'/%3E%3Cellipse cx='376' cy='132' rx='236' ry='148'/%3E%3Cellipse cx='70' cy='320' rx='54' ry='30'/%3E%3Cellipse cx='70' cy='320' rx='108' ry='62'/%3E%3C/svg%3E");
 }
 #profile { display: block; width: 100%; min-width: 600px; height: auto; }
