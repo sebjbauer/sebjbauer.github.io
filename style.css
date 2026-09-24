@@ -1,14 +1,30 @@
-:root {
-  --bg: #0F1A17;
-  --raised: #15231F;
-  --line: #26392F;
-  --line-strong: #3A5247;
-  --text: #E6ECE7;
-  --muted: #A3B5AB;
+/* Dark (after sunset where you work). script.js switches data-theme live. */
+:root, [data-theme="dark"] {
+  --bg: #0A0A0A;
+  --raised: #161616;
+  --line: #262626;
+  --line-strong: #3A3A3A;
+  --text: #EDEDED;
+  --muted: #A3A3A0;
   --accent: #F2A15A;
+  --tree: #0A0A0A;
   --sans: 'Familjen Grotesk', 'Helvetica Neue', Arial, sans-serif;
   --mono: 'Martian Mono', ui-monospace, Menlo, monospace;
-
+  color-scheme: dark;
+}
+/* Light (while the sun is up) */
+[data-theme="light"] {
+  --bg: #FFFFFF;
+  --raised: #F4F4F2;
+  --line: #E6E6E3;
+  --line-strong: #CFCFCB;
+  --text: #111111;
+  --muted: #5E5E5B;
+  --accent: #B8520F;
+  --tree: #1F3A31;
+  color-scheme: light;
+}
+:root {
   /* live-sky values, overwritten by script.js */
   --sky-top: #060B12;
   --sky-bot: #15302E;
@@ -20,8 +36,8 @@
   --stars: 1;
   --aurora: 1;
   --window: 1;
-  --hero-ink: #E6ECE7;
-  --hero-soft: #C4D0C9;
+  --hero-ink: #EDEDED;
+  --hero-soft: #C9C9C6;
 }
 
 * { box-sizing: border-box; }
@@ -37,6 +53,7 @@ body {
   font-variant-numeric: tabular-nums;
   caret-color: var(--accent);
   -webkit-font-smoothing: antialiased;
+  transition: background-color .6s, color .6s;
 }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
 a:hover { color: var(--accent); }
@@ -95,14 +112,36 @@ kbd {
 .landscape { position: absolute; left: 0; bottom: 0; width: 100%; height: 60%; }
 .l-far { fill: var(--far); transition: fill 1.5s; }
 .l-mid { fill: var(--mid); transition: fill 1.5s; }
-.l-near, #trees path { fill: var(--bg); }
+.l-near { fill: var(--ground, var(--bg)); transition: fill .6s; }
+#leafy { display: none; }
+#leafy .trunk { fill: var(--tree); }
+#leafy .l1 { fill: var(--leaf-1); } #leafy .l2 { fill: var(--leaf-2); } #leafy .l3 { fill: var(--leaf-3); }
+[data-season="spring"] #leafy, [data-season="summer"] #leafy, [data-season="autumn"] #leafy { display: inline; }
+#flowers { display: none; opacity: var(--flower-o, 1); }
+[data-season="spring"] #flowers { display: inline; }
+#flowers .f1 circle { fill: #F4D35E; } #flowers .f2 circle { fill: #FFFFFF; }
+#flowers .f3 circle { fill: #E58FB1; } #flowers .f4 circle { fill: #A99BEA; }
+#flowers .c { fill: #E9B233 !important; }
+.weather { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+/* soft edge where a coloured meadow meets the page */
+.hero::after { content: ''; position: absolute; inset: auto 0 0 0; height: 3%; background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none; }
+/* summer: the sun gets slow rays */
+[data-season="summer"] .sun:not(.moon)::before {
+  content: ''; position: absolute; inset: -44px; border-radius: 50%;
+  background: repeating-conic-gradient(color-mix(in srgb, var(--sun) 60%, transparent) 0 5deg, transparent 5deg 30deg);
+  -webkit-mask: radial-gradient(circle, transparent 34px, #000 36px, transparent 72px);
+  mask: radial-gradient(circle, transparent 34px, #000 36px, transparent 72px);
+  animation: spin 80s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#trees path { fill: var(--tree); transition: fill .6s; }
 .l-snow { fill: var(--snow); transition: fill 1.5s; }
 .l-cross { stroke: var(--snow); stroke-width: 2; fill: none; }
 .l-lake { fill: var(--lake); transition: fill 1.5s; }
 .l-shimmer { stroke: var(--snow); stroke-width: 1.2; opacity: .35; }
 .window { fill: #F4C95D; opacity: var(--window); }
 
-.hero-text { position: absolute; left: clamp(16px, 5vw, 64px); right: 16px; top: 22vh; max-width: 900px; }
+.hero-text { position: absolute; z-index: 2; left: clamp(16px, 5vw, 64px); right: 16px; top: 22vh; max-width: 900px; }
 .hero h1 {
   font-size: clamp(52px, 9.5vw, 96px); line-height: 0.95; letter-spacing: -0.035em;
   font-weight: 600; margin: 0; text-wrap: balance;
@@ -201,10 +240,11 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 
 /* ---------- GPS terminal ---------- */
 .gps {
+  --line: #262626; --line-strong: #3A3A3A; --text: #EDEDED; --muted: #A3A3A0; --accent: #F2A15A;
   position: fixed; right: 24px; bottom: 24px; z-index: 50;
   width: min(520px, calc(100vw - 32px)); height: min(460px, calc(100vh - 120px));
   display: flex; flex-direction: column;
-  background: #0B1411; color: #D3E0D8; font-family: var(--mono); font-size: 12px;
+  background: #0E0E0E; color: #DADADA; font-family: var(--mono); font-size: 12px;
   border: 1px solid var(--line-strong); border-radius: 6px;
   box-shadow: 0 18px 40px -8px rgba(0, 0, 0, .55);
   overflow: hidden; animation: rise .22s cubic-bezier(.16, 1, .3, 1);
@@ -227,7 +267,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 .gps-in { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); }
 .gps-in label { color: var(--accent); }
 .gps-in input { flex: 1; background: transparent; border: 0; outline: none; color: var(--text); font: 13px var(--mono); }
-.gps-in input::placeholder { color: #4E6A60; }
+.gps-in input::placeholder { color: #5A5A58; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {

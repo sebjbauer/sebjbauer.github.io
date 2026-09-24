@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sebastian Bauer</title>
   <meta name="description" content="Sebastian Bauer, living between Austria and Sweden.">
-  <meta name="theme-color" content="#0F1A17">
+  <meta name="theme-color" content="#0A0A0A">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" rel="stylesheet">
@@ -73,6 +73,7 @@
     <path class="l-lake" d="M930 452 C1040 444 1300 444 1440 449 L1440 488 C1300 494 1040 492 930 476 Z"/>
     <path class="l-shimmer" d="M1010 462 H1090 M1150 470 H1260 M1300 460 H1380"/>
     <g id="trees"></g>
+    <g id="leafy"></g>
     <g class="stuga">
       <rect x="1180" y="430" width="30" height="17" fill="#9E2B25"/>
       <path d="M1175 431 L1195 417 L1215 431 Z" fill="#2A1A18"/>
@@ -81,7 +82,10 @@
       <rect x="1180" y="449" width="30" height="10" fill="#9E2B25" opacity=".25"/>
     </g>
     <path class="l-near" d="M900 486 C1100 481 1300 490 1440 485 L1440 520 L900 520 Z"/>
+    <g id="flowers"></g>
   </svg>
+
+  <canvas class="weather" id="weather" aria-hidden="true"></canvas>
 
   <div class="hero-text">
     <h1>Sebastian Bauer</h1>
@@ -113,7 +117,7 @@
     <div class="body">
       <div class="topo"><svg id="profile" viewBox="0 0 1000 300" role="group" aria-label="Career as an elevation profile. Select a waypoint to highlight it in the table below."></svg></div>
       <table class="cv-table" id="cvTable">
-        <thead><tr><th scope="col">Years</th><th scope="col">Role</th><th scope="col">Where</th></tr></thead>
+        <thead><tr><th scope="col">Years</th><th scope="col">Role</th><th scope="col" class="where">Where</th></tr></thead>
         <tbody></tbody>
       </table>
       <a class="text-link" id="cvDownload" href="cv.pdf" download>Download the full CV as PDF <svg class="i"><use href="#i-down"/></svg></a>

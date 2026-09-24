@@ -10,6 +10,9 @@ const SITE = {
   linkedin: 'https://www.linkedin.com/in/your-profile',
   github: 'https://github.com/sebjbauer',
   cvPdf: 'cv.pdf',
+  // Where you work right now ('at' or 'se'). Light and dark mode follow real
+  // sunrise and sunset there: white while the sun is up, black after dark.
+  workBase: 'at',
   places: {
     at: { country: 'Austria', city: 'Vienna', lat: 48.21, lon: 16.37 },
     se: { country: 'Sweden', city: 'Stockholm', lat: 59.33, lon: 18.07 },
@@ -48,19 +51,18 @@ const altitude = (i) => Math.round((500 + i * (1800 / Math.max(1, SITE.cv.length
 
 /* ---------------- live sky ---------------- */
 const PHASES = {
-  night: { skyTop: '#060B12', skyBot: '#15302E', far: '#1D3530', mid: '#14241F', snow: '#B9C9C2', lake: '#18302F', sun: '#E9EFE9', stars: 1, aurora: 1, window: 1 },
+  night: { skyTop: '#04060A', skyBot: '#121A22', far: '#1B232A', mid: '#12171B', snow: '#B8C2CA', lake: '#141C23', sun: '#E9EDEF', stars: 1, aurora: 1, window: 1 },
   dawn:  { skyTop: '#2E3A66', skyBot: '#F2A38A', far: '#6B6283', mid: '#34474A', snow: '#F7D3C4', lake: '#9C8190', sun: '#FFD7A8', stars: .25, aurora: .1, window: .6 },
   day:   { skyTop: '#4E9ACB', skyBot: '#CDE6EE', far: '#8BA7B0', mid: '#3B6457', snow: '#FFFFFF', lake: '#6FA8BF', sun: '#FFF1C4', stars: 0, aurora: 0, window: 0 },
   dusk:  { skyTop: '#26295A', skyBot: '#EE8657', far: '#584A6B', mid: '#2C3B40', snow: '#F4BFA0', lake: '#7D5263', sun: '#FFB36B', stars: .35, aurora: .2, window: .8 },
 };
-const KEYFRAMES = [[0, 'night'], [5, 'night'], [6.5, 'dawn'], [9, 'day'], [16.5, 'day'], [19, 'dusk'], [21, 'night'], [24, 'night']];
-const SKY_PRESETS = { dawn: 7, day: 12.5, dusk: 19.2, night: 23 };
 let forcedHour = null;
 
 const hex2rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 const rgb2hex = (c) => '#' + c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
 const mix = (a, b, t) => (typeof a === 'number' ? a + (b - a) * t : rgb2hex(hex2rgb(a).map((v, i) => v + (hex2rgb(b)[i] - v) * t)));
 const lum = (h) => { const [r, g, b] = hex2rgb(h).map((v) => v / 255); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const fmtHour = (h) => { const m = Math.round((((h % 24) + 24) % 24) * 60); return `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
 
 function localHour() {
   const parts = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).formatToParts(new Date());
@@ -68,12 +70,38 @@ function localHour() {
   return get('hour') + get('minute') / 60;
 }
 
+// Sunrise and sunset (local hours) for a place, using the NOAA approximation.
+function sunTimes(place, date = new Date()) {
+  const rad = Math.PI / 180;
+  const day = Math.floor((Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - Date.UTC(date.getUTCFullYear(), 0, 0)) / 864e5);
+  const g = 2 * Math.PI / 365 * (day - 1);
+  const eqt = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+  const decl = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+  const cosH = (Math.cos(90.833 * rad) - Math.sin(place.lat * rad) * Math.sin(decl)) / (Math.cos(place.lat * rad) * Math.cos(decl));
+  const ha = Math.acos(Math.min(1, Math.max(-1, cosH))) / rad;
+  const utcNow = date.getUTCHours() + date.getUTCMinutes() / 60;
+  const offset = Math.round(((localHour() - utcNow + 36) % 24 - 12) * 4) / 4; // time-zone offset in hours
+  return { rise: (720 - 4 * (place.lon + ha) - eqt) / 60 + offset, set: (720 - 4 * (place.lon - ha) - eqt) / 60 + offset };
+}
+
+// The sky's colour stops, anchored to today's real sunrise and sunset.
+function keyframes({ rise, set }) {
+  return [[0, 'night'], [rise - 1.2, 'night'], [rise + 0.3, 'dawn'], [rise + 2, 'day'], [set - 1.5, 'day'], [set, 'dusk'], [set + 1.3, 'night'], [24, 'night']];
+}
+
+function skyPreset(name) {
+  const { rise, set } = sunTimes(SITE.places[SITE.workBase]);
+  return { dawn: rise + 0.3, day: (rise + set) / 2, dusk: set, night: 23.5 }[name];
+}
+
 function paintSky() {
   const h = forcedHour ?? localHour();
+  const sunT = sunTimes(SITE.places[SITE.workBase]);
+  const frames = keyframes(sunT);
   let k = 0;
-  while (k < KEYFRAMES.length - 2 && h >= KEYFRAMES[k + 1][0]) k++;
-  const [h0, p0] = KEYFRAMES[k], [h1, p1] = KEYFRAMES[k + 1];
-  const t = h1 === h0 ? 0 : (h - h0) / (h1 - h0);
+  while (k < frames.length - 2 && h >= frames[k + 1][0]) k++;
+  const [h0, p0] = frames[k], [h1, p1] = frames[k + 1];
+  const t = h1 === h0 ? 0 : Math.min(1, Math.max(0, (h - h0) / (h1 - h0)));
   const a = PHASES[p0], b = PHASES[p1], root = document.documentElement.style;
   const v = {};
   for (const key in a) v[key] = mix(a[key], b[key], t);
@@ -83,17 +111,148 @@ function paintSky() {
   root.setProperty('--sun', v.sun); root.setProperty('--stars', v.stars);
   root.setProperty('--aurora', v.aurora); root.setProperty('--window', v.window);
   const bright = (lum(v.skyTop) + lum(v.skyBot)) / 2 > 0.42;
-  root.setProperty('--hero-ink', bright ? '#0F1A17' : '#E9EFE9');
+  root.setProperty('--hero-ink', bright ? '#111111' : '#EDEDED');
+  root.setProperty('--hero-soft', bright ? '#3D3D3B' : '#C9C9C6');
 
-  // sun by day (06–20), moon by night; both travel along an arc
-  const sun = $('#sun'), isDay = h >= 6 && h < 20;
-  const p = isDay ? (h - 6) / 14 : ((h >= 20 ? h - 20 : h + 4) / 10);
+  // page colours fade from white to black through twilight where you work
+  const isDay = h >= sunT.rise && h < sunT.set;
+  applyTheme(darkness(h, sunT));
+
+  // sun by day, moon by night; both travel along an arc on the right half
+  const sun = $('#sun');
+  const nightLen = 24 - (sunT.set - sunT.rise);
+  const p = isDay ? (h - sunT.rise) / (sunT.set - sunT.rise) : (((h - sunT.set) + 24) % 24) / nightLen;
   sun.classList.toggle('moon', !isDay);
-  // keep it on the right half so it never covers the headline
   const narrow = innerWidth < 760;
   sun.style.left = (narrow ? 20 : 48) + p * (narrow ? 70 : 46) + '%';
   sun.style.top = (narrow ? 58 : 62) - Math.sin(p * Math.PI) * (narrow ? 12 : 44) + '%';
 }
+
+/* ---------------- day/night page colours ---------------- */
+const LIGHT = { bg: '#FFFFFF', text: '#111111', accent: '#B8520F', tree: '#1F3A31' };
+const DARK = { bg: '#0A0A0A', text: '#EDEDED', accent: '#F2A15A', tree: '#0A0A0A' };
+
+// 0 = full daylight, 1 = full night. Fades over roughly an hour of twilight.
+function darkness(h, { rise, set }) {
+  const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  return h < (rise + set) / 2 ? 1 - smooth(rise - 0.7, rise + 0.3, h) : smooth(set - 0.3, set + 0.7, h);
+}
+
+function applyTheme(d) {
+  const root = document.documentElement, st = root.style;
+  const bg = mix(LIGHT.bg, DARK.bg, d);
+  // the background fades smoothly; text flips where both inks have the same contrast
+  const lightInk = lum(bg) < 0.46;
+  const ink = lightInk ? DARK : LIGHT;
+  st.setProperty('--bg', bg);
+  st.setProperty('--text', ink.text);
+  st.setProperty('--accent', ink.accent);
+  st.setProperty('--muted', mix(ink.text, bg, 0.4));
+  st.setProperty('--raised', mix(bg, ink.text, 0.04));
+  st.setProperty('--line', mix(bg, ink.text, 0.1));
+  st.setProperty('--line-strong', mix(bg, ink.text, 0.2));
+  st.setProperty('--tree', mix(LIGHT.tree, DARK.tree, d));
+  root.dataset.theme = lightInk ? 'dark' : 'light';
+  document.querySelector('meta[name="theme-color"]').content = bg;
+  applySeason(d, bg);
+}
+
+/* ---------------- seasons ---------------- */
+// ground: [day, night] colour of the foreground; null = same as the page (snow).
+const SEASONS = {
+  winter: { ground: null, leaves: [] },
+  spring: { ground: ['#A9CB86', '#0F150F'], leaves: ['#B5D98F', '#8FC06F', '#D3EBB4'] },
+  summer: { ground: ['#86B061', '#0E140C'], leaves: ['#4F8A3A', '#6FA24E', '#3E7432'] },
+  autumn: { ground: ['#CDAA70', '#15110C'], leaves: ['#D9642B', '#E8A33D', '#B8412A'] },
+};
+let forcedSeason = null;
+
+function currentSeason() {
+  if (forcedSeason) return forcedSeason;
+  const m = +new Intl.DateTimeFormat('en-GB', { timeZone: TZ, month: 'numeric' }).format(new Date());
+  return m === 12 || m <= 2 ? 'winter' : m <= 5 ? 'spring' : m <= 8 ? 'summer' : 'autumn';
+}
+
+function applySeason(d, bg) {
+  const name = currentSeason(), season = SEASONS[name], root = document.documentElement, st = root.style;
+  root.dataset.season = name;
+  st.setProperty('--ground', season.ground ? mix(season.ground[0], season.ground[1], d) : bg);
+  season.leaves.forEach((c, i) => st.setProperty(`--leaf-${i + 1}`, mix(c, '#0C0C0C', d * 0.85)));
+  st.setProperty('--flower-o', (1 - d * 0.75).toFixed(2));
+  weather.set({ winter: 'snow', autumn: 'leaves', spring: 'petals', summer: d > 0.6 ? 'fireflies' : null }[name], season.leaves);
+}
+
+/* ---------------- weather particles (snow, leaves, petals, fireflies) ---------------- */
+const weather = (() => {
+  const cv = $('#weather'), ctx = cv.getContext('2d');
+  let kind = null, parts = [], visible = true, raf = 0, palette = [];
+  const counts = { snow: 110, leaves: 26, petals: 16, fireflies: 34 };
+
+  function resize() {
+    const r = devicePixelRatio || 1;
+    cv.width = cv.clientWidth * r; cv.height = cv.clientHeight * r;
+    ctx.setTransform(r, 0, 0, r, 0, 0);
+  }
+  function spawn(p, anywhere) {
+    const W = cv.clientWidth, H = cv.clientHeight;
+    p.x = Math.random() * W;
+    p.y = anywhere ? Math.random() * H : -12;
+    p.phase = Math.random() * Math.PI * 2;
+    if (kind === 'snow') { p.r = 0.8 + Math.random() * 2.2; p.vy = 0.25 + p.r * 0.28; }
+    if (kind === 'leaves' || kind === 'petals') {
+      p.s = kind === 'leaves' ? 4 + Math.random() * 4 : 2.5 + Math.random() * 2;
+      p.vy = 0.45 + Math.random() * 0.7; p.rot = Math.random() * 6; p.vr = (Math.random() - 0.5) * 0.06;
+      p.c = kind === 'leaves' ? palette[Math.floor(Math.random() * palette.length)] : ['#F6C7D6', '#FFFFFF', '#F3B6CA'][Math.floor(Math.random() * 3)];
+    }
+    if (kind === 'fireflies') { p.y = H * (0.62 + Math.random() * 0.36); p.vx = (Math.random() - 0.5) * 0.3; p.vy = (Math.random() - 0.5) * 0.2; }
+    return p;
+  }
+  function frame(t) {
+    const W = cv.clientWidth, H = cv.clientHeight;
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts) {
+      if (kind === 'fireflies') {
+        p.x += p.vx + Math.sin(t / 900 + p.phase) * 0.2; p.y += p.vy + Math.cos(t / 1100 + p.phase) * 0.15;
+        if (p.x < 0 || p.x > W || p.y < H * 0.55 || p.y > H) spawn(p, true);
+        const a = Math.max(0, Math.sin(t / 600 + p.phase)) ** 3;
+        ctx.fillStyle = `rgba(244, 226, 122, ${a})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 1.8, 0, 7); ctx.fill();
+        continue;
+      }
+      p.y += p.vy;
+      p.x += Math.sin(t / 1400 + p.phase) * (kind === 'snow' ? 0.35 : 0.9);
+      if (p.y > H + 12) spawn(p, false);
+      if (kind === 'snow') {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill();
+      } else {
+        p.rot += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot + Math.sin(t / 700 + p.phase) * 0.6);
+        ctx.fillStyle = p.c;
+        ctx.beginPath(); ctx.ellipse(0, 0, p.s, p.s * 0.5, 0, 0, 7); ctx.fill();
+        ctx.restore();
+      }
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  function restart() {
+    cancelAnimationFrame(raf);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    if (!kind || !visible || reduceMotion) return;
+    raf = requestAnimationFrame(frame);
+  }
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; restart(); }).observe(cv);
+  addEventListener('resize', resize);
+  resize();
+  return {
+    set(next, colors = []) {
+      if (next === kind && colors.join() === palette.join()) return;
+      kind = next; palette = colors;
+      parts = kind ? Array.from({ length: counts[kind] }, () => spawn({}, true)) : [];
+      restart();
+    },
+  };
+})();
 
 function renderStars() {
   const svg = $('#stars');
@@ -129,6 +288,26 @@ function renderTrees() {
     x += swedish ? 9 + rnd() * 14 : 16 + rnd() * 30;
   }
   $('#trees').innerHTML = out;
+
+  // deciduous trees: green in spring and summer, orange in autumn, hidden in winter
+  let leafy = '';
+  [60, 150, 205, 330, 470, 540, 690, 760, 840, 1000, 1070, 1300, 1390].forEach((x, i) => {
+    const y = (x > 930 ? 447 : groundY(x)) + 2, h = 24 + rnd() * 18, r = h * 0.34;
+    leafy += `<rect class="trunk" x="${x - 1.5}" y="${y - h * 0.45}" width="3" height="${h * 0.45}"/>` +
+      `<circle class="l${(i % 3) + 1}" cx="${x}" cy="${y - h * 0.62}" r="${r.toFixed(1)}"/>` +
+      `<circle class="l${((i + 1) % 3) + 1}" cx="${x + r * 0.55}" cy="${y - h * 0.5}" r="${(r * 0.72).toFixed(1)}"/>`;
+  });
+  $('#leafy').innerHTML = leafy;
+
+  // spring flowers in the foreground meadow
+  let flowers = '';
+  for (let i = 0; i < 90; i++) {
+    const x = Math.round(10 + rnd() * 900), gy = groundY(x), y = gy + 8 + rnd() * (512 - gy - 8), c = 1 + Math.floor(rnd() * 4), r = 1.3 + rnd() * 1.1;
+    flowers += `<g class="f${c}" transform="translate(${x} ${y.toFixed(1)})">` +
+      [0, 72, 144, 216, 288].map((a) => `<circle cx="${(Math.cos(a * Math.PI / 180) * r * 1.3).toFixed(2)}" cy="${(Math.sin(a * Math.PI / 180) * r * 1.3).toFixed(2)}" r="${r.toFixed(2)}"/>`).join('') +
+      `<circle class="c" r="${(r * 0.8).toFixed(2)}"/></g>`;
+  }
+  $('#flowers').innerHTML = flowers;
 }
 
 // On phones, squeeze the view slightly so both the Alps and the Swedish lake fit
@@ -278,6 +457,8 @@ const COMMANDS = {
   <b class="warn">contact</b>       send a signal
   <b class="warn">weather</b>       live weather, AT and SE
   <b class="warn">sky</b> &lt;mode&gt;    dawn | day | dusk | night | live
+  <b class="warn">sun</b>           sunrise and sunset where I work
+  <b class="warn">season</b> &lt;name&gt;  winter | spring | summer | autumn | live
   <b class="warn">download cv</b>   the official PDF
   <b class="warn">goto</b> &lt;place&gt;   about | cv | skills | projects | contact
   <b class="warn">fika</b>          mandatory break
@@ -335,9 +516,23 @@ ${esc(w.text)}`;
 
   sky: (arg) => {
     if (arg === 'live' || !arg) { forcedHour = null; paintSky(); return 'Sky synced to the real time in Austria and Sweden.'; }
-    if (!(arg in SKY_PRESETS)) return 'Usage: sky dawn | day | dusk | night | live';
-    forcedHour = SKY_PRESETS[arg]; paintSky();
+    if (!['dawn', 'day', 'dusk', 'night'].includes(arg)) return 'Usage: sky dawn | day | dusk | night | live';
+    forcedHour = skyPreset(arg); paintSky();
     return `Sky set to ${arg}. ${arg === 'night' ? 'Look north for the northern lights.' : ''}Scroll up to see it.`;
+  },
+
+  season: (arg) => {
+    if (arg === 'live' || !arg) { forcedSeason = null; paintSky(); return `Season synced to the calendar: ${currentSeason()}.`; }
+    if (!(arg in SEASONS)) return 'Usage: season winter | spring | summer | autumn | live';
+    forcedSeason = arg; paintSky();
+    return { winter: 'Snow is falling. Scroll up.', spring: 'The first flowers are out. Scroll up.', summer: 'Long summer days. At night, look for fireflies.', autumn: 'Leaves are falling. Scroll up.' }[arg];
+  },
+
+  sun: () => {
+    const place = SITE.places[SITE.workBase], { rise, set } = sunTimes(place);
+    const up = localHour() >= rise && localHour() < set;
+    return `${esc(place.city)} today: sunrise ${fmtHour(rise)}, sunset ${fmtHour(set)}.
+The sun is ${up ? 'up, so this site is in light mode' : 'down, so this site is in dark mode'}.`;
   },
 
   'download cv': () => { const a = document.createElement('a'); a.href = SITE.cvPdf; a.download = ''; a.click(); return `Downloading <a href="${esc(SITE.cvPdf)}">${esc(SITE.cvPdf)}</a>…`; },
@@ -428,7 +623,9 @@ function tickCoords() {
 
 /* ---------------- boot ---------------- */
 const skyParam = new URLSearchParams(location.search).get('sky');
-if (skyParam in SKY_PRESETS) forcedHour = SKY_PRESETS[skyParam];
+if (['dawn', 'day', 'dusk', 'night'].includes(skyParam)) forcedHour = skyPreset(skyParam);
+const seasonParam = new URLSearchParams(location.search).get('season');
+if (seasonParam in SEASONS) forcedSeason = seasonParam;
 
 renderStars();
 renderTrees();
@@ -439,7 +636,7 @@ renderProfile();
 renderCvTable();
 renderContent();
 tickCoords();
-setInterval(() => { paintSky(); tickClock(); }, 60000);
+setInterval(() => { paintSky(); tickClock(); }, 30000);
 setInterval(tickCoords, 4000);
 addEventListener('resize', () => { fitLandscape(); paintSky(); });
 addEventListener('scroll', () => $('.nav').classList.toggle('scrolled', scrollY > innerHeight * 0.6), { passive: true });
