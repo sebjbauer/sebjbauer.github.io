@@ -16,6 +16,27 @@ This file is not part of the website (see `_config.yml`), it only lives in the r
 
 These only change what *you* see in that browser tab. Normal visitors always get the live version.
 
+### Ready-made preview links
+
+| Scene | Link |
+|---|---|
+| Clear night with a shooting star | https://sebjbauer.github.io/?sky=night&weather=clear&star |
+| The deer at dusk | https://sebjbauer.github.io/?sky=dusk&weather=clear |
+| Sunrise | https://sebjbauer.github.io/?sky=dawn&weather=clear |
+| Winter snowfall by day | https://sebjbauer.github.io/?sky=day&season=winter&weather=clear |
+| Spring flowers | https://sebjbauer.github.io/?sky=day&season=spring&weather=clear |
+| Summer sun | https://sebjbauer.github.io/?sky=day&season=summer&weather=clear |
+| Summer night with fireflies | https://sebjbauer.github.io/?sky=night&season=summer&weather=clear |
+| Autumn leaves | https://sebjbauer.github.io/?sky=day&season=autumn&weather=clear |
+| Christmas | https://sebjbauer.github.io/?sky=night&season=winter&holiday=christmas&weather=snow |
+| Easter | https://sebjbauer.github.io/?sky=day&season=spring&holiday=easter&weather=clear |
+| Midsommar | https://sebjbauer.github.io/?sky=day&season=summer&holiday=midsommar&weather=clear |
+| Rain | https://sebjbauer.github.io/?sky=day&weather=rain |
+| Thunderstorm at night | https://sebjbauer.github.io/?sky=night&weather=storm |
+| Fog in the morning | https://sebjbauer.github.io/?sky=dawn&weather=fog |
+
+If a link still shows an older version, press **Cmd + Option + R** in Safari (or open a private window) to skip the browser's saved copy.
+
 ---
 
 ## The live sky
