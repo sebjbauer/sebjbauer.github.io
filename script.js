@@ -90,7 +90,6 @@ const SITE = {
   projects: [
     { name: 'Project one', text: 'A one-line description of the project.', url: '#', where: 'Vienna' },
     { name: 'Project two', text: 'A one-line description of the project.', url: '#', where: 'Vienna' },
-    { name: 'This website', text: 'Live sky, two countries, one hidden GPS terminal.', url: 'https://github.com/sebjbauer', where: 'Vienna' },
   ],
 };
 
@@ -652,15 +651,14 @@ function renderContent() {
       <span class="desc">${esc(p.text)}</span>
       <span class="where">${esc(p.where)}</span></a></li>`).join('');
 
-  $('#mailLink').href = `mailto:${SITE.email}`;
-  $('#mailLink').textContent = SITE.email;
   $('#contactLinks').innerHTML = [
+    [`mailto:${SITE.email}`, 'Email'],
     [SITE.linkedin, 'LinkedIn'],
     [SITE.scholar, 'Google Scholar'],
     [SITE.github, 'GitHub'],
     [SITE.bluesky, 'Bluesky'],
     [SITE.x, 'X (Twitter)'],
-  ].map(([href, label]) => `<li><a href="${esc(href)}"${external(href)}>${label}${iconOut}</a></li>`).join('');
+  ].map(([href, label]) => `<li><a href="${esc(href)}"${external(href)}${href.startsWith('mailto:') ? ` title="${esc(SITE.email)}"` : ''}>${label}${iconOut}</a></li>`).join('');
 
   $('#cvDownload').href = SITE.cvPdf;
   $('#year').textContent = new Date().getFullYear();
