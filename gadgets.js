@@ -18,6 +18,7 @@ const BADGES = [
   ['deer', 'Quiet steps', 'startled the deer', 'dusk and dawn, at the forest edge'],
   ['cyclist', 'Aero tuck', 'made the cyclist tuck', 'someone rides through the valley'],
   ['skater', 'Thin ice', 'watched the skater spin', 'when the lake freezes'],
+  ['iss', 'Space station', 'spotted the ISS over Vienna', 'a steady light that moves fast on clear nights'],
 ];
 let earned = (() => { try { return JSON.parse(store.get('badges') || '[]'); } catch { return []; } })();
 function earnBadge(id) {
@@ -215,6 +216,72 @@ $('#skater').addEventListener('click', () => {
   earnBadge('skater');
 });
 
+/* ---------------- the International Space Station ---------------- */
+// When the ISS really passes over Vienna at night (above the horizon, lit by the sun while
+// Vienna is dark), a small steady light crosses the sky. Data: wheretheiss.at, free, no key.
+const ISS_URL = 'https://api.wheretheiss.at/v1/satellites/25544';
+const issDot = $('#iss');
+let issTimer = 0;
+
+// direction and height above the horizon of the ISS, seen from a place on the ground
+function lookAngles(obs, sat) {
+  const rad = Math.PI / 180, R = 6371;
+  const ecef = (lat, lon, h) => [(R + h) * Math.cos(lat * rad) * Math.cos(lon * rad), (R + h) * Math.cos(lat * rad) * Math.sin(lon * rad), (R + h) * Math.sin(lat * rad)];
+  const o = ecef(obs.lat, obs.lon, 0), s = ecef(sat.latitude, sat.longitude, sat.altitude);
+  const d = s.map((v, i) => v - o[i]), dist = Math.hypot(...d);
+  const [la, lo] = [obs.lat * rad, obs.lon * rad];
+  const east = [-Math.sin(lo), Math.cos(lo), 0];
+  const north = [-Math.sin(la) * Math.cos(lo), -Math.sin(la) * Math.sin(lo), Math.cos(la)];
+  const up = [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)];
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  return { elevation: Math.asin(dot(d, up) / dist) / rad, azimuth: (Math.atan2(dot(d, east), dot(d, north)) / rad + 360) % 360, dist };
+}
+
+// place the dot: looking south, east is on the left and west on the right
+function placeIss(az, el) {
+  issDot.style.left = (50 + ((az - 180) / 180) * 50).toFixed(2) + '%';
+  issDot.style.top = (62 - (el / 90) * 56).toFixed(2) + '%';
+}
+
+async function checkIss() {
+  clearTimeout(issTimer);
+  let next = 60;
+  try {
+    if (lastSky.d > 0.75 && live.overcast < 0.7 && heroVisible()) {
+      const sat = await (await fetch(ISS_URL)).json();
+      const { elevation, azimuth } = lookAngles(base(), sat);
+      const visible = elevation > 10 && sat.visibility === 'daylight';
+      issDot.classList.toggle('show', visible);
+      if (visible) { placeIss(azimuth, elevation); next = 5; }
+    } else issDot.classList.remove('show');
+  } catch { /* offline: try again later */ }
+  issTimer = setTimeout(checkIss, next * 1000);
+}
+
+issDot.addEventListener('click', () => {
+  toast('That is the International Space Station: about 420 km up, moving at 27,600 km/h.');
+  earnBadge('iss');
+});
+
+COMMANDS.iss = async () => {
+  try {
+    const sat = await (await fetch(ISS_URL)).json();
+    const where = await (await fetch(`https://api.wheretheiss.at/v1/coordinates/${sat.latitude.toFixed(2)},${sat.longitude.toFixed(2)}`)).json();
+    const { elevation, dist } = lookAngles(base(), sat);
+    const region = where.country_code && where.country_code !== '??' ? `over ${new Intl.DisplayNames(['en'], { type: 'region' }).of(where.country_code)}` : 'over the ocean';
+    const sunlit = sat.visibility === 'daylight';
+    const status = elevation > 10 ? (sunlit && lastSky.d > 0.75 ? '<span class="ok">Visible from Vienna right now. Look up.</span>' : 'Above Vienna, but not visible (it needs to be dark here and sunlit up there).')
+      : 'Below the horizon for Vienna.';
+    return `International Space Station
+  now ${region}, ${sat.latitude.toFixed(1)}°, ${sat.longitude.toFixed(1)}°
+  ${Math.round(sat.altitude)} km up, ${Math.round(sat.velocity).toLocaleString('en')} km/h
+  ${Math.round(dist).toLocaleString('en')} km from Vienna
+${status}`;
+  } catch {
+    return '<span class="warn">No contact with the space station.</span> Try again later.';
+  }
+};
+
 /* ---------------- schedule ---------------- */
 setTimeout(ride, 6000);
 every(35, 90, ride);
@@ -222,9 +289,16 @@ setTimeout(ski, 4000);
 every(20, 50, ski);
 setTimeout(birds, 8000);
 every(45, 110, birds);
+setTimeout(checkIss, 3000);
 
 // preview helpers for FEATURES.md: ?ride, ?penguin, ?smlm
 if (params.has('ride')) setTimeout(ride, 800);
 if (params.has('penguin')) setTimeout(penguinWalk, 800);
 if (params.has('smlm')) setTimeout(() => (lastSky.d >= 0.75 ? smlmShow() : toast('The microscope only works at night.')), 900);
+if (params.has('iss')) { // preview: a pass from west-south-west to east over 40 seconds
+  clearTimeout(issTimer);
+  issDot.classList.add('show', 'demo');
+  let k = 0; placeIss(240, 12);
+  const demo = setInterval(() => { k += 1; placeIss(240 - k * 12, 12 + Math.sin((k / 12) * Math.PI) * 45); if (k >= 12) { clearInterval(demo); setTimeout(() => issDot.classList.remove('show', 'demo'), 4000); } }, 3300);
+}
 if (params.has('birds')) setTimeout(() => { const b = $('#birds'); b.style.top = '14%'; b.classList.add('fly'); }, 800);

@@ -47,6 +47,32 @@ skyHooks.push(({ isDay }) => {
   if (sun.innerHTML !== html) sun.innerHTML = html;
 });
 
+/* ---------------- tab icon: sun by day, tonight's moon at night ---------------- */
+let faviconKey = '';
+function drawFavicon(isDay) {
+  const m = moonPhase(), key = isDay ? 'sun' : `moon-${Math.round(m.p * 60)}`;
+  if (key === faviconKey) return;
+  faviconKey = key;
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d');
+  g.translate(32, 32);
+  if (isDay) {
+    g.strokeStyle = '#F2A15A'; g.lineWidth = 5; g.lineCap = 'round';
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; g.beginPath(); g.moveTo(Math.cos(a) * 21, Math.sin(a) * 21); g.lineTo(Math.cos(a) * 29, Math.sin(a) * 29); g.stroke(); }
+    g.fillStyle = '#F7C948'; g.beginPath(); g.arc(0, 0, 15, 0, 7); g.fill();
+  } else {
+    g.scale(1.6, 1.6);
+    g.fillStyle = '#2B3440'; g.beginPath(); g.arc(0, 0, 18, 0, 7); g.fill();
+    const svg = moonSvg(m), d = svg.match(/ d="([^"]+)"/)[1];
+    g.fillStyle = '#E9EDEF'; g.fill(new Path2D(d));
+  }
+  let link = document.querySelector('link[rel="icon"]');
+  if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+  link.type = 'image/png';
+  link.href = c.toDataURL('image/png');
+}
+skyHooks.push(({ isDay }) => drawFavicon(isDay));
+
 /* ---------------- real weather in Vienna ---------------- */
 const WEATHER_NAMES = { 0: 'clear sky', 1: 'mostly clear', 2: 'partly cloudy', 3: 'overcast', 45: 'fog', 48: 'freezing fog',
   51: 'light drizzle', 53: 'drizzle', 55: 'heavy drizzle', 56: 'freezing drizzle', 57: 'freezing drizzle',
@@ -58,6 +84,7 @@ const WEATHER_PRESETS = {
   clear: { code: 0, cloud: 0, temp: 14 }, cloudy: { code: 3, cloud: 90, temp: 11 }, rain: { code: 63, cloud: 100, temp: 9 },
   drizzle: { code: 53, cloud: 95, temp: 10 }, snow: { code: 73, cloud: 100, temp: -3 }, storm: { code: 95, cloud: 100, temp: 18 },
   fog: { code: 45, cloud: 60, temp: 4 }, frost: { code: 0, cloud: 10, temp: -6 },
+  rainbow: { code: 1, cloud: 35, temp: 16, recentRain: true },
 };
 let weatherNow = null, simulated = null, stormTimer = 0;
 
@@ -66,6 +93,9 @@ function applyWeather(w) {
   live.overcast = Math.min(1, w.cloud / 100);
   live.fog = c === 45 || c === 48 ? 1 : 0;
   live.frozen = typeof w.temp === 'number' && w.temp < 0;
+  // a rainbow when it rained in the last hours and the sun is out again (shown by day only, see CSS)
+  const raining = (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || c >= 95;
+  document.documentElement.dataset.rainbow = w.recentRain && !raining && w.cloud < 75 ? 'yes' : 'no';
   live.particle = (c >= 71 && c <= 77) || c === 85 || c === 86 ? 'snow'
     : (c >= 61 && c <= 67) || (c >= 80 && c <= 82) || c >= 95 ? 'rain'
     : c >= 51 && c <= 57 ? 'drizzle' : null;
@@ -90,9 +120,10 @@ async function fetchWeather() {
   if (simulated) return;
   const p = base();
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m,weather_code,cloud_cover,wind_speed_10m&timezone=auto`;
-    const { current } = await (await fetch(url)).json();
-    weatherNow = { code: current.weather_code, cloud: current.cloud_cover, temp: current.temperature_2m, wind: current.wind_speed_10m };
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m,weather_code,cloud_cover,wind_speed_10m&hourly=precipitation&past_hours=3&forecast_hours=1&timezone=auto`;
+    const { current, hourly } = await (await fetch(url)).json();
+    const pastRain = (hourly?.precipitation || []).slice(0, -1).reduce((sum, mm) => sum + (mm || 0), 0);
+    weatherNow = { code: current.weather_code, cloud: current.cloud_cover, temp: current.temperature_2m, wind: current.wind_speed_10m, recentRain: pastRain >= 0.2 };
     applyWeather(weatherNow);
   } catch { /* offline: keep the clear default */ }
 }

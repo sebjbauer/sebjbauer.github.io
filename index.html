@@ -1,15 +1,26 @@
 <!doctype html>
-<html lang="en" data-cloudy="no">
+<html lang="en" data-cloudy="no" class="preload">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sebastian Bauer</title>
-  <meta name="description" content="Sebastian Bauer, living between Austria and Sweden.">
+  <meta name="description" content="Sebastian Bauer: PhD student in Bioinformatics at Stockholm University and SciLifeLab, guest researcher at AITHYRA in Vienna.">
+  <!-- link previews (LinkedIn, WhatsApp, Slack, X, …) -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sebjbauer.github.io/">
+  <meta property="og:title" content="Sebastian Bauer">
+  <meta property="og:description" content="PhD student in Bioinformatics at Stockholm University and SciLifeLab, guest researcher at AITHYRA in Vienna.">
+  <meta property="og:image" content="https://sebjbauer.github.io/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Sebastian Bauer, drawn over an alpine landscape at dusk">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://sebjbauer.github.io/og-image.jpg">
   <meta name="theme-color" content="#0A0A0A">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260924225354">
+  <link rel="stylesheet" href="style.css?v=20260924230536">
 </head>
 <body>
 
@@ -47,6 +58,7 @@
 
   <canvas class="smlm" id="smlm" aria-hidden="true"></canvas>
   <div class="sun" id="sun" aria-hidden="true"></div>
+  <button class="iss" id="iss" type="button" aria-label="International Space Station" title="ISS"></button>
 
   <!-- clouds: shown when it's actually cloudy in Vienna -->
   <svg class="sky-layer clouds" id="clouds" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
@@ -56,6 +68,16 @@
     <g class="drift d1 heavy"><ellipse cx="520" cy="210" rx="170" ry="30"/><ellipse cx="480" cy="186" rx="80" ry="34"/><ellipse cx="570" cy="190" rx="60" ry="26"/></g>
     <g class="drift d2 heavy"><ellipse cx="1000" cy="250" rx="160" ry="28"/><ellipse cx="960" cy="228" rx="70" ry="30"/></g>
     <g class="drift d3 heavy"><ellipse cx="60" cy="230" rx="140" ry="26"/><ellipse cx="1400" cy="60" rx="140" ry="28"/></g>
+  </svg>
+
+  <!-- rainbow after rain, behind the mountains -->
+  <svg class="sky-layer rainbow" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+    <g fill="none" stroke-width="8">
+      <path stroke="#E5484D" d="M90 600 A300 300 0 0 1 690 600"/><path stroke="#F28C28" d="M98 600 A292 292 0 0 1 682 600"/>
+      <path stroke="#F2C94C" d="M106 600 A284 284 0 0 1 674 600"/><path stroke="#46A758" d="M114 600 A276 276 0 0 1 666 600"/>
+      <path stroke="#3E8EDE" d="M122 600 A268 268 0 0 1 658 600"/><path stroke="#5B5BD6" d="M130 600 A260 260 0 0 1 650 600"/>
+      <path stroke="#8E4EC6" d="M138 600 A252 252 0 0 1 642 600"/>
+    </g>
   </svg>
 
   <!-- migrating birds (spring and autumn) -->
@@ -274,8 +296,8 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="script.js?v=20260924225354"></script>
-<script src="extras.js?v=20260924225354"></script>
-<script src="gadgets.js?v=20260924225354"></script>
+<script src="script.js?v=20260924230536"></script>
+<script src="extras.js?v=20260924230536"></script>
+<script src="gadgets.js?v=20260924230536"></script>
 </body>
 </html>

@@ -41,6 +41,8 @@
 }
 
 * { box-sizing: border-box; }
+/* no colour fades while the page loads (they're only for real changes, like sunset) */
+.preload *, .preload *::before, .preload *::after, .preload body { transition: none !important; }
 html { scroll-behavior: smooth; scrollbar-color: var(--line-strong) var(--bg); }
 body {
   margin: 0;
@@ -175,6 +177,15 @@ kbd {
 .hero-clock { white-space: nowrap; } /* the time sentence never breaks in the middle */
 
 /* ---------- microscope stars, birds, road, ice ---------- */
+.rainbow { opacity: 0; transition: opacity 4s; pointer-events: none; }
+.iss {
+  position: absolute; z-index: 3; width: 22px; height: 22px; margin: -11px 0 0 -11px; padding: 0; border: 0; background: none;
+  cursor: pointer; display: none; transition: left 5s linear, top 5s linear;
+}
+.iss::after { content: ''; position: absolute; left: 8px; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 6px 2px rgba(255, 255, 255, .5); }
+.iss.demo { transition-duration: 3.3s; }
+.iss.show { display: block; }
+[data-rainbow="yes"][data-daylight="yes"] .rainbow { opacity: .38; }
 .smlm { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .hero.smlm-on .starfield { opacity: calc(var(--stars) * .35); }
 .birds { position: absolute; left: 0; top: 15%; width: 110px; height: 46px; opacity: 0; pointer-events: none; will-change: transform; }
@@ -515,6 +526,16 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
   .landscape { height: 36%; }
   .gps { right: 16px; bottom: 16px; }
 }
+
+/* ---------- link-preview card (?card) ---------- */
+.card .nav, .card .hero-time, .card .weather, .card .birds, .card .iss, .card .toast { display: none !important; }
+.card .hero { height: 630px; min-height: 0; }
+.card .landscape { height: 69%; } /* the full drawing, no peaks cut off */
+.card .hero-text { top: 46px; left: 64px; }
+.card .hero h1 { font-size: 76px; }
+.card .hero-line { font-size: 21px; margin-top: 14px; }
+.card .hero-place { font-size: 18px; }
+.card .hero-text::after { content: 'sebjbauer.github.io'; display: block; margin-top: 16px; font-size: 17px; opacity: .75; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

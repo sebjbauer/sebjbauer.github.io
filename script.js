@@ -712,6 +712,7 @@ const COMMANDS = {
   <b class="warn">riddle</b>        for the curious
   <b class="warn">smlm</b>          point the microscope at the stars (clear nights only)
   <b class="warn">badges</b>        what you've discovered so far
+  <b class="warn">iss</b>           where the space station is right now
   <b class="warn">download cv</b>   the official PDF
   <b class="warn">goto</b> &lt;place&gt;   about | timeline | cv | education | publications | skills | projects | contact
   <b class="warn">fika</b>          mandatory break
@@ -876,6 +877,8 @@ $('#themeBtn').addEventListener('click', () => {
 showThemeMode();
 
 /* ---------------- boot ---------------- */
+// ?card renders the clean 1200 × 630 scene used for the link-preview image (og-image.png)
+if (new URLSearchParams(location.search).has('card')) document.documentElement.classList.add('card');
 const skyParam = new URLSearchParams(location.search).get('sky');
 if (['dawn', 'day', 'dusk', 'night'].includes(skyParam)) forcedHour = skyPreset(skyParam);
 const seasonParam = new URLSearchParams(location.search).get('season');
@@ -892,6 +895,8 @@ renderCvTable();
 renderPublications();
 renderContent();
 tickCoords();
+// the first colours are in place: allow smooth fades from now on
+setTimeout(() => document.documentElement.classList.remove('preload'), 150);
 setInterval(paintSky, 30000);
 // tick the clock exactly on each new second
 setTimeout(() => { tickClock(); setInterval(tickClock, 1000); }, 1000 - (Date.now() % 1000));

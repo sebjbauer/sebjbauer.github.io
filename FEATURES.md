@@ -11,10 +11,12 @@ This file is not part of the website (see `_config.yml`), it only lives in the r
 | `sky` | `dawn`, `day`, `dusk`, `night` |
 | `season` | `winter`, `spring`, `summer`, `autumn` |
 | `holiday` | `christmas`, `easter`, `midsommar`, `none` |
-| `weather` | `clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`, `frost` (clear and below 0 °C: frozen lake) |
+| `weather` | `clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`, `frost` (clear and below 0 °C: frozen lake), `rainbow` (sun after rain) |
 | `star` | no value; shows a shooting star right after loading |
 | `smlm` | no value; runs the microscope stars right away (needs `sky=night`) |
 | `ride`, `penguin`, `birds` | no value; sends out the cyclist, the penguin or the birds right away |
+| `iss` | no value; shows a pretend ISS pass across the sky (needs `sky=night`) |
+| `card` | no value; the clean 1200 × 630 scene used for the link-preview image |
 
 These only change what *you* see in that browser tab. Normal visitors always get the live version.
 
@@ -42,6 +44,9 @@ These only change what *you* see in that browser tab. Normal visitors always get
 | Cyclist | https://sebjbauer.github.io/?sky=day&weather=clear&ride |
 | Ducks in summer | https://sebjbauer.github.io/?sky=day&season=summer&weather=clear |
 | Migrating birds | https://sebjbauer.github.io/?sky=day&season=autumn&weather=clear&birds |
+| Rainbow | https://sebjbauer.github.io/?sky=day&season=summer&weather=rainbow |
+| ISS pass (pretend) | https://sebjbauer.github.io/?sky=night&weather=clear&iss |
+| Link-preview scene | https://sebjbauer.github.io/?card&sky=dusk&weather=clear&season=summer |
 
 If a link still shows an older version, press **Cmd + Option + R** in Safari (or open a private window) to skip the browser's saved copy.
 
@@ -80,6 +85,7 @@ Checked every 15 minutes (free Open-Meteo service, no key needed).
 | Thunderstorm | Rain plus a lightning flash every 6 to 18 seconds |
 | Fog | Mist rises from the valley |
 | Below 0 °C | The lake freezes (icy colour, cracks) and an ice skater glides across it |
+| Rain in the last 3 hours, now dry and not too cloudy | A rainbow behind the Alps (daytime only) |
 
 Real rain or snow replaces the seasonal leaves or petals.
 
@@ -123,6 +129,23 @@ Based on the date in Vienna.
 
 Everything pauses when the top of the page is scrolled out of view.
 
+## The International Space Station
+
+- When the ISS **really** passes over Vienna (more than 10° above the horizon, lit by the sun while Vienna is dark, clear sky), a small steady white light crosses the sky. It's checked every minute at night, and every 5 seconds during a pass. Data: wheretheiss.at (free, no key).
+- Clicking the light: "That is the International Space Station: about 420 km up, moving at 27,600 km/h." (badge: Space station)
+- Terminal `iss`: where the station is right now (country or ocean, height, speed, distance from Vienna) and whether it's visible from Vienna.
+
+## Tab icon
+
+The small icon in the browser tab is a **sun during the day** and **tonight's moon phase at night**, drawn live.
+
+## Link preview
+
+When the link is shared (LinkedIn, WhatsApp, Slack, X, iMessage…), apps show `og-image.jpg`: the landscape at dusk with name, position, "Vienna, Austria" and the web address. The text for the preview is in the `<meta property="og:…">` tags at the top of `index.html`.
+
+- **If your position changes**, the image has to be re-made: ask Claude to "regenerate the link preview image" (it's a snapshot of the `?card` view).
+- **LinkedIn remembers old previews** for about a week. To refresh it right away, paste the link into LinkedIn's Post Inspector: https://www.linkedin.com/post-inspector/
+
 ## The microscope stars
 
 Terminal command `smlm` (listed in `help`). **Only on clear nights**: during the day it says the stars aren't out, and when it's cloudy it says there are no stars to image.
@@ -131,7 +154,7 @@ The page scrolls to the top, stars start blinking one at a time and each blink l
 
 ## Trail badges
 
-Terminal command `badges`: shows which of the 9 badges the visitor has found, with hints for the rest. The browser remembers them.
+Terminal command `badges`: shows which of the 10 badges the visitor has found, with hints for the rest. The browser remembers them.
 
 | Badge | How to get it |
 |---|---|
@@ -144,6 +167,7 @@ Terminal command `badges`: shows which of the 9 badges the visitor has found, wi
 | Quiet steps | Click the deer |
 | Aero tuck | Click the cyclist |
 | Thin ice | Click the ice skater |
+| Space station | Click the ISS when it passes over Vienna |
 
 ## Add to contacts
 
@@ -182,7 +206,7 @@ Tab completes commands, ↑ repeats the last one.
 | `contact` | Email, LinkedIn, GitHub, Google Scholar, Bluesky, X |
 | `now` | The "Now" line |
 | `weather` | Live weather in Vienna |
-| `weather rain` | Simulates weather (`clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`, `frost`); `weather live` goes back |
+| `weather rain` | Simulates weather (`clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`, `frost`, `rainbow`); `weather live` goes back |
 | `sun` | Today's sunrise and sunset, and whether the site is in light or dark mode |
 | `moon` | Tonight's moon phase and days until full moon |
 | `sky night` | Changes the sky (`dawn`, `day`, `dusk`, `night`); `sky live` goes back |
@@ -191,6 +215,7 @@ Tab completes commands, ↑ repeats the last one.
 | `riddle` | The northern-lights riddle |
 | `smlm` | Microscope stars (clear nights only) |
 | `badges` | Trail badges found so far |
+| `iss` | Where the space station is right now |
 | `download cv` | Downloads `cv.pdf` |
 | `goto contact` | Scrolls to a section (`about`, `timeline`, `cv`, `education`, `publications`, `skills`, `projects`, `contact`) |
 | `fika` | Mandatory Swedish coffee break (ASCII art) |
@@ -220,6 +245,7 @@ Tab completes commands, ↑ repeats the last one.
 | Moon, weather, holidays, shooting stars, cottage, hiker, deer, riddle | `extras.js` |
 | Microscope stars, penguin, cyclist, skier, birds, ducks, ice skater, badges | `gadgets.js` |
 | Contact card | `contact.vcf` |
+| Link-preview image | `og-image.jpg` |
 | Landscape drawing (mountains, trees, cottage, deer, decorations) | `index.html`, inside the hero section |
 | Colours, fonts, layout, animations | `style.css` |
 
