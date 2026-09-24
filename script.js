@@ -111,7 +111,7 @@ const PHASES = {
 };
 let forcedHour = null;
 // Live conditions, filled in by extras.js from real weather data
-const live = { overcast: 0, particle: null, fog: 0 };
+const live = { overcast: 0, particle: null, fog: 0, frozen: false };
 const skyHooks = [];
 // Only touch the page when a value really changes: on phones every change restyles the whole landscape.
 const varCache = {};
@@ -166,6 +166,10 @@ function paintSky() {
   const v = {};
   for (const key in a) v[key] = mix(a[key], b[key], t);
   const d = darkness(h, sunT);
+  // the lake freezes when it's below 0 °C in Vienna
+  if (live.frozen) v.lake = mix(v.lake, d > 0.5 ? '#3B4652' : '#E3EDF2', 0.8);
+  setData('frozen', live.frozen ? 'yes' : 'no');
+  setData('daylight', d < 0.55 ? 'yes' : 'no');
   // clouds grey out the sky; heavy overcast hides stars and northern lights
   if (live.overcast > 0) {
     const grey = mix('#A7B0B8', '#101316', d);
@@ -212,9 +216,13 @@ function darkness(h, { rise, set }) {
   return h < (rise + set) / 2 ? 1 - smooth(rise - 0.7, rise + 0.3, h) : smooth(set - 0.3, set + 0.7, h);
 }
 
+// Colour mode chosen with the switch in the menu: 'auto' follows daylight, or fixed 'light' / 'dark'
+let themeMode = (() => { try { return localStorage.getItem('themeMode') || 'auto'; } catch { return 'auto'; } })();
+
 function applyTheme(d) {
   const root = document.documentElement, st = root.style;
-  const bg = mix(LIGHT.bg, DARK.bg, d);
+  const pageD = themeMode === 'light' ? 0 : themeMode === 'dark' ? 1 : d;
+  const bg = mix(LIGHT.bg, DARK.bg, pageD);
   // the background fades smoothly; text flips where both inks have the same contrast
   const lightInk = lum(bg) < 0.46;
   const ink = lightInk ? DARK : LIGHT;
@@ -632,6 +640,7 @@ const selectWaypoint = (i) => selectEntry(`job-${i}`); // career stage by number
 /* ---------------- skills, projects, contact ---------------- */
 const external = (url) => url.startsWith('http') ? ' target="_blank" rel="noopener"' : '';
 const iconOut = '<svg class="i" aria-hidden="true"><use href="#i-out"/></svg>';
+const iconDown = '<svg class="i" aria-hidden="true"><use href="#i-down"/></svg>';
 
 function renderContent() {
   // [Text](url) → link
@@ -658,7 +667,8 @@ function renderContent() {
     [SITE.github, 'GitHub'],
     [SITE.bluesky, 'Bluesky'],
     [SITE.x, 'X (Twitter)'],
-  ].map(([href, label]) => `<li><a href="${esc(href)}"${external(href)}${href.startsWith('mailto:') ? ` title="${esc(SITE.email)}"` : ''}>${label}${iconOut}</a></li>`).join('');
+    ['contact.vcf', 'Add to contacts'],
+  ].map(([href, label]) => `<li><a href="${esc(href)}"${external(href)}${href.startsWith('mailto:') ? ` title="${esc(SITE.email)}"` : ''}>${label}${href.endsWith('.vcf') ? iconDown : iconOut}</a></li>`).join('');
 
   $('#cvDownload').href = SITE.cvPdf;
   $('#year').textContent = new Date().getFullYear();
@@ -700,6 +710,8 @@ const COMMANDS = {
   <b class="warn">season</b> &lt;name&gt;  winter | spring | summer | autumn | live
   <b class="warn">holiday</b> &lt;name&gt; christmas | easter | midsommar | live
   <b class="warn">riddle</b>        for the curious
+  <b class="warn">smlm</b>          point the microscope at the stars (clear nights only)
+  <b class="warn">badges</b>        what you've discovered so far
   <b class="warn">download cv</b>   the official PDF
   <b class="warn">goto</b> &lt;place&gt;   about | timeline | cv | education | publications | skills | projects | contact
   <b class="warn">fika</b>          mandatory break
@@ -841,6 +853,27 @@ document.addEventListener('keydown', (e) => {
 });
 
 function tickCoords() { $('#gpsCoords').textContent = fmtCoord(base()); }
+
+/* ---------------- colour-mode switch ---------------- */
+const MODE_INFO = {
+  auto: ['i-auto', 'automatic (follows daylight in Vienna)'],
+  light: ['i-sun', 'always light'],
+  dark: ['i-moon', 'always dark'],
+};
+function showThemeMode() {
+  const [icon, text] = MODE_INFO[themeMode];
+  const btn = $('#themeBtn');
+  btn.querySelector('use').setAttribute('href', `#${icon}`);
+  btn.setAttribute('aria-label', `Colour mode: ${text}`);
+  btn.title = `Colour mode: ${text}`;
+}
+$('#themeBtn').addEventListener('click', () => {
+  themeMode = { auto: 'light', light: 'dark', dark: 'auto' }[themeMode];
+  try { localStorage.setItem('themeMode', themeMode); } catch { /* private mode */ }
+  showThemeMode();
+  paintSky();
+});
+showThemeMode();
 
 /* ---------------- boot ---------------- */
 const skyParam = new URLSearchParams(location.search).get('sky');

@@ -11,8 +11,10 @@ This file is not part of the website (see `_config.yml`), it only lives in the r
 | `sky` | `dawn`, `day`, `dusk`, `night` |
 | `season` | `winter`, `spring`, `summer`, `autumn` |
 | `holiday` | `christmas`, `easter`, `midsommar`, `none` |
-| `weather` | `clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog` |
+| `weather` | `clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`, `frost` (clear and below 0 °C: frozen lake) |
 | `star` | no value; shows a shooting star right after loading |
+| `smlm` | no value; runs the microscope stars right away (needs `sky=night`) |
+| `ride`, `penguin`, `birds` | no value; sends out the cyclist, the penguin or the birds right away |
 
 These only change what *you* see in that browser tab. Normal visitors always get the live version.
 
@@ -34,6 +36,12 @@ These only change what *you* see in that browser tab. Normal visitors always get
 | Rain | https://sebjbauer.github.io/?sky=day&weather=rain |
 | Thunderstorm at night | https://sebjbauer.github.io/?sky=night&weather=storm |
 | Fog in the morning | https://sebjbauer.github.io/?sky=dawn&weather=fog |
+| Microscope stars | https://sebjbauer.github.io/?sky=night&weather=clear&smlm |
+| Frozen lake with ice skater | https://sebjbauer.github.io/?sky=day&season=winter&weather=frost |
+| Penguin walk | https://sebjbauer.github.io/?sky=day&weather=clear&penguin |
+| Cyclist | https://sebjbauer.github.io/?sky=day&weather=clear&ride |
+| Ducks in summer | https://sebjbauer.github.io/?sky=day&season=summer&weather=clear |
+| Migrating birds | https://sebjbauer.github.io/?sky=day&season=autumn&weather=clear&birds |
 
 If a link still shows an older version, press **Cmd + Option + R** in Safari (or open a private window) to skip the browser's saved copy.
 
@@ -53,6 +61,8 @@ Everything at the top of the page follows the real conditions in **Vienna** (set
 
 ## Light and dark mode
 
+- **Switch in the menu** (the half-filled circle next to Terminal): automatic → always light → always dark. The browser remembers the visitor's choice. Automatic is the default.
+
 - The whole page is **white while the sun is up in Vienna** and **black after dark**.
 - It doesn't switch at once: the background fades from white through grey to black over about an hour around sunset, and back around sunrise.
 - The text flips from black to white once, at the point where white becomes easier to read.
@@ -69,6 +79,7 @@ Checked every 15 minutes (free Open-Meteo service, no key needed).
 | Snow | Snow falls, in any season |
 | Thunderstorm | Rain plus a lightning flash every 6 to 18 seconds |
 | Fog | Mist rises from the valley |
+| Below 0 °C | The lake freezes (icy colour, cracks) and an ice skater glides across it |
 
 Real rain or snow replaces the seasonal leaves or petals.
 
@@ -98,6 +109,45 @@ Based on the date in Vienna.
 - **The deer:** appears at the forest edge only at **dusk and dawn**, and sometimes lowers its head to graze. Clicking it makes it run into the forest (it comes back after 90 seconds).
 - **The Timeline section (mountain trail):** from 2008 to today, above the Career and Education sections. Orange circles (year above the line) mark where each job starts, green diamonds (year below) where each degree starts; a bigger diamond around a circle means both started that year. Every period is shaded faintly under the line; clicking a marker, a Career table row or an Education entry highlights that period. The line turns dashed after today.
 - **The hiker:** a small figure with an orange backpack walks along the trail to the latest job when the Career section comes into view. Hovering over or clicking any marker makes them walk there.
+
+## Life in the landscape
+
+| What | When |
+|---|---|
+| **Cyclist** on the valley road | Every 35 to 90 seconds, any season; with a headlight after dark. Click them to make them tuck ("Aero tuck: about 15% less drag."), and they speed up. A nod to the road-cycling aerodynamics thesis. |
+| **Ice skater** | Only when the lake is frozen. Click to make them spin. |
+| **Ducks** | Summer, daytime, lake not frozen |
+| **Migrating birds** (V formation) | Spring (flying north) and autumn (flying south), daytime, every 45 to 110 seconds |
+| **Skier** down the Alpine slope | Winter, daytime, every 20 to 50 seconds |
+| **Penguin** | Every 5th click on the cottage: it walks out, does a loop (swimming if the lake isn't frozen) and goes back in. No message, just the penguin. |
+
+Everything pauses when the top of the page is scrolled out of view.
+
+## The microscope stars
+
+Terminal command `smlm` (listed in `help`). **Only on clear nights**: during the day it says the stars aren't out, and when it's cloudy it says there are no stars to image.
+
+The page scrolls to the top, stars start blinking one at a time and each blink leaves a dot, like single-molecule localization microscopy. After about 9 seconds the dots have built up "SB" in the sky; it stays for a few seconds and fades out.
+
+## Trail badges
+
+Terminal command `badges`: shows which of the 9 badges the visitor has found, with hints for the rest. The browser remembers them.
+
+| Badge | How to get it |
+|---|---|
+| Explorer | Open the GPS terminal |
+| Wish maker | Catch a shooting star |
+| Norrsken | Solve the riddle |
+| Super-resolved | Run `smlm` on a clear night |
+| Stoker | Light the stove in the cottage (click it) |
+| Penguin friend | Meet the penguin (click the cottage 5 times) |
+| Quiet steps | Click the deer |
+| Aero tuck | Click the cyclist |
+| Thin ice | Click the ice skater |
+
+## Add to contacts
+
+The last link in Contact downloads `contact.vcf`, a contact card with name, position, email, Vienna, website, LinkedIn, Google Scholar, GitHub, Bluesky, X and a small photo. On a phone it opens straight in Contacts. The file is written by hand: if your details change, ask Claude to regenerate it (or edit it in a text editor).
 
 ## The riddle (northern lights on demand)
 
@@ -132,13 +182,15 @@ Tab completes commands, ↑ repeats the last one.
 | `contact` | Email, LinkedIn, GitHub, Google Scholar, Bluesky, X |
 | `now` | The "Now" line |
 | `weather` | Live weather in Vienna |
-| `weather rain` | Simulates weather (`clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`); `weather live` goes back |
+| `weather rain` | Simulates weather (`clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`, `frost`); `weather live` goes back |
 | `sun` | Today's sunrise and sunset, and whether the site is in light or dark mode |
 | `moon` | Tonight's moon phase and days until full moon |
 | `sky night` | Changes the sky (`dawn`, `day`, `dusk`, `night`); `sky live` goes back |
 | `season winter` | Changes the season; `season live` goes back |
 | `holiday christmas` | Shows a holiday (`easter`, `midsommar`); `holiday live` goes back |
 | `riddle` | The northern-lights riddle |
+| `smlm` | Microscope stars (clear nights only) |
+| `badges` | Trail badges found so far |
 | `download cv` | Downloads `cv.pdf` |
 | `goto contact` | Scrolls to a section (`about`, `timeline`, `cv`, `education`, `publications`, `skills`, `projects`, `contact`) |
 | `fika` | Mandatory Swedish coffee break (ASCII art) |
@@ -166,6 +218,8 @@ Tab completes commands, ↑ repeats the last one.
 | Your content (career, education, publications, skills, projects, links, Now line, location) | `script.js`, the `SITE` block at the top |
 | Sky, light/dark mode, seasons, snow/leaves/rain, main terminal commands | `script.js` |
 | Moon, weather, holidays, shooting stars, cottage, hiker, deer, riddle | `extras.js` |
+| Microscope stars, penguin, cyclist, skier, birds, ducks, ice skater, badges | `gadgets.js` |
+| Contact card | `contact.vcf` |
 | Landscape drawing (mountains, trees, cottage, deer, decorations) | `index.html`, inside the hero section |
 | Colours, fonts, layout, animations | `style.css` |
 

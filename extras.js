@@ -55,8 +55,9 @@ const WEATHER_NAMES = { 0: 'clear sky', 1: 'mostly clear', 2: 'partly cloudy', 3
   85: 'snow showers', 86: 'heavy snow showers', 95: 'thunderstorm', 96: 'thunderstorm with hail', 99: 'thunderstorm with hail' };
 // Fake conditions for previewing: ?weather=rain or the terminal's "weather rain"
 const WEATHER_PRESETS = {
-  clear: { code: 0, cloud: 0 }, cloudy: { code: 3, cloud: 90 }, rain: { code: 63, cloud: 100 }, drizzle: { code: 53, cloud: 95 },
-  snow: { code: 73, cloud: 100 }, storm: { code: 95, cloud: 100 }, fog: { code: 45, cloud: 60 },
+  clear: { code: 0, cloud: 0, temp: 14 }, cloudy: { code: 3, cloud: 90, temp: 11 }, rain: { code: 63, cloud: 100, temp: 9 },
+  drizzle: { code: 53, cloud: 95, temp: 10 }, snow: { code: 73, cloud: 100, temp: -3 }, storm: { code: 95, cloud: 100, temp: 18 },
+  fog: { code: 45, cloud: 60, temp: 4 }, frost: { code: 0, cloud: 10, temp: -6 },
 };
 let weatherNow = null, simulated = null, stormTimer = 0;
 
@@ -64,6 +65,7 @@ function applyWeather(w) {
   const c = w.code;
   live.overcast = Math.min(1, w.cloud / 100);
   live.fog = c === 45 || c === 48 ? 1 : 0;
+  live.frozen = typeof w.temp === 'number' && w.temp < 0;
   live.particle = (c >= 71 && c <= 77) || c === 85 || c === 86 ? 'snow'
     : (c >= 61 && c <= 67) || (c >= 80 && c <= 82) || c >= 95 ? 'rain'
     : c >= 51 && c <= 57 ? 'drizzle' : null;
