@@ -19,17 +19,62 @@ const SITE = {
     at: { country: 'Austria', city: 'Vienna', lat: 48.21, lon: 16.37 },
     se: { country: 'Sweden', city: 'Stockholm', lat: 59.33, lon: 18.07 },
   },
-  // Oldest first. Each entry becomes a waypoint on the elevation profile.
+  // Google Scholar profile, linked from Publications, Contact and the terminal
+  scholar: 'https://scholar.google.com/citations?user=Dqq0FUYAAAAJ&hl=en',
+
+  // CAREER: jobs and research positions. Oldest first; each entry is a waypoint on the career trail.
   cv: [
-    { from: '2014', to: '2017', title: 'School / apprenticeship', org: 'Placeholder school', place: 'Austria',
-      text: 'One or two sentences about this stage: what you learned, what you did.' },
-    { from: '2017', to: '2021', title: "Bachelor's degree", org: 'Placeholder university', place: 'Vienna, AT',
-      text: 'Your field of study, a highlight, maybe your thesis topic.' },
-    { from: '2021', to: '2024', title: 'First job title', org: 'Placeholder company', place: 'Austria',
-      text: 'What you worked on and one result you are proud of.' },
-    { from: '2024', to: 'now', title: 'Current role', org: 'Placeholder company', place: 'Stockholm, SE',
-      text: 'What you do today. This is the summit, for now.' },
+    { from: '2016', to: '2017', title: 'Civilian service: teaching assistant', org: 'School for children with special needs', place: 'Austria',
+      text: 'Assisted in the classroom at a school for children with special needs.' },
+    { from: '2021', to: '2023', title: 'Research assistant', org: 'Brismar Lab, KTH and SciLifeLab', place: 'Stockholm, SE',
+      text: 'Developed microscopy methods for imaging the Na⁺,K⁺-ATPase and contributed to the resulting publications.',
+      links: [['Brismar Lab', 'https://www.scilifelab.se/researchers/hjalmar-brismar/'], ['Publications', '#publications']] },
+    { from: '2023', to: 'now', title: 'PhD researcher', org: 'Griffié Lab, Stockholm University and SciLifeLab', place: 'Stockholm, SE',
+      text: 'Doctoral research on generative models for super-resolution microscopy (see Education). First-author preprint: SMLMFlow (2026).',
+      links: [['Griffié Lab', 'https://www.scilifelab.se/researchers/juliette-griffie/'], ['SMLMFlow preprint', 'https://doi.org/10.64898/2026.06.11.731424']] },
+    { from: '2026', to: 'now', title: 'Guest researcher', org: 'Tong Group, AITHYRA', place: 'Vienna, AT',
+      text: 'Further improving generative models for single-molecule localization microscopy.',
+      links: [['Tong Group', 'https://tonggroup.org']] },
   ],
+
+  // EDUCATION: schools and degrees. Oldest first.
+  education: [
+    { from: '2008', to: '2016', title: 'High school diploma (Matura)', org: 'Kollegium Kalksburg', place: 'Vienna, AT',
+      text: 'Final thesis on aerodynamics in road cycling.', award: 'Award for the best physics thesis in Vienna' },
+    { from: '2017', to: '2020', title: 'BSc Technical Physics', org: 'TU Wien', place: 'Vienna, AT',
+      text: "Bachelor's thesis in quantum optics, in the lab of Philipp Haslinger.",
+      links: [['Haslinger Lab', 'https://www.haslingerlab.com']] },
+    { from: '2020', to: '2021', title: 'Erasmus exchange year', org: 'KTH Royal Institute of Technology', place: 'Stockholm, SE',
+      text: '' },
+    { from: '2021', to: '2023', title: 'MSc Engineering Physics, specialisation in Biomedical Physics', org: 'KTH Royal Institute of Technology', place: 'Stockholm, SE',
+      text: "Master's thesis on the co-evolution of the Na⁺,K⁺-ATPase's β-subunit dimerization, in the lab of Lucie Delemotte (KTH and SciLifeLab).",
+      links: [['Thesis', 'https://kth.diva-portal.org/smash/record.jsf?pid=diva2:1768469'], ['Delemotte Lab', 'https://www.scilifelab.se/researchers/lucie-delemotte/']] },
+    { from: '2023', to: 'now', title: 'PhD in Bioinformatics', org: 'Stockholm University and SciLifeLab', place: 'Stockholm, SE',
+      text: 'Generative models for single-molecule localization microscopy (SMLM), in the lab of Juliette Griffié.',
+      links: [['Griffié Lab', 'https://www.scilifelab.se/researchers/juliette-griffie/']] },
+  ],
+
+  // PUBLICATIONS: newest year first. Put your own name exactly as in `me` so it is shown in bold.
+  me: 'S. Bauer',
+  publications: [
+    { year: 2026, type: 'Preprint', title: 'SMLMFlow: Improving Structural Resolution in Single Molecule Localization Microscopy with Flow Matching',
+      authors: 'S. Bauer, L. Panconi, I. Cunha, E. Latron, D. Sage, R. Peters, J. Griffié', venue: 'bioRxiv', url: 'https://doi.org/10.64898/2026.06.11.731424' },
+    { year: 2026, type: 'Journal article', title: 'Dual-Color Expansion Microscopy of Membrane Proteins Using Bioorthogonal Labeling',
+      authors: 'S. Edwards, B. Meineke, S. Bauer, H. Blom, S. Elsässer, H. Brismar', venue: 'Nano Letters 26(4), 1321–1326', url: 'https://pubs.acs.org/doi/10.1021/acs.nanolett.5c05301' },
+    { year: 2025, type: 'Preprint', title: 'AI4CellFate: Interpretable Early Cell Fate Prediction with Generative AI',
+      authors: 'I. Cunha, L. Panconi, S. Bauer, M. Gestin, E. Latron, E. Sahai, A. Le Marois, J. Griffié', venue: 'bioRxiv', url: 'https://www.biorxiv.org/content/10.1101/2025.05.12.653464v1' },
+    { year: 2025, type: 'Preprint', title: '6S RNA facilitates bacterial virulence and adaptation at the epithelial barrier',
+      authors: 'O. Sarigöz, V. D. Valeriano, U. Avican, H. Wang, K. Nilsson, N. Hasanzade, F. Mahmood, A. Fahlgren, S. Bauer, J. Griffié, M. Fällman, K. Avican', venue: 'bioRxiv', url: 'https://www.biorxiv.org/content/10.1101/2025.10.07.681022v1' },
+    { year: 2024, type: 'Review', title: 'Machine learning in microscopy – insights, opportunities and challenges',
+      authors: 'I. Cunha, E. Latron, S. Bauer, D. Sage, J. Griffié', venue: 'Journal of Cell Science 137(20), jcs262095', url: 'https://doi.org/10.1242/jcs.262095' },
+    { year: 2023, type: 'Conference abstract', title: 'Expansion microscopy and bioorthogonal labeling with non-canonical amino acids enables cluster analysis of Na,K-ATPase in the plasma membrane',
+      authors: 'S. Edwards, S. Bauer, P. Graef, B. Meineke, S. Elsässer, H. Brismar', venue: 'Physiology 38(S1), 5732753', url: 'https://journals.physiology.org/doi/abs/10.1152/physiol.2023.38.S1.5732753' },
+    { year: 2023, type: 'Conference abstract', title: 'Click chemistry, FRET-FCS, and expansion microscopy reveal that Na,K-ATPase forms complexes in the plasma membrane',
+      authors: 'H. Brismar, S. Edwards, S. Bauer, B. Meineke, S. Elsässer, S. Wennmalm', venue: 'Physiology 38(S1), 5732603', url: 'https://journals.physiology.org/doi/abs/10.1152/physiol.2023.38.S1.5732603' },
+    { year: 2023, type: "Master's thesis", title: "Co-evolutional analysis of the Na⁺,K⁺-ATPase's β-subunit dimerization",
+      authors: 'S. Bauer', venue: 'KTH Royal Institute of Technology', url: 'https://kth.diva-portal.org/smash/record.jsf?pid=diva2:1768469' },
+  ],
+
   skills: {
     'Professional': ['Skill one', 'Skill two', 'Skill three', 'Skill four'],
     'Tools': ['Tool one', 'Tool two', 'Tool three'],
@@ -468,13 +513,52 @@ function renderProfile() {
   });
 }
 
+// small row of links under an entry: [['Label', 'url'], …]
+function linkRow(links) {
+  if (!links || !links.length) return '';
+  return `<span class="entry-links">${links.map(([label, url]) =>
+    `<a href="${esc(url)}"${url.startsWith('http') ? ' target="_blank" rel="noopener"' : ''}>${esc(label)}${url.startsWith('http') ? '<svg class="i" aria-hidden="true"><use href="#i-out"/></svg>' : ''}</a>`).join('')}</span>`;
+}
+
+// Education: a vertical route, newest at the top
+function renderEducation() {
+  $('#eduList').innerHTML = [...SITE.education].reverse().map((e) => `
+    <li>
+      <span class="tl-years">${esc(e.from)}–${esc(e.to)}</span>
+      <div class="tl-body">
+        <h3>${esc(e.title)}</h3>
+        <p class="tl-org">${esc(e.org)} <span class="tl-place">${esc(e.place)}</span></p>
+        ${e.text ? `<p class="tl-text">${esc(e.text)}</p>` : ''}
+        ${e.award ? `<p class="award"><svg class="i" aria-hidden="true"><use href="#i-award"/></svg>${esc(e.award)}</p>` : ''}
+        ${linkRow(e.links)}
+      </div>
+    </li>`).join('');
+}
+
+// Publications grouped by year, your name in bold
+function renderPublications() {
+  const years = [...new Set(SITE.publications.map((p) => p.year))].sort((a, b) => b - a);
+  const bold = (authors) => esc(authors).replace(esc(SITE.me), `<strong>${esc(SITE.me)}</strong>`);
+  $('#pubList').innerHTML = years.map((y) => `
+    <div class="pub-year">
+      <h3>${y}</h3>
+      <ol>${SITE.publications.filter((p) => p.year === y).map((p) => `
+        <li>
+          <a class="pub-title" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title)}</a>
+          <p class="pub-authors">${bold(p.authors)}</p>
+          <p class="pub-venue"><span class="pub-type">${esc(p.type)}</span> ${esc(p.venue)}</p>
+        </li>`).join('')}</ol>
+    </div>`).join('');
+  $('#scholarLink').href = SITE.scholar;
+}
+
 // The table is the readable CV; the profile above is its map.
 function renderCvTable() {
   const rows = SITE.cv.map((w, i) => ({ w, i })).reverse();
   $('#cvTable tbody').innerHTML = rows.map(({ w, i }) => `
     <tr data-i="${i}">
       <td class="years">${esc(w.from)}–${esc(w.to)}</td>
-      <td><span class="role">${esc(w.title)}</span><span class="org">${esc(w.org)}</span><span class="note">${esc(w.text)}</span></td>
+      <td><span class="role">${esc(w.title)}</span><span class="org">${esc(w.org)}</span><span class="note">${esc(w.text)}</span>${linkRow(w.links)}</td>
       <td class="where">${esc(w.place)}</td>
     </tr>`).join('');
   $('#cvTable tbody').querySelectorAll('tr').forEach((tr) => tr.addEventListener('click', () => selectWaypoint(+tr.dataset.i)));
@@ -511,6 +595,7 @@ function renderContent() {
   $('#mailLink').textContent = SITE.email;
   $('#contactLinks').innerHTML = [
     [SITE.linkedin, 'LinkedIn'],
+    [SITE.scholar, 'Google Scholar'],
     [SITE.github, 'GitHub'],
   ].map(([href, label]) => `<li><a href="${esc(href)}"${external(href)}>${label}${iconOut}</a></li>`).join('');
 
@@ -540,6 +625,8 @@ const COMMANDS = {
   <b class="warn">whoami</b>        who is this?
   <b class="warn">whereami</b>      current position
   <b class="warn">route cv</b>      the career trail
+  <b class="warn">education</b>     schools and degrees
+  <b class="warn">papers</b>        publications
   <b class="warn">waypoint</b> &lt;n&gt;  details of one stage
   <b class="warn">skills</b>        equipment check
   <b class="warn">projects</b>      marked routes
@@ -553,7 +640,7 @@ const COMMANDS = {
   <b class="warn">holiday</b> &lt;name&gt; christmas | easter | midsommar | live
   <b class="warn">riddle</b>        for the curious
   <b class="warn">download cv</b>   the official PDF
-  <b class="warn">goto</b> &lt;place&gt;   about | cv | skills | projects | contact
+  <b class="warn">goto</b> &lt;place&gt;   about | cv | education | publications | skills | projects | contact
   <b class="warn">fika</b>          mandatory break
   <b class="warn">clear</b>, <b class="warn">exit</b>
 Tip: Tab completes, ↑ repeats. Some commands are not listed.`,
@@ -582,6 +669,13 @@ ${esc(w.title)} @ ${esc(w.org)} (${esc(w.place)})
 ${esc(w.text)}`;
   },
 
+  education: () => 'Education route:\n' + [...SITE.education].reverse().map((e) =>
+    `  ${(e.from + '–' + e.to).padEnd(10)} ${esc(e.title)}\n  ${''.padEnd(10)} <span class="cmd">${esc(e.org)}</span>`).join('\n'),
+
+  papers: () => `Publications (${SITE.publications.length}):\n` + SITE.publications.map((p) =>
+    `  ${p.year}  <a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title)}</a>\n        <span class="cmd">${esc(p.type)}, ${esc(p.venue)}</span>`).join('\n') +
+    `\nAll on <a href="${esc(SITE.scholar)}" target="_blank" rel="noopener">Google Scholar</a>.`,
+
   skills: () => 'Equipment check:\n' + Object.entries(SITE.skills).map(([g, items]) => `  [<span class="ok">✓</span>] ${esc(g)}: ${items.map(esc).join(', ')}`).join('\n'),
 
   projects: () => 'Marked routes:\n' + SITE.projects.map((p, i) => `  WPT ${String(i + 1).padStart(2, '0')}  <a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>  ${esc(p.text)}`).join('\n'),
@@ -589,7 +683,8 @@ ${esc(w.text)}`;
   contact: () => `Sending signal…
   mail      <a href="mailto:${esc(SITE.email)}">${esc(SITE.email)}</a>
   linkedin  <a href="${esc(SITE.linkedin)}" target="_blank" rel="noopener">${esc(SITE.linkedin.replace(/^https?:\/\/(www\.)?/, ''))}</a>
-  github    <a href="${esc(SITE.github)}" target="_blank" rel="noopener">${esc(SITE.github.replace(/^https?:\/\//, ''))}</a>`,
+  github    <a href="${esc(SITE.github)}" target="_blank" rel="noopener">${esc(SITE.github.replace(/^https?:\/\//, ''))}</a>
+  scholar   <a href="${esc(SITE.scholar)}" target="_blank" rel="noopener">Google Scholar</a>`,
 
   sky: (arg) => {
     if (arg === 'live' || !arg) { forcedHour = null; paintSky(); return `Sky synced to the real time in ${esc(base().city)}.`; }
@@ -613,7 +708,7 @@ The sun is ${up ? 'up, so this site is in light mode' : 'down, so this site is i
   },
 
   'download cv': () => { const a = document.createElement('a'); a.href = SITE.cvPdf; a.download = ''; a.click(); return `Downloading <a href="${esc(SITE.cvPdf)}">${esc(SITE.cvPdf)}</a>…`; },
-  goto: (arg) => { if (!['about', 'cv', 'skills', 'projects', 'contact'].includes(arg)) return 'Usage: goto about | cv | skills | projects | contact'; setTimeout(() => goTo(arg), 300); return `Navigating to ${arg}…`; },
+  goto: (arg) => { if (!['about', 'cv', 'education', 'publications', 'skills', 'projects', 'contact'].includes(arg)) return 'Usage: goto about | cv | education | publications | skills | projects | contact'; setTimeout(() => goTo(arg), 300); return `Navigating to ${arg}…`; },
 
   fika: () => `Starting mandatory fika…
       ( (
@@ -697,6 +792,8 @@ paintSky();
 tickClock();
 renderProfile();
 renderCvTable();
+renderEducation();
+renderPublications();
 renderContent();
 tickCoords();
 setInterval(paintSky, 30000);

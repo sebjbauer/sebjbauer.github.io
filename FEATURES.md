@@ -123,10 +123,12 @@ Tab completes commands, ↑ repeats the last one.
 | `whoami` | Name, role and where you're based |
 | `whereami` | Coordinates and local time in Vienna |
 | `route cv` | The career trail drawn as text |
+| `education` | Schools and degrees, newest first |
+| `papers` | All publications with links, plus Google Scholar |
 | `waypoint 1` … | Details of one career stage (also highlights it on the page) |
 | `skills` | Skills as an "equipment check" |
 | `projects` | Projects as "marked routes" |
-| `contact` | Email, LinkedIn, GitHub |
+| `contact` | Email, LinkedIn, GitHub, Google Scholar |
 | `now` | The "Now" line |
 | `weather` | Live weather in Vienna |
 | `weather rain` | Simulates weather (`clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`); `weather live` goes back |
@@ -137,7 +139,7 @@ Tab completes commands, ↑ repeats the last one.
 | `holiday christmas` | Shows a holiday (`easter`, `midsommar`); `holiday live` goes back |
 | `riddle` | The northern-lights riddle |
 | `download cv` | Downloads `cv.pdf` |
-| `goto contact` | Scrolls to a section (`about`, `cv`, `skills`, `projects`, `contact`) |
+| `goto contact` | Scrolls to a section (`about`, `cv`, `education`, `publications`, `skills`, `projects`, `contact`) |
 | `fika` | Mandatory Swedish coffee break (ASCII art) |
 | `clear`, `exit` | Clear the screen, close the terminal |
 
@@ -160,7 +162,7 @@ Tab completes commands, ↑ repeats the last one.
 
 | What | File |
 |---|---|
-| Your content (CV, skills, projects, links, Now line, location) | `script.js`, the `SITE` block at the top |
+| Your content (career, education, publications, skills, projects, links, Now line, location) | `script.js`, the `SITE` block at the top |
 | Sky, light/dark mode, seasons, snow/leaves/rain, main terminal commands | `script.js` |
 | Moon, weather, holidays, shooting stars, cottage, hiker, deer, riddle | `extras.js` |
 | Landscape drawing (mountains, trees, cottage, deer, decorations) | `index.html`, inside the hero section |
