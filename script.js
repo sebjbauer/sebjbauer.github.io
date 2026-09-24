@@ -95,7 +95,6 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TZ = 'Europe/Vienna'; // same rules as Stockholm, including summer time
 const base = () => SITE.places[SITE.workBase];
 const fmtCoord = (p) => `${p.lat.toFixed(2)}°N ${p.lon.toFixed(2)}°E`;
-const altitude = (i) => Math.round((500 + i * (1800 / Math.max(1, SITE.cv.length - 1))) / 10) * 10;
 
 /* ---------------- live sky ---------------- */
 const PHASES = {
@@ -473,43 +472,77 @@ function smoothPath(p) {
   return d;
 }
 
+// Career trail: the horizontal axis is time. Each role starts at a waypoint and its
+// duration is shaded under the line; the selected role is highlighted.
+function yearValue(y) {
+  if (y !== 'now') return +y;
+  const d = new Date();
+  return d.getFullYear() + (d - new Date(d.getFullYear(), 0, 1)) / 3.156e10;
+}
+
 function renderProfile() {
   const svg = $('#profile');
-  const W = 1000, H = 300, left = 110, right = 70, low = 240, high = 70;
-  const n = SITE.cv.length;
-  const pts = SITE.cv.map((_, i) => ({ x: left + i * (W - left - right) / Math.max(1, n - 1), y: low - (i / Math.max(1, n - 1)) * (low - high) }));
+  const W = 1000, H = 300, low = 235, high = 75, pad = 24;
+  const roles = SITE.cv.map((w, i) => ({ w, i, a: yearValue(w.from), b: yearValue(w.to) }));
+  const y0 = Math.min(...roles.map((r) => r.a)) - 0.7, y1 = Math.max(...roles.map((r) => r.b)) + 0.5;
+  const X = (y) => pad + ((y - y0) / (y1 - y0)) * (W - 2 * pad);
 
-  // terrain: waypoints plus a few bumps in between, so it looks like a real trail
-  const terrain = [{ x: 0, y: low + 28 }, { x: left * 0.5, y: low + 8 }];
-  pts.forEach((p, i) => {
-    terrain.push(p);
-    const q = pts[i + 1];
-    if (q) terrain.push({ x: p.x + (q.x - p.x) * .3, y: p.y - 16 }, { x: p.x + (q.x - p.x) * .55, y: (p.y + q.y) / 2 + 24 }, { x: p.x + (q.x - p.x) * .8, y: q.y + 12 });
-  });
-  terrain.push({ x: W, y: pts[n - 1].y + 26 });
-  const line = smoothPath(terrain);
-
-  let g = '';
-  for (let i = 0; i <= 3; i++) {
-    const y = low - i * (low - high) / 3;
-    g += `<line class="grid" x1="0" x2="${W}" y1="${y}" y2="${y}"/><text class="alt" x="0" y="${y - 7}">${(500 + i * 600).toLocaleString('en')} m</text>`;
+  // a gently rising trail with a few natural bumps
+  const pts = [];
+  for (let x = 0; x <= W; x += 50) {
+    const t = x / W;
+    pts.push({ x, y: low - t * (low - high) + 10 * Math.sin(t * 11) + 5 * Math.sin(t * 29 + 1) });
   }
-  g += `<path class="area" d="${line} L${W},${H} L0,${H} Z"/><path class="trail" d="${line}"/>`;
-  pts.forEach((p, i) => {
-    const w = SITE.cv[i], last = i === n - 1;
-    g += `<line class="drop" x1="${p.x}" x2="${p.x}" y1="${p.y + 10}" y2="${H}"/>`;
-    g += `<g class="wp" data-i="${i}" tabindex="0" role="button" aria-label="${esc(w.from + ' to ' + w.to + ': ' + w.title)}">
-      ${last ? `<path class="summit" d="M${p.x} ${p.y - 42} l7 12 h-14 Z"/>` : ''}
-      <circle class="ring" cx="${p.x}" cy="${p.y}" r="7"/><circle class="core" cx="${p.x}" cy="${p.y}" r="3.5"/>
-      <text x="${p.x}" y="${p.y - 18}">${esc(w.from)}</text>
-      <text class="sub" x="${p.x}" y="${p.y + 30}">${altitude(i).toLocaleString('en')} m</text></g>`;
+  const line = smoothPath(pts);
+  const area = `${line} L${W},${H} L0,${H} Z`;
+
+  // height of the trail at a given x, read from the drawn path
+  svg.innerHTML = `<path class="trail" d="${line}"/>`;
+  const trail = svg.querySelector('.trail'), total = trail.getTotalLength();
+  const yAt = (x) => { let lo = 0, hi = total; for (let k = 0; k < 28; k++) { const m = (lo + hi) / 2; if (trail.getPointAtLength(m).x < x) lo = m; else hi = m; } return trail.getPointAtLength(lo).y; };
+
+  let g = `<defs>
+    <clipPath id="underTrail"><path d="${area}"/></clipPath>
+    <clipPath id="pastTrail"><rect x="0" y="0" width="${X(yearValue('now')).toFixed(1)}" height="${H}"/></clipPath>
+    <clipPath id="futureTrail"><rect x="${X(yearValue('now')).toFixed(1)}" y="0" width="${W}" height="${H}"/></clipPath>
+    <linearGradient id="spanFill" gradientUnits="userSpaceOnUse" x1="0" y1="${high - 20}" x2="0" y2="${H}">
+      <stop offset="0" style="stop-color: var(--accent); stop-opacity: .55"/>
+      <stop offset="1" style="stop-color: var(--accent); stop-opacity: 0"/>
+    </linearGradient>
+  </defs>
+  <path class="area" d="${area}"/>`;
+
+  // the time axis along the bottom
+  const step = y1 - y0 > 12 ? 2 : 1;
+  const thisYear = Math.floor(yearValue('now'));
+  for (let y = Math.ceil(y0); y <= thisYear; y += step) {
+    g += `<line class="tick" x1="${X(y)}" x2="${X(y)}" y1="${H - 22}" y2="${H - 16}"/><text class="axis" x="${X(y)}" y="${H - 4}">${y}</text>`;
+  }
+
+  // durations: shaded under the line, clipped to the terrain
+  roles.forEach((r) => {
+    g += `<rect class="span" data-i="${r.i}" x="${X(r.a).toFixed(1)}" y="0" width="${(X(r.b) - X(r.a)).toFixed(1)}" height="${H - 24}" clip-path="url(#underTrail)" fill="url(#spanFill)"/>`;
+  });
+  // solid up to today, dashed for the path ahead (the hiker walks the invisible full trail)
+  g += `<path class="trail-ahead" d="${line}" clip-path="url(#futureTrail)"/><path class="trail-past" d="${line}" clip-path="url(#pastTrail)"/><path class="trail" d="${line}"/>`;
+
+  // waypoints at the start of each role
+  roles.forEach((r) => {
+    const x = X(r.a), y = yAt(x), last = r.i === roles.length - 1;
+    g += `<g class="wp" data-i="${r.i}" tabindex="0" role="button" aria-label="${esc(`${r.w.from} to ${r.w.to}: ${r.w.title}`)}">
+      ${last ? `<path class="summit" d="M${x} ${y - 40} l7 12 h-14 Z"/>` : ''}
+      <circle class="ring" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7"/><circle class="core" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5"/>
+      <text x="${x.toFixed(1)}" y="${(y - 17).toFixed(1)}">${esc(r.w.from)}</text></g>`;
   });
   svg.innerHTML = g;
 
+  const spans = svg.querySelectorAll('.span');
   svg.querySelectorAll('.wp').forEach((el) => {
-    const pick = () => selectWaypoint(+el.dataset.i);
+    const i = +el.dataset.i, pick = () => selectWaypoint(i);
     el.addEventListener('click', pick);
     el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    el.addEventListener('mouseenter', () => spans[i].classList.add('hover'));
+    el.addEventListener('mouseleave', () => spans[i].classList.remove('hover'));
   });
 }
 
@@ -568,7 +601,7 @@ function renderCvTable() {
 const waypointHooks = []; // extras.js: the hiker walks to the selected waypoint
 function selectWaypoint(i) {
   waypointHooks.forEach((fn) => fn(i));
-  document.querySelectorAll('#profile .wp').forEach((el) => el.classList.toggle('active', +el.dataset.i === i));
+  document.querySelectorAll('#profile .wp, #profile .span').forEach((el) => el.classList.toggle('active', +el.dataset.i === i));
   document.querySelectorAll('#cvTable tbody tr').forEach((tr) => tr.classList.toggle('active', +tr.dataset.i === i));
 }
 
@@ -656,7 +689,7 @@ Local time: ${$('#clock').textContent}`,
   now: () => `${esc(SITE.now.text)}\n<span class="cmd">${esc($('#nowDate').textContent)}</span>`,
 
   'route cv': () => {
-    const rows = SITE.cv.map((w, i) => `  ${i === SITE.cv.length - 1 ? '<span class="warn">▲</span>' : '●'} ${(w.from + '–' + w.to).padEnd(10)} ${esc(w.title).padEnd(26)} ${altitude(i).toLocaleString('en').padStart(5)} m`).reverse();
+    const rows = SITE.cv.map((w, i) => `  ${i === SITE.cv.length - 1 ? '<span class="warn">▲</span>' : '●'} ${(w.from + '–' + w.to).padEnd(10)} ${esc(w.title)}`).reverse();
     return `Career trail (summit on top):\n${rows.join('\n  │\n')}\n\nType <b class="warn">waypoint 1</b>…<b class="warn">waypoint ${SITE.cv.length}</b> for details.`;
   },
 
@@ -664,7 +697,7 @@ Local time: ${$('#clock').textContent}`,
     const i = parseInt(arg, 10) - 1, w = SITE.cv[i];
     if (!w) return `<span class="warn">Unknown waypoint.</span> Pick 1 to ${SITE.cv.length}.`;
     selectWaypoint(i);
-    return `WPT ${String(i + 1).padStart(2, '0')} · ${esc(w.from)}–${esc(w.to)} · ▲ ${altitude(i).toLocaleString('en')} m
+    return `WPT ${String(i + 1).padStart(2, '0')} · ${esc(w.from)}–${esc(w.to)}
 ${esc(w.title)} @ ${esc(w.org)} (${esc(w.place)})
 ${esc(w.text)}`;
   },

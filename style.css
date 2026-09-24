@@ -281,17 +281,20 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='340' fill='none' stroke='%23A3B5AB' stroke-opacity='.09'%3E%3Cellipse cx='400' cy='110' rx='40' ry='24'/%3E%3Cellipse cx='400' cy='114' rx='82' ry='50'/%3E%3Cellipse cx='392' cy='120' rx='128' ry='80'/%3E%3Cellipse cx='384' cy='126' rx='180' ry='112'/%3E%3Cellipse cx='376' cy='132' rx='236' ry='148'/%3E%3Cellipse cx='70' cy='320' rx='54' ry='30'/%3E%3Cellipse cx='70' cy='320' rx='108' ry='62'/%3E%3C/svg%3E");
 }
 #profile { display: block; width: 100%; min-width: 600px; height: auto; }
-#profile .grid { stroke: var(--line); }
-#profile .alt { fill: var(--muted); font: 12px var(--sans); }
+#profile .tick { stroke: var(--line-strong); }
+#profile .axis { fill: var(--muted); font: 12px var(--sans); text-anchor: middle; }
+#profile .span { opacity: .28; transition: opacity .35s; pointer-events: none; }
+#profile .span.hover { opacity: .6; }
+#profile .span.active { opacity: 1; }
 #profile .area { fill: var(--muted); opacity: .06; }
-#profile .trail { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
-#profile .drop { stroke: var(--line-strong); }
+#profile .trail { fill: none; stroke: none; }
+#profile .trail-past { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
+#profile .trail-ahead { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 3 6; stroke-linecap: round; opacity: .6; }
 #profile .wp { cursor: pointer; outline: none; }
 #profile .wp .ring { fill: var(--bg); stroke: var(--accent); stroke-width: 2; }
 #profile .wp .core { fill: var(--accent); opacity: 0; }
 #profile .wp .summit { fill: var(--accent); }
 #profile .wp text { fill: var(--text); font: 500 14px var(--sans); text-anchor: middle; }
-#profile .wp .sub { fill: var(--muted); font-weight: 400; font-size: 12px; }
 #profile .wp:hover .core, #profile .wp.active .core { opacity: 1; }
 #profile .wp:focus-visible .ring { stroke: var(--text); stroke-width: 3; }
 #profile .hiker { pointer-events: none; }
