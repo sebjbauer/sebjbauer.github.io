@@ -94,7 +94,7 @@ Based on the date in Vienna.
 ## Things visitors can find and click
 
 - **Shooting stars:** at night, one crosses the sky every 15 to 50 seconds. Clicking it "catches" it ("Make a wish."). The browser remembers how many each visitor has caught.
-- **The cottage:** clicking the red cottage switches its light on or off. Its chimney smokes in the evening and in autumn and winter.
+- **The cottage:** clicking the red cottage switches its light and chimney smoke on or off (no message). On its own, the light is on in the evening, and the chimney smokes in the evening and in autumn and winter.
 - **The deer:** appears at the forest edge only at **dusk and dawn**, and sometimes lowers its head to graze. Clicking it makes it run into the forest (it comes back after 90 seconds).
 - **The hiker:** a small figure with an orange backpack walks up the career trail to the summit when the Career section comes into view. Hovering over or clicking a waypoint makes them walk there.
 

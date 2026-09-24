@@ -127,6 +127,7 @@ function paintSky() {
   root.setProperty('--snow', v.snow); root.setProperty('--lake', v.lake);
   root.setProperty('--sun', v.sun); root.setProperty('--stars', v.stars);
   root.setProperty('--aurora', v.aurora); root.setProperty('--window', v.window);
+  document.documentElement.dataset.night = v.stars > 0.04 || v.aurora > 0.02 ? 'yes' : 'no';
   const bright = (lum(v.skyTop) + lum(v.skyBot)) / 2 > 0.42;
   root.setProperty('--hero-ink', bright ? '#111111' : '#EDEDED');
   root.setProperty('--hero-soft', bright ? '#3D3D3B' : '#C9C9C6');
@@ -198,84 +199,129 @@ function applySeason(d, bg) {
   season.leaves.forEach((c, i) => st.setProperty(`--leaf-${i + 1}`, mix(c, '#0C0C0C', d * 0.85)));
   st.setProperty('--flower-o', (1 - d * 0.75).toFixed(2));
   // real rain or snow wins over the seasonal decoration
-  weather.set(live.particle || { winter: 'snow', autumn: 'leaves', spring: 'petals', summer: d > 0.6 ? 'fireflies' : null }[name], season.leaves);
+  weather.set(live.particle || { winter: 'snow', autumn: 'leaves', spring: 'petals', summer: d > 0.6 ? 'fireflies' : null }[name], season.leaves, d);
 }
 
-/* ---------------- weather particles (snow, leaves, petals, fireflies) ---------------- */
+/* ---------------- weather particles (rain, snow, leaves, petals, fireflies) ---------------- */
+// Speeds are in pixels per second, so it looks the same on 60 Hz and 120 Hz screens.
 const weather = (() => {
   const cv = $('#weather'), ctx = cv.getContext('2d');
-  let kind = null, parts = [], visible = true, raf = 0, palette = [];
-  const counts = { snow: 110, leaves: 26, petals: 16, fireflies: 34, rain: 150, drizzle: 70 };
+  let kind = null, parts = [], splashes = [], palette = [], visible = true, raf = 0, last = 0, W = 0, H = 0, night = 1;
+  const COUNTS = { snow: 110, leaves: 26, petals: 16, fireflies: 34, rain: 180, drizzle: 90 };
 
-  function resize() {
-    const r = devicePixelRatio || 1;
-    cv.width = cv.clientWidth * r; cv.height = cv.clientHeight * r;
+  function resize(force) {
+    const w = cv.clientWidth, h = cv.clientHeight;
+    // phones resize the page when the address bar slides; ignore small height changes
+    if (!force && Math.abs(w - W) < 2 && Math.abs(h - H) < 120) return;
+    const r = Math.min(devicePixelRatio || 1, 1.5);
+    W = w; H = h;
+    cv.width = Math.round(w * r); cv.height = Math.round(h * r);
     ctx.setTransform(r, 0, 0, r, 0, 0);
   }
+
   function spawn(p, anywhere) {
-    const W = cv.clientWidth, H = cv.clientHeight;
-    p.x = Math.random() * W;
-    p.y = anywhere ? Math.random() * H : -12;
-    p.phase = Math.random() * Math.PI * 2;
-    if (kind === 'snow') { p.r = 0.8 + Math.random() * 2.2; p.vy = 0.25 + p.r * 0.28; }
-    if (kind === 'rain' || kind === 'drizzle') { p.len = kind === 'rain' ? 12 + Math.random() * 8 : 6 + Math.random() * 4; p.vy = kind === 'rain' ? 10 + Math.random() * 4 : 4 + Math.random() * 2; }
-    if (kind === 'leaves' || kind === 'petals') {
+    p.x = Math.random() * (W + 100); p.y = anywhere ? Math.random() * H : -30 - Math.random() * 60;
+    p.phase = Math.random() * 6.28;
+    if (kind === 'rain' || kind === 'drizzle') {
+      const heavy = kind === 'rain';
+      p.z = Math.random() < 0.5 ? 0 : Math.random() < 0.6 ? 1 : 2;          // far, middle, near
+      p.vy = (heavy ? 620 : 260) * (0.7 + p.z * 0.35) * (0.9 + Math.random() * 0.2);
+      p.len = (heavy ? 9 : 5) + p.z * (heavy ? 7 : 3);
+      p.ground = H * (0.84 + Math.random() * 0.15);                         // where near drops splash
+    } else if (kind === 'snow') {
+      p.r = 0.8 + Math.random() * 2.2; p.vy = 16 + p.r * 16;
+    } else if (kind === 'leaves' || kind === 'petals') {
       p.s = kind === 'leaves' ? 4 + Math.random() * 4 : 2.5 + Math.random() * 2;
-      p.vy = 0.45 + Math.random() * 0.7; p.rot = Math.random() * 6; p.vr = (Math.random() - 0.5) * 0.06;
+      p.vy = 28 + Math.random() * 40; p.rot = Math.random() * 6; p.vr = (Math.random() - 0.5) * 3;
       p.c = kind === 'leaves' ? palette[Math.floor(Math.random() * palette.length)] : ['#F6C7D6', '#FFFFFF', '#F3B6CA'][Math.floor(Math.random() * 3)];
+    } else if (kind === 'fireflies') {
+      p.y = H * (0.62 + Math.random() * 0.36); p.vx = (Math.random() - 0.5) * 18; p.vy = (Math.random() - 0.5) * 12;
     }
-    if (kind === 'fireflies') { p.y = H * (0.62 + Math.random() * 0.36); p.vx = (Math.random() - 0.5) * 0.3; p.vy = (Math.random() - 0.5) * 0.2; }
     return p;
   }
+
+  // light rain on a dark sky, darker blue-grey rain on a bright daytime sky
+  const rainColor = (a) => `rgba(${Math.round(mix(78, 205, night))}, ${Math.round(mix(96, 214, night))}, ${Math.round(mix(118, 228, night))}, ${a})`;
+
+  function drawRain(dt, t) {
+    const wind = -0.16;
+    for (let z = 0; z < 3; z++) {
+      ctx.beginPath();
+      for (const p of parts) {
+        if (p.z !== z) continue;
+        p.y += p.vy * dt; p.x += p.vy * wind * dt;
+        const landed = z === 2 ? p.y > p.ground : p.y > H + 20;
+        if (landed) {
+          if (z === 2 && splashes.length < 40) splashes.push({ x: p.x, y: p.ground, age: 0 });
+          spawn(p, false);
+        }
+        ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.len * wind, p.y - p.len);
+      }
+      ctx.strokeStyle = rainColor([0.22, 0.38, 0.55][z]);
+      ctx.lineWidth = [0.8, 1, 1.4][z];
+      ctx.stroke();
+    }
+    // tiny splashes where the near drops hit the ground
+    ctx.beginPath();
+    splashes = splashes.filter((s) => (s.age += dt) < 0.3);
+    for (const s of splashes) {
+      const k = s.age / 0.3, rx = 2 + k * 6;
+      ctx.moveTo(s.x + rx, s.y); ctx.ellipse(s.x, s.y, rx, rx * 0.3, 0, Math.PI, 0);
+    }
+    ctx.strokeStyle = rainColor(0.35); ctx.lineWidth = 0.8; ctx.stroke();
+  }
+
   function frame(t) {
-    const W = cv.clientWidth, H = cv.clientHeight;
+    const dt = Math.min(0.05, (t - (last || t)) / 1000); last = t;
     ctx.clearRect(0, 0, W, H);
-    for (const p of parts) {
-      if (kind === 'fireflies') {
-        p.x += p.vx + Math.sin(t / 900 + p.phase) * 0.2; p.y += p.vy + Math.cos(t / 1100 + p.phase) * 0.15;
+    if (kind === 'rain' || kind === 'drizzle') drawRain(dt, t);
+    else if (kind === 'snow') {
+      ctx.beginPath();
+      for (const p of parts) {
+        p.y += p.vy * dt; p.x += Math.sin(t / 1400 + p.phase) * 20 * dt;
+        if (p.y > H + 10) spawn(p, false);
+        ctx.moveTo(p.x + p.r, p.y); ctx.arc(p.x, p.y, p.r, 0, 6.29);
+      }
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.fill();
+    } else if (kind === 'fireflies') {
+      for (const p of parts) {
+        p.x += (p.vx + Math.sin(t / 900 + p.phase) * 12) * dt; p.y += (p.vy + Math.cos(t / 1100 + p.phase) * 9) * dt;
         if (p.x < 0 || p.x > W || p.y < H * 0.55 || p.y > H) spawn(p, true);
-        const a = Math.max(0, Math.sin(t / 600 + p.phase)) ** 3;
-        ctx.fillStyle = `rgba(244, 226, 122, ${a})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, 1.8, 0, 7); ctx.fill();
-        continue;
+        ctx.globalAlpha = Math.max(0, Math.sin(t / 600 + p.phase)) ** 3;
+        ctx.fillStyle = '#F4E27A'; ctx.beginPath(); ctx.arc(p.x, p.y, 1.8, 0, 6.29); ctx.fill();
       }
-      if (kind === 'rain' || kind === 'drizzle') {
-        p.y += p.vy; p.x -= p.vy * 0.12;
-        if (p.y > H + 20) { spawn(p, false); p.x += 60; }
-        ctx.strokeStyle = 'rgba(205, 214, 226, 0.5)'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + p.len * 0.12, p.y - p.len); ctx.stroke();
-        continue;
+      ctx.globalAlpha = 1;
+    } else {
+      for (const p of parts) {
+        p.y += p.vy * dt; p.x += Math.sin(t / 1400 + p.phase) * 50 * dt; p.rot += p.vr * dt;
+        if (p.y > H + 12) spawn(p, false);
+        const a = p.rot + Math.sin(t / 700 + p.phase) * 0.6;
+        ctx.setTransform(Math.cos(a) * cvScale, Math.sin(a) * cvScale, -Math.sin(a) * cvScale, Math.cos(a) * cvScale, p.x * cvScale, p.y * cvScale);
+        ctx.fillStyle = p.c; ctx.beginPath(); ctx.ellipse(0, 0, p.s, p.s * 0.5, 0, 0, 6.29); ctx.fill();
       }
-      p.y += p.vy;
-      p.x += Math.sin(t / 1400 + p.phase) * (kind === 'snow' ? 0.35 : 0.9);
-      if (p.y > H + 12) spawn(p, false);
-      if (kind === 'snow') {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill();
-      } else {
-        p.rot += p.vr;
-        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot + Math.sin(t / 700 + p.phase) * 0.6);
-        ctx.fillStyle = p.c;
-        ctx.beginPath(); ctx.ellipse(0, 0, p.s, p.s * 0.5, 0, 0, 7); ctx.fill();
-        ctx.restore();
-      }
+      ctx.setTransform(cvScale, 0, 0, cvScale, 0, 0);
     }
     raf = requestAnimationFrame(frame);
   }
+  let cvScale = 1;
   function restart() {
-    cancelAnimationFrame(raf);
-    ctx.clearRect(0, 0, cv.width, cv.height);
+    cancelAnimationFrame(raf); raf = 0; last = 0;
+    cvScale = cv.width / Math.max(1, W);
+    ctx.clearRect(0, 0, W, H);
     if (!kind || !visible || reduceMotion) return;
     raf = requestAnimationFrame(frame);
   }
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; restart(); }).observe(cv);
-  addEventListener('resize', resize);
-  resize();
+  addEventListener('resize', () => { const before = W; resize(false); if (W !== before) { parts.forEach((p) => spawn(p, true)); restart(); } });
+  resize(true);
   return {
-    set(next, colors = []) {
+    set(next, colors = [], darkness = 1) {
+      night = darkness;
       if (next === kind && colors.join() === palette.join()) return;
       kind = next; palette = colors;
-      parts = kind ? Array.from({ length: counts[kind] }, () => spawn({}, true)) : [];
+      const n = kind ? Math.round(COUNTS[kind] * (innerWidth < 760 ? 0.6 : 1)) : 0;
+      parts = Array.from({ length: n }, () => spawn({}, true));
+      splashes = [];
       restart();
     },
   };
@@ -339,9 +385,11 @@ function renderTrees() {
 
 // On phones, squeeze the view slightly so both the Alps and the Swedish lake fit
 function fitLandscape() {
-  const svg = $('#landscape'), narrow = innerWidth < 760;
-  svg.setAttribute('viewBox', narrow ? '180 60 1260 460' : '0 0 1440 520');
-  svg.setAttribute('preserveAspectRatio', narrow ? 'none' : 'xMidYMax slice');
+  const narrow = innerWidth < 760;
+  document.querySelectorAll('.landscape').forEach((svg) => {
+    svg.setAttribute('viewBox', narrow ? '180 60 1260 460' : '0 0 1440 520');
+    svg.setAttribute('preserveAspectRatio', narrow ? 'none' : 'xMidYMax slice');
+  });
 }
 
 /* ---------------- hero text ---------------- */
@@ -649,5 +697,12 @@ tickCoords();
 setInterval(paintSky, 30000);
 // tick the clock exactly on each new second
 setTimeout(() => { tickClock(); setInterval(tickClock, 1000); }, 1000 - (Date.now() % 1000));
-addEventListener('resize', () => { fitLandscape(); paintSky(); });
+// only react to real width changes (not the phone's address bar sliding in and out)
+let lastWidth = innerWidth, resizeTimer = 0;
+addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (innerWidth !== lastWidth) { lastWidth = innerWidth; fitLandscape(); paintSky(); } }, 150);
+});
+// pause every hero animation while the hero is scrolled out of view
+new IntersectionObserver(([e]) => $('.hero').classList.toggle('off', !e.isIntersecting)).observe($('.hero'));
 addEventListener('scroll', () => $('.nav').classList.toggle('scrolled', scrollY > innerHeight * 0.6), { passive: true });

@@ -85,7 +85,7 @@ kbd {
 
 /* ---------- hero ---------- */
 .hero {
-  position: relative; height: 100vh; min-height: 560px; overflow: hidden;
+  position: relative; height: 100vh; height: 100svh; min-height: 560px; overflow: hidden;
   background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bot) 78%);
   color: var(--hero-ink);
 }
@@ -94,14 +94,15 @@ kbd {
 #stars circle { fill: #fff; }
 #stars .tw { animation: twinkle 4s ease-in-out infinite; }
 @keyframes twinkle { 50% { opacity: .25; } }
-.aurora { opacity: var(--aurora); transition: opacity 2s; mix-blend-mode: screen; }
-.a1 { animation: aurora 16s ease-in-out infinite alternate; }
-.a2 { animation: aurora 21s ease-in-out infinite alternate-reverse; }
+/* The blurred aurora is drawn once; only the whole layer moves, which phones handle on the GPU. */
+.aurora { opacity: var(--aurora); transition: opacity 2s; will-change: transform; animation: aurora 18s ease-in-out infinite alternate; }
 @keyframes aurora {
-  0% { transform: translateX(0) skewX(0deg); opacity: .7; }
-  50% { opacity: 1; }
-  100% { transform: translateX(-60px) skewX(-8deg); opacity: .8; }
+  0% { transform: translateX(0) scaleY(1); }
+  100% { transform: translateX(-50px) scaleY(1.12); }
 }
+[data-night="no"] #stars, [data-night="no"] .aurora { visibility: hidden; animation-play-state: paused; }
+[data-night="no"] #stars .tw { animation-play-state: paused; }
+.hero.off *, .hero.off *::before { animation-play-state: paused !important; }
 .sun {
   position: absolute; width: 52px; height: 52px; border-radius: 50%;
   background: var(--sun); transform: translate(-50%, -50%);
@@ -153,14 +154,12 @@ kbd {
 .hero-time { font-size: 15px; color: var(--hero-soft); margin: 14px 0 0; }
 
 /* ---------- live weather ---------- */
-#clouds { opacity: var(--clouds-o, 0); transition: opacity 3s; }
+#clouds { overflow: visible; opacity: var(--clouds-o, 0); transition: opacity 3s; will-change: transform; animation: drift 160s linear infinite alternate; }
+[data-cloudy="no"] #clouds { visibility: hidden; animation-play-state: paused; }
 #clouds ellipse { fill: var(--cloud); transition: fill 1.5s; }
 #clouds .heavy { display: none; }
 [data-heavy="yes"] #clouds .heavy { display: inline; }
-.drift { animation: drift 140s linear infinite alternate; }
-.d2 { animation-duration: 190s; animation-direction: alternate-reverse; }
-.d3 { animation-duration: 240s; }
-@keyframes drift { to { transform: translateX(120px); } }
+@keyframes drift { from { transform: translateX(-60px); } to { transform: translateX(60px); } }
 .fog {
   position: absolute; inset: auto 0 0 0; height: 48%; pointer-events: none;
   background: linear-gradient(to top, var(--fog) 20%, transparent);
@@ -171,13 +170,13 @@ kbd {
 @keyframes flash { 0%, 30% { opacity: 0; } 8% { opacity: .55; } 16% { opacity: .1; } 22% { opacity: .4; } 100% { opacity: 0; } }
 
 /* ---------- cottage, deer, holidays ---------- */
-.stuga { cursor: pointer; }
-.stuga .hit { fill: transparent; }
+.fx { pointer-events: none; }
+.stuga-hit { fill: transparent; pointer-events: all; cursor: pointer; }
 [data-cottage="on"] .window { opacity: 1; }
 [data-cottage="off"] .window { opacity: 0; }
-.smoke { opacity: var(--smoke-o, 0); transition: opacity 2s; }
-[data-cottage="on"] .smoke { opacity: 1; }
-[data-cottage="off"] .smoke { opacity: 0; }
+.smoke { display: none; }
+[data-smoke="on"] .smoke, [data-cottage="on"] .smoke { display: inline; }
+[data-cottage="off"] .smoke { display: none; }
 .smoke circle { fill: rgba(205, 205, 205, .55); transform-box: fill-box; transform-origin: center; animation: smoke 4.5s ease-out infinite; }
 .smoke circle:nth-child(2) { animation-delay: 1.5s; }
 .smoke circle:nth-child(3) { animation-delay: 3s; }
@@ -188,6 +187,7 @@ kbd {
 .deer-body { fill: var(--tree); transition: transform 1.2s ease-in, opacity 1.2s; }
 .deer .antler { fill: none; stroke: var(--tree); stroke-width: 1; stroke-linecap: round; }
 .deer-head { transform-box: fill-box; transform-origin: 100% 100%; animation: graze 11s ease-in-out infinite; }
+.deer:not(.show) .deer-head { animation-play-state: paused; }
 @keyframes graze { 0%, 55%, 100% { transform: rotate(0); } 62%, 88% { transform: rotate(-58deg); } }
 .deer.flee .deer-body { transform: translateX(60px); opacity: 0; }
 
@@ -223,8 +223,7 @@ kbd {
 .shooting-star.caught::before { background: linear-gradient(to right, #F2C94C, rgba(242, 201, 76, 0)); }
 @keyframes caught { to { transform: scale(1.6) rotate(-22deg); opacity: 0; } }
 .aurora-storm .aurora { opacity: 1 !important; filter: saturate(1.7) brightness(1.4); transition: opacity 1s; }
-.aurora-storm .a1 { animation-duration: 4s; }
-.aurora-storm .a2 { animation-duration: 5.5s; }
+.aurora-storm .aurora { animation-duration: 4s; }
 
 .toast {
   position: fixed; left: 24px; bottom: 24px; z-index: 60; max-width: calc(100vw - 48px);

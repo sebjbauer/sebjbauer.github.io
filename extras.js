@@ -69,6 +69,7 @@ function applyWeather(w) {
     : c >= 51 && c <= 57 ? 'drizzle' : null;
   document.documentElement.style.setProperty('--clouds-o', Math.max(0, (live.overcast - 0.15) / 0.85).toFixed(2));
   document.documentElement.dataset.heavy = live.overcast > 0.7 ? 'yes' : 'no';
+  document.documentElement.dataset.cloudy = live.overcast > 0.15 ? 'yes' : 'no';
   clearTimeout(stormTimer);
   if (c >= 95) lightning();
   paintSky();
@@ -200,17 +201,17 @@ function scheduleShootingStars() {
 /* ---------------- the cottage ---------------- */
 function setupCottage() {
   const root = document.documentElement;
-  $('#stuga').addEventListener('click', () => {
+  // a click switches the light and the chimney smoke on or off
+  $('#stugaHit').addEventListener('click', () => {
     // is the window glowing right now? (either set by a click, or by the time of day)
     const lit = root.dataset.cottage ? root.dataset.cottage === 'on' : parseFloat(root.style.getPropertyValue('--window')) > 0.5;
     root.dataset.cottage = lit ? 'off' : 'on';
-    toast(lit ? 'Lights out in the cottage. God natt.' : 'Someone lit the stove in the cottage. Coffee is on.');
   });
 }
 // smoke rises from the chimney when the stove is lit (evenings, and colder seasons)
 skyHooks.push(({ d }) => {
   const cold = ['winter', 'autumn'].includes(currentSeason()) || live.particle === 'snow';
-  document.documentElement.style.setProperty('--smoke-o', d > 0.5 || (cold && d > 0.2) ? 1 : 0);
+  document.documentElement.dataset.smoke = d > 0.5 || (cold && d > 0.2) ? 'on' : 'off';
 });
 
 /* ---------------- the hiker on the career trail ---------------- */
