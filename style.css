@@ -266,13 +266,9 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 
 /* about */
 .about { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 36px; align-items: start; }
-/* cut-out portrait standing in front of a soft disc, like the sun behind the mountains */
-.photo { position: relative; aspect-ratio: 1; }
-.photo::before {
-  content: ''; position: absolute; left: 6%; right: 6%; top: 10%; aspect-ratio: 1; border-radius: 50%;
-  background: color-mix(in srgb, var(--accent) 16%, var(--bg));
-}
-.photo img { position: relative; width: 100%; height: 100%; object-fit: contain; display: block; }
+/* round portrait inside a thin ring */
+.photo { aspect-ratio: 1; border-radius: 50%; padding: 5px; border: 1px solid var(--line-strong); }
+.photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; border-radius: 50%; display: block; }
 .about p { margin: 0 0 16px; max-width: 62ch; color: var(--muted); }
 .about .now { color: var(--text); font-size: 17px; margin: 0 0 22px; }
 .now strong { font-weight: 600; margin-right: 6px; }
