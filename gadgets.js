@@ -19,6 +19,10 @@ const BADGES = [
   ['cyclist', 'Aero tuck', 'made the cyclist tuck', 'someone rides through the valley'],
   ['skater', 'Thin ice', 'watched the skater spin', 'when the lake freezes'],
   ['iss', 'Space station', 'spotted the ISS over Vienna', 'a steady light that moves fast on clear nights'],
+  ['plane', 'Wanderlust', 'caught the plane to a new country', 'something flies over now and then'],
+  ['triathlon', 'Swim, bike, run', 'cheered on the triathlete', 'summer days by the lake'],
+  ['xc', 'Diagonal stride', 'waved at the cross-country skier', 'long skis in winter, tiny wheels the rest of the year'],
+  ['bbq', 'Grill master', 'caught the penguin at the barbecue', 'the penguin has a hobby too'],
 ];
 let earned = (() => { try { return JSON.parse(store.get('badges') || '[]'); } catch { return []; } })();
 function earnBadge(id) {
@@ -128,8 +132,56 @@ $('#landscapeFx').appendChild(penguinLoop); // paths must be in the page to be m
 $('#stugaHit').addEventListener('click', () => {
   if (document.documentElement.dataset.cottage === 'on') earnBadge('cottage');
   cottageClicks += 1;
-  if (cottageClicks % 5 === 0 && !penguinOut && !reduceMotion) penguinWalk();
+  if (cottageClicks % 5 === 0 && !penguinOut && !reduceMotion) penguinOuting('walk');
 });
+// every third time the penguin comes out, it goes to the barbecue instead
+let penguinTrips = 0;
+function penguinOuting(kind) {
+  penguinTrips += 1;
+  if (penguinTrips % 3 === 0) return penguinGrill();
+  return kind === 'slide' ? penguinSlide() : penguinWalk();
+}
+
+async function penguinGrill() {
+  penguinOut = true;
+  const root = document.documentElement, pg = $('#penguin'), flip = pg.querySelector('.pg-flip'), waddle = pg.querySelector('.pg-waddle');
+  const spatula = pg.querySelector('.pg-spatula');
+  waddle.removeAttribute('clip-path'); pg.querySelector('.pg-ripple').style.opacity = 0;
+  pg.classList.add('out', 'grill');
+  const walk = (from, to, ms) => new Promise((done) => {
+    let t0 = 0;
+    const step = (t) => {
+      if (!t0) t0 = t;
+      const k = Math.min(1, (t - t0) / ms);
+      pg.setAttribute('transform', `translate(${(from + (to - from) * k).toFixed(1)} 447)`);
+      flip.setAttribute('transform', to < from ? 'scale(-1 1)' : '');
+      waddle.setAttribute('transform', `rotate(${(Math.sin(t / 90) * 9).toFixed(1)})`);
+      if (k < 1) requestAnimationFrame(step); else done();
+    };
+    requestAnimationFrame(step);
+  });
+  await walk(1195, 1222, 2600);
+  // grilling: lid open, smoke, and the spatula flips something now and then
+  root.classList.add('grilling');
+  flip.setAttribute('transform', ''); waddle.setAttribute('transform', '');
+  await new Promise((done) => {
+    let t0 = 0;
+    const step = (t) => {
+      if (!t0) t0 = t;
+      const e = t - t0, flipNow = (e % 1600) < 450;
+      spatula.setAttribute('transform', flipNow ? 'rotate(-28 2.6 -6.6)' : '');
+      if (e < 7000) requestAnimationFrame(step); else done();
+    };
+    requestAnimationFrame(step);
+  });
+  spatula.setAttribute('transform', '');
+  root.classList.remove('grilling');
+  await walk(1222, 1195, 2600);
+  pg.classList.remove('out', 'grill');
+  earnBadge('penguin'); earnBadge('bbq');
+  penguinOut = false;
+}
+
 async function penguinWalk() {
   penguinOut = true;
   const pg = $('#penguin'), flip = pg.querySelector('.pg-flip'), waddle = pg.querySelector('.pg-waddle'), ripple = pg.querySelector('.pg-ripple');
@@ -194,25 +246,32 @@ function cyclistGear() {
 // the cyclist rides through the valley now and then; click to make them tuck
 const cyclist = $('#cyclist'), road = $('#road');
 let riding = false;
-async function ride() {
-  if (riding || !heroVisible() || reduceMotion) return;
-  riding = true;
-  cyclist.dataset.gear = cyclistGear(); // dress for the real weather in Vienna
-  cyclist.classList.remove('tuck');
-  cyclist.classList.add('out');
-  let speed = 1, pos = 0, last = 0;
+let roadBusy = false;
+function alongRoad(el, { reverse = false, speed = 70, onStep } = {}) {
   const len = road.getTotalLength();
-  await new Promise((done) => {
+  let pos = 0, last = 0;
+  return new Promise((done) => {
     const step = (t) => {
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
-      pos += dt * 70 * speed * (cyclist.classList.contains('tuck') ? 1.5 : 1);
-      const p = road.getPointAtLength(Math.min(len, pos)), q = road.getPointAtLength(Math.min(len, pos + 2));
+      pos += dt * (typeof speed === 'function' ? speed() : speed);
+      const at = reverse ? len - Math.min(len, pos) : Math.min(len, pos);
+      const p = road.getPointAtLength(at), q = road.getPointAtLength(Math.min(len, at + 2));
       const angle = Math.atan2(q.y - p.y, q.x - p.x) * 180 / Math.PI;
-      cyclist.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${angle.toFixed(1)})`);
+      el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${angle.toFixed(1)})${reverse ? ' scale(-1 1)' : ''}`);
+      if (onStep) onStep(t);
       if (pos < len) requestAnimationFrame(step); else done();
     };
     requestAnimationFrame(step);
   });
+}
+
+async function ride({ reverse = false, force = false } = {}) {
+  if (!force && (riding || roadBusy || !heroVisible() || reduceMotion)) return;
+  riding = true;
+  cyclist.dataset.gear = cyclistGear(); // dress for the real weather in Vienna
+  cyclist.classList.remove('tuck');
+  cyclist.classList.add('out');
+  await alongRoad(cyclist, { reverse, speed: () => 70 * (cyclist.classList.contains('tuck') ? 1.5 : 1) });
   cyclist.classList.remove('out', 'tuck');
   riding = false;
 }
@@ -221,6 +280,79 @@ cyclist.addEventListener('click', () => {
   cyclist.classList.add('tuck');
   toast('Aero tuck: about 15% less drag.');
   earnBadge('cyclist');
+});
+
+// stride animation: swap the left and right legs and arms back and forth
+function stride(fig, t, period = 120) {
+  const swap = Math.sin(t / period) > 0 ? 'scale(-1 1)' : '';
+  fig.querySelectorAll('.leg-a, .leg-b, .arm-a, .arm-b, .pole-a, .pole-b').forEach((el) => el.setAttribute('transform', swap));
+}
+
+/* ---------------- triathlon: swim across the lake, bike through the valley, run back ---------------- */
+let tri = false;
+const swimmer = $('#swimmer'), runner = $('#runner');
+const triWeather = () => !live.frozen && !live.particle && lastSky.d < 0.5 &&
+  (currentSeason() === 'summer' || (weatherNow?.temp ?? 0) >= 18);
+async function triathlon(force = false) {
+  if (tri || riding || roadBusy || (!force && (!triWeather() || !heroVisible())) || reduceMotion) return;
+  tri = true; roadBusy = true;
+  // swim
+  swimmer.classList.add('out');
+  await travel(swimmer, $('#swimLane'), 14000, { onStep: (p, q, t) => {
+    swimmer.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`); // drawn facing left, the way it swims
+    swimmer.classList.toggle('alt', Math.sin(t / 260) > 0);
+  } });
+  swimmer.classList.remove('out');
+  // bike (back through the valley), then run
+  await ride({ reverse: true, force: true });
+  runner.classList.add('out');
+  await alongRoad(runner, { speed: 55, onStep: (t) => stride(runner, t, 110) });
+  runner.classList.remove('out');
+  roadBusy = false; tri = false;
+}
+[swimmer, runner].forEach((el) => el.addEventListener('click', () => {
+  toast('Triathlon: 1.5 km swim, 40 km bike, 10 km run.');
+  earnBadge('triathlon');
+}));
+COMMANDS.triathlon = () => {
+  if (tri) return 'The race is already on. Look at the lake.';
+  if (live.frozen) return 'The lake is frozen. Triathlon season starts again in summer.';
+  closeGps(); scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => triathlon(true), 600);
+  return 'On your marks… The swim starts on the right side of the lake.';
+};
+
+/* ---------------- cross-country skier (winter) / roller skier (other seasons) ---------------- */
+const xc = $('#xc');
+async function xcSki(force = false) {
+  if (roadBusy || riding || tri || (!force && (lastSky.d > 0.5 || !heroVisible())) || reduceMotion) return;
+  roadBusy = true;
+  const snow = currentSeason() === 'winter' || live.particle === 'snow' || live.frozen;
+  xc.classList.toggle('snow', snow);
+  xc.classList.add('out');
+  await alongRoad(xc, { reverse: Math.random() < 0.5, speed: snow ? 48 : 60, onStep: (t) => stride(xc, t, 170) });
+  xc.classList.remove('out');
+  roadBusy = false;
+}
+xc.addEventListener('click', () => {
+  toast(xc.classList.contains('snow') ? 'Cross-country skiing: the best way to see a winter landscape.' : 'Roller skiing: cross-country training until the snow comes back.');
+  earnBadge('xc');
+});
+
+/* ---------------- a plane now and then ---------------- */
+const plane = $('#plane');
+function flyPlane(force = false) {
+  if (plane.classList.contains('fly') || (!force && (live.overcast > 0.8 || !heroVisible())) || reduceMotion) return;
+  plane.classList.toggle('night', lastSky.d > 0.6);
+  plane.classList.toggle('west', Math.random() < 0.5);
+  plane.style.top = (5 + Math.random() * 14).toFixed(1) + '%';
+  void plane.getBoundingClientRect();
+  plane.classList.add('fly');
+}
+plane.addEventListener('animationend', (e) => { if (e.target === plane) plane.classList.remove('fly'); });
+plane.querySelector('.jet').addEventListener('click', () => {
+  toast('Off to explore a new country.');
+  earnBadge('plane');
 });
 
 // the skier comes down the Alps in winter, in daylight
@@ -476,18 +608,27 @@ COMMANDS.timelapse = (arg) => {
 };
 
 /* ---------------- schedule ---------------- */
-setTimeout(ride, 6000);
-every(35, 90, ride);
+setTimeout(() => ride(), 6000);
+every(35, 90, () => ride());
+setTimeout(() => triathlon(), 20000);
+every(180, 360, () => triathlon());
+every(60, 140, () => xcSki());
+setTimeout(() => flyPlane(), 12000);
+every(70, 160, () => flyPlane());
 setTimeout(ski, 4000);
 every(20, 50, ski);
 setTimeout(birds, 8000);
 every(45, 110, birds);
 setTimeout(checkIss, 3000);
-every(45, 100, penguinSlide);
+every(45, 100, () => { if (live.frozen && !penguinOut && heroVisible() && !reduceMotion) penguinOuting('slide'); });
 
 // preview helpers for FEATURES.md: ?ride, ?penguin, ?smlm
-if (params.has('ride')) setTimeout(ride, 800);
-if (params.has('penguin')) setTimeout(live.frozen ? penguinSlide : penguinWalk, 800);
+if (params.has('ride')) setTimeout(() => ride({ force: true }), 800);
+if (params.has('triathlon')) setTimeout(() => triathlon(true), 800);
+if (params.has('xc')) setTimeout(() => xcSki(true), 800);
+if (params.has('plane')) setTimeout(() => flyPlane(true), 800);
+if (params.has('bbq')) setTimeout(penguinGrill, 800);
+if (params.has('penguin')) setTimeout(() => (live.frozen ? penguinSlide() : penguinWalk()), 800);
 if (params.has('smlm')) setTimeout(() => (lastSky.d >= 0.75 ? smlmShow() : toast('The microscope only works at night.')), 900);
 if (params.has('timelapse')) setTimeout(() => timelapse(params.get('timelapse') === 'year' ? 'year' : ''), 900);
 if (params.has('iss')) { // preview: a pass from west-south-west to east over 40 seconds

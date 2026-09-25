@@ -872,6 +872,7 @@ const COMMANDS = {
   <b class="warn">badges</b>        what you've discovered so far
   <b class="warn">iss</b>           where the space station is right now
   <b class="warn">timelapse</b>     a whole day in 20 seconds (or: timelapse year)
+  <b class="warn">triathlon</b>     start a race: swim, bike, run
   <b class="warn">download cv</b>   the official PDF
   <b class="warn">goto</b> &lt;place&gt;   about | timeline | cv | education | talks | publications | skills | projects | contact
   <b class="warn">fika</b>          mandatory break

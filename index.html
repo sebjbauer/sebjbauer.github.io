@@ -90,7 +90,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260925084821">
+  <link rel="stylesheet" href="style.css?v=20260925085526">
 </head>
 <body>
 <a class="skip-link" href="#about">Skip to content</a>
@@ -152,6 +152,17 @@
     </g>
   </svg>
 
+  <!-- a plane now and then: off to explore somewhere new -->
+  <svg class="plane" id="plane" viewBox="0 0 240 24" aria-hidden="true">
+    <defs><linearGradient id="contrail" x1="0" x2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".85"/></linearGradient></defs>
+    <path class="contrail" d="M0 12 H206"/>
+    <g class="jet" transform="translate(220 12)">
+      <path class="body" d="M-10 -1.2 L7 -1.2 Q10.5 0 7 1.2 L-10 1.2 Z M-1 0 L-6 -8 L-3.4 -8 L3.4 0 Z M-1 0 L-6 8 L-3.4 8 L3.4 0 Z M-10 -1 L-12.5 -5 L-10.8 -5 L-7.6 -1 Z"/>
+      <circle class="nav nav-red" cx="-6" cy="-8" r="1"/><circle class="nav nav-green" cx="-6" cy="8" r="1"/><circle class="nav nav-white" cx="-12" cy="-4.6" r=".9"/>
+      <rect class="hit" x="-16" y="-12" width="30" height="24"/>
+    </g>
+  </svg>
+
   <!-- migrating birds (spring and autumn) -->
   <svg class="birds" id="birds" viewBox="0 0 120 50" aria-hidden="true">
     <path class="b" d="M4 25 q3 -3 6 0 q3 -3 6 0"/><path class="b" d="M18 18 q3 -3 6 0 q3 -3 6 0"/><path class="b" d="M18 32 q3 -3 6 0 q3 -3 6 0"/>
@@ -186,6 +197,13 @@
       <path d="M1180 430 V447 M1210 430 V447" stroke="#F3EEE6" stroke-width="1.5"/>
       <rect class="window" x="1190" y="435" width="7" height="6"/>
       <rect x="1180" y="449" width="30" height="10" fill="#9E2B25" opacity=".25"/>
+    </g>
+
+    <!-- barbecue next to the cottage -->
+    <g class="bbq">
+      <path d="M1228 448 L1231 440 M1238 448 L1235 440 M1233 448 L1233 440" class="bbq-legs"/>
+      <path d="M1227.5 439.5 A5.5 3.6 0 0 0 1238.5 439.5 Z" class="bbq-bowl"/>
+      <path d="M1227.5 439.3 A5.5 4.2 0 0 1 1238.5 439.3 Z" class="bbq-lid"/>
     </g>
 
     <!-- holiday decorations: Christmas tree, midsommar pole, Easter eggs and bunny -->
@@ -253,6 +271,34 @@
       <circle class="headlight" cx="7.6" cy="-6" r="1"/>
       <rect class="hit" x="-10" y="-20" width="20" height="21"/>
     </g></g>
+    <!-- triathlon: swimmer in the lake, then the cyclist, then a runner on the road -->
+    <path id="swimLane" fill="none" stroke="none" d="M1405 471 C1300 466 1120 474 945 467"/>
+    <g class="swimmer" id="swimmer"><g class="figure">
+      <ellipse class="water" cx="0" cy="0.4" rx="6.5" ry="1.1"/><circle cx="-1.2" cy="-1.4" r="1.4"/><path class="stroke-a" d="M0 -0.6 Q-3 -4.6 -6 -1"/><path class="stroke-b" d="M0 -0.6 Q2.6 -3.6 5 -0.4"/>
+      <rect class="hit" x="-8" y="-8" width="16" height="11"/>
+    </g></g>
+    <g class="runner" id="runner"><g class="figure">
+      <circle cx="1.6" cy="-14.4" r="1.6"/><path d="M1.2 -12.6 L0 -7.4"/>
+      <path class="arm-a" d="M1 -11.6 L3.6 -9.4 L5 -10.8"/><path class="arm-b" d="M1 -11.6 L-1.8 -9.6 L-3 -11"/>
+      <path class="leg-a" d="M0 -7.4 L3 -3.8 L2.4 0"/><path class="leg-b" d="M0 -7.4 L-2.6 -4 L-4.4 -1.4"/>
+      <rect class="bib" x="-0.6" y="-11.4" width="2.2" height="2"/>
+      <rect class="hit" x="-8" y="-18" width="16" height="19"/>
+    </g></g>
+
+    <!-- cross-country skier on the snow (winter) or roller skier on the road (other seasons) -->
+    <g class="xc" id="xc"><g class="figure">
+      <circle cx="3" cy="-12.6" r="1.5"/><path d="M2.4 -11 L-0.2 -6.2"/>
+      <path class="arm-a" d="M2 -10.2 L5.2 -8.6"/><path class="pole-a" d="M5.2 -8.6 L3.6 0"/>
+      <path class="arm-b" d="M2 -10.2 L-1.6 -8.8"/><path class="pole-b" d="M-1.6 -8.8 L-4.6 0"/>
+      <path class="leg-a" d="M-0.2 -6.2 L2.4 -3 L2.2 0"/><path class="leg-b" d="M-0.2 -6.2 L-2.2 -3.2 L-3.6 0"/>
+      <path class="skis" d="M-8 0.4 H6"/>
+      <g class="rollers"><circle cx="-4.6" cy="0.9" r=".9"/><circle cx="3.4" cy="0.9" r=".9"/></g>
+      <rect class="hit" x="-9" y="-16" width="18" height="18"/>
+    </g></g>
+
+    <!-- smoke from the barbecue while the penguin grills -->
+    <g class="bbq-smoke"><circle cx="1233" cy="436" r="2"/><circle cx="1233" cy="436" r="2.4"/><circle cx="1233" cy="436" r="2.8"/></g>
+
     <!-- skier on the Alpine slope (winter) -->
     <path id="skiRun" fill="none" stroke="none" d="M434 128 L448 142 L439 151 L463 170 L452 181 L489 204 L478 213 L514 228"/>
     <g class="skier" id="skier"><g class="figure"><path d="M-3.5 0 H3.5"/><path d="M-0.5 -0.8 L0.6 -4.6 L-0.6 -7.2"/><circle cx="0" cy="-8.8" r="1.2"/><path d="M0.4 -6 L3.4 -1.4 M-0.6 -6 L-3 -2"/></g></g>
@@ -263,6 +309,7 @@
       <circle class="pg-black" cx="0.4" cy="-10.6" r="2.7"/><circle class="pg-white" cx="1.5" cy="-11.2" r="0.55"/>
       <path class="pg-orange" d="M2.8 -10.8 l2.2 0.6 -2.2 0.5Z"/><path class="pg-black" d="M-2.8 -7.4 q-1.9 3.2 -0.4 5.3 q0.8 -2.6 0.4 -5.3Z"/>
       <ellipse class="pg-orange pg-feet" cx="-0.9" cy="0" rx="1.4" ry="0.55"/><ellipse class="pg-orange pg-feet" cx="1.5" cy="0" rx="1.4" ry="0.55"/>
+      <g class="pg-spatula"><path d="M2.6 -6.6 L6.4 -9.4" class="pg-handle"/><rect x="5.8" y="-10.9" width="2.4" height="1.6" transform="rotate(-36 7 -10.1)" class="pg-blade"/></g>
     </g></g><ellipse class="pg-ripple" cx="0" cy="-3" rx="6" ry="1.2"/></g>
     <rect class="stuga-hit" id="stugaHit" x="1170" y="405" width="50" height="45"/>
   </svg>
@@ -395,9 +442,9 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="notes.js?v=20260925084821"></script>
-<script src="script.js?v=20260925084821"></script>
-<script src="extras.js?v=20260925084821"></script>
-<script src="gadgets.js?v=20260925084821"></script>
+<script src="notes.js?v=20260925085526"></script>
+<script src="script.js?v=20260925085526"></script>
+<script src="extras.js?v=20260925085526"></script>
+<script src="gadgets.js?v=20260925085526"></script>
 </body>
 </html>

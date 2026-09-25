@@ -250,6 +250,48 @@ kbd {
 .cyclist .gear-cold .scarf { stroke: #D9483B; stroke-width: 1.2; }
 .cyclist .gear-sun { stroke: #111111; stroke-width: 1; }
 
+/* plane */
+.plane { position: absolute; left: 0; top: 10%; width: 240px; height: 24px; opacity: 0; pointer-events: none; will-change: transform; }
+.plane.fly { opacity: 1; animation: plane-east 30s linear forwards; }
+.plane.fly.west { animation-name: plane-west; }
+@keyframes plane-east { from { transform: translateX(-260px); } to { transform: translateX(105vw); } }
+@keyframes plane-west { from { transform: translateX(105vw) scaleX(-1); } to { transform: translateX(-260px) scaleX(-1); } }
+.plane .contrail { stroke: url(#contrail); stroke-width: 1.6; stroke-linecap: round; }
+.plane .body { fill: var(--hero-ink); opacity: .7; }
+.plane .jet { pointer-events: all; cursor: pointer; }
+.plane .nav { opacity: 0; }
+.plane.night .contrail { display: none; }
+.plane.night .body { opacity: .25; }
+.plane.night .nav { animation: nav-blink 1.2s steps(1) infinite; }
+.plane .nav-red { fill: #FF4D4D; } .plane .nav-green { fill: #4DFF88; } .plane .nav-white { fill: #FFFFFF; animation-delay: .6s !important; }
+@keyframes nav-blink { 0% { opacity: 1; } 50% { opacity: .15; } }
+
+/* triathletes, skier, barbecue */
+.swimmer, .runner, .xc { display: none; }
+.swimmer.out, .runner.out, .xc.out { display: inline; }
+.swimmer .water { fill: none; stroke: rgba(255, 255, 255, .7); stroke-width: .6; }
+.swimmer .stroke-b, .swimmer.alt .stroke-a { opacity: 0; }
+.swimmer.alt .stroke-b { opacity: 1; }
+.swimmer circle { fill: #F2A13B; } /* orange swim cap */
+.runner .bib { fill: #FFFFFF; stroke: none; }
+.xc .rollers circle { fill: none; stroke: var(--figure); stroke-width: .6; }
+.xc .skis { stroke-width: 1.1; }
+.xc:not(.snow) .skis { transform: scaleX(.55); transform-box: fill-box; transform-origin: center; }
+.xc.snow .rollers { display: none; }
+.bbq-legs { fill: none; stroke: #2B2B2B; stroke-width: .9; }
+.bbq-bowl, .bbq-lid { fill: #2B2B2B; }
+.bbq-lid { transition: transform .5s; transform-box: fill-box; transform-origin: 100% 100%; }
+.grilling .bbq-lid { transform: rotate(70deg); }
+.bbq-smoke { display: none; }
+.grilling .bbq-smoke { display: inline; }
+.bbq-smoke circle { fill: rgba(215, 215, 215, .6); transform-box: fill-box; transform-origin: center; animation: smoke 3s ease-out infinite; }
+.bbq-smoke circle:nth-child(2) { animation-delay: 1s; }
+.bbq-smoke circle:nth-child(3) { animation-delay: 2s; }
+[data-holiday="christmas"] .bbq { display: none; } /* the Christmas tree stands there */
+.pg-spatula { display: none; }
+.penguin.grill .pg-spatula { display: inline; }
+.pg-handle { stroke: #6B6B6B; stroke-width: .7; }
+.pg-blade { fill: #9A9A9A; }
 .pg-black { fill: #15181B; } .pg-white { fill: #F4F4F2; } .pg-orange { fill: #EE9A2E; }
 .pg-ripple { fill: none; stroke: rgba(255, 255, 255, .7); stroke-width: .8; opacity: 0; }
 
