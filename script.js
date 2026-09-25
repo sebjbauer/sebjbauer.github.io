@@ -35,7 +35,7 @@ const SITE = {
 
   // CAREER: jobs and research positions. Oldest first; each entry is a waypoint on the career trail.
   cv: [
-    { from: '2016', to: '2017', title: 'Civilian service: teaching assistant', org: 'School for children with special needs', place: 'Austria',
+    { from: '2016', to: '2017', title: 'Civilian service: teaching assistant', org: 'Karl Schubert Schule', place: 'Vienna, AT',
       text: 'Assisted in the classroom at a school for children with special needs.' },
     { from: '2021', to: '2023', title: 'Research assistant', org: 'Brismar Lab, KTH and SciLifeLab', place: 'Stockholm, SE',
       text: 'Developed microscopy methods for imaging the Na⁺,K⁺-ATPase and contributed to the resulting publications.',
@@ -53,7 +53,7 @@ const SITE = {
     { from: '2008', to: '2016', title: 'High school diploma (Matura)', org: 'Kollegium Kalksburg', place: 'Vienna, AT',
       text: 'Final thesis on aerodynamics in road cycling.', award: '1st place, Hans Riegel-Fachpreis in physics, region Vienna' },
     { from: '2017', to: '2020', title: 'BSc Technical Physics', org: 'TU Wien', place: 'Vienna, AT',
-      text: "Bachelor's thesis in quantum optics, in the lab of Philipp Haslinger.",
+      text: "Bachelor's thesis in quantum optics: “The difference in maximum power between pulsed and cw LED operation”, in the lab of Philipp Haslinger.",
       links: [['Haslinger Lab', 'https://www.haslingerlab.com']] },
     { from: '2020', to: '2021', title: 'Erasmus exchange year', org: 'KTH Royal Institute of Technology', place: 'Stockholm, SE',
       text: '' },
