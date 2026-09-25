@@ -87,6 +87,7 @@ const SITE = {
 
   // TALKS, POSTERS AND AWARDS: newest year first. type: 'Talk', 'Poster' or 'Award'.
   // `where` is the event or institution; `url` (slides, poster, announcement) is optional.
+  // `city` (e.g. 'Lisbon' or 'Cambridge, United Kingdom') puts a pin on the map above the list.
   talks: [
     { year: 2016, type: 'Award', title: '1st place, Hans Riegel-Fachpreis in physics, region Vienna', where: 'For the high-school final thesis on aerodynamics in road cycling' },
   ],

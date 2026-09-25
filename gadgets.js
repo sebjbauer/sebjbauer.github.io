@@ -282,6 +282,93 @@ ${status}`;
   }
 };
 
+/* ---------------- conference map ---------------- */
+// Pins for every talk / poster / award that has a `city`. Coordinates come from Open-Meteo's
+// free place search (remembered in the browser); land outlines from Natural Earth (world-atlas).
+const WORLD_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json';
+
+async function geocode(city) {
+  const saved = store.get(`geo:${city}`);
+  if (saved) return JSON.parse(saved);
+  const [name, country] = city.split(',').map((x) => x.trim());
+  const r = await (await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=5&language=en`)).json();
+  const hits = r.results || [];
+  const hit = (country && hits.find((h) => [h.country, h.country_code].some((c) => c && c.toLowerCase() === country.toLowerCase()))) || hits[0];
+  if (!hit) return null;
+  const pos = { lat: hit.latitude, lon: hit.longitude };
+  store.set(`geo:${city}`, JSON.stringify(pos));
+  return pos;
+}
+
+// TopoJSON → list of rings of [lon, lat]
+function landRings(topo) {
+  const [sx, sy] = topo.transform.scale, [tx, ty] = topo.transform.translate;
+  const arcs = topo.arcs.map((arc) => { let x = 0, y = 0; return arc.map(([dx, dy]) => { x += dx; y += dy; return [x * sx + tx, y * sy + ty]; }); });
+  const arcPoints = (i) => (i >= 0 ? arcs[i] : arcs[~i].slice().reverse());
+  const ring = (ids) => ids.flatMap((id, k) => (k ? arcPoints(id).slice(1) : arcPoints(id)));
+  const geoms = topo.objects.land.type === 'GeometryCollection' ? topo.objects.land.geometries : [topo.objects.land];
+  return geoms.flatMap((geo) => (geo.type === 'Polygon' ? geo.arcs.map(ring) : geo.arcs.flatMap((poly) => poly.map(ring))));
+}
+
+async function renderTalkMap() {
+  const places = SITE.talks.filter((t) => t.city || (t.lat != null && t.lon != null));
+  if (!places.length) return;
+  try {
+    const located = (await Promise.all(places.map(async (t) => ({ t, pos: t.lat != null ? { lat: t.lat, lon: t.lon } : await geocode(t.city) })))).filter((p) => p.pos);
+    if (!located.length) return;
+    // one pin per city, listing everything that happened there
+    const pins = {};
+    located.forEach(({ t, pos }) => { const k = t.city || `${pos.lat},${pos.lon}`; (pins[k] = pins[k] || { name: (t.city || '').split(',')[0], pos, events: [] }).events.push(t); });
+    const list = Object.values(pins);
+
+    // an equirectangular view that fits all pins (at least roughly the size of Europe), 2.4:1
+    const lat0 = list.reduce((s, p) => s + p.pos.lat, 0) / list.length, k = Math.cos(lat0 * Math.PI / 180);
+    const project = ([lon, lat]) => [lon * k, -lat];
+    const xs = list.map((p) => project([p.pos.lon, p.pos.lat])[0]), ys = list.map((p) => project([p.pos.lon, p.pos.lat])[1]);
+    let [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+    let w = Math.max((x1 - x0) * 1.5, 40 * k), h = Math.max((y1 - y0) * 1.5, 18);
+    if (w / h < 2.4) w = h * 2.4; else h = w / 2.4;
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    x0 = cx - w / 2; y0 = cy - h / 2;
+
+    const topo = await (await fetch(WORLD_URL)).json();
+    const land = landRings(topo).map((r) => {
+      let d = '', prev = null;
+      r.forEach((pt) => { const [x, y] = project(pt); d += (prev == null || Math.abs(pt[0] - prev) > 180 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2); prev = pt[0]; });
+      return d + 'Z';
+    }).join('');
+    const r = w * 0.009, fs = w * 0.022;
+    // Each label tries four spots (right, left, above, below) and takes the first one that fits
+    // inside the map and hits neither another label nor any pin.
+    const pinsXY = list.map((p) => ({ p, xy: project([p.pos.lon, p.pos.lat]), size: r * (1 + 0.35 * (p.events.length - 1)) }));
+    const blocked = pinsXY.map(({ xy: [x, y], size }) => ({ x0: x - size * 2.2, x1: x + size * 2.2, y0: y - size * 2.2, y1: y + size * 2.2 }));
+    const hits = (b) => blocked.some((q) => b.x0 < q.x1 && b.x1 > q.x0 && b.y0 < q.y1 && b.y1 > q.y0);
+    const inside = (b) => b.x0 >= x0 && b.x1 <= x0 + w && b.y0 >= y0 && b.y1 <= y0 + h; // stays within the map
+    const pinsSvg = pinsXY.sort((a, b) => b.p.events.length - a.p.events.length || a.xy[0] - b.xy[0]).map(({ p, xy: [x, y], size }) => {
+      const title = p.events.map((e) => `${e.year} · ${e.type}: ${e.title}`).join('\n');
+      const label = p.name ? `${p.name}${p.events.length > 1 ? ` ×${p.events.length}` : ''}` : '';
+      const lw = label.length * fs * 0.56, gap = size * 2.4, hh = fs * 0.62;
+      const spots = [
+        { x: x + gap, y: y + fs * 0.35, anchor: 'start', box: { x0: x + gap, x1: x + gap + lw, y0: y - hh, y1: y + hh } },
+        { x: x - gap, y: y + fs * 0.35, anchor: 'end', box: { x0: x - gap - lw, x1: x - gap, y0: y - hh, y1: y + hh } },
+        { x, y: y - gap - fs * 0.25, anchor: 'middle', box: { x0: x - lw / 2, x1: x + lw / 2, y0: y - gap - hh * 2, y1: y - gap } },
+        { x, y: y + gap + fs * 0.95, anchor: 'middle', box: { x0: x - lw / 2, x1: x + lw / 2, y0: y + gap, y1: y + gap + hh * 2 } },
+      ];
+      const spot = label ? (spots.find((s) => inside(s.box) && !hits(s.box)) || spots.find((s) => inside(s.box)) || spots[0]) : null;
+      if (spot) blocked.push(spot.box);
+      return `<g class="map-pin"><title>${esc(p.name ? `${p.name}\n` : '')}${esc(title)}</title>
+        <circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${(size * 2.2).toFixed(2)}" class="halo"/><circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${size.toFixed(2)}"/>
+        ${spot ? `<text x="${spot.x.toFixed(2)}" y="${spot.y.toFixed(2)}" font-size="${fs.toFixed(2)}" text-anchor="${spot.anchor}">${esc(label)}</text>` : ''}</g>`;
+    }).join('');
+    const svg = $('#talkMapSvg');
+    svg.setAttribute('viewBox', `${x0.toFixed(2)} ${y0.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`);
+    svg.innerHTML = `<path class="land" d="${land}"/>${pinsSvg}`;
+    $('#talkMap').hidden = false;
+  } catch { /* offline: no map, the list below still works */ }
+}
+// only load the map data when the Talks section comes near the screen
+new IntersectionObserver(([e], obs) => { if (e.isIntersecting) { obs.disconnect(); renderTalkMap(); } }, { rootMargin: '400px' }).observe($('#talks'));
+
 /* ---------------- time-lapse ---------------- */
 // `timelapse`: a whole day in 20 seconds. `timelapse year`: the four seasons in 20 seconds.
 let lapsing = false;

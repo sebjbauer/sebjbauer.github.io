@@ -180,6 +180,12 @@ A section after Publications (and "Talks" in the menu), grouped by year like the
 
 `url` is optional (slides, poster PDF, programme). If the list is ever empty, the whole section hides itself. Terminal: `talks`.
 
+**Map:** add `city: 'Lisbon'` to an entry (or `city: 'Cambridge, United Kingdom'` when a name exists in several countries) and a pin appears on a map above the list. Several events in the same city share one bigger pin ("Stockholm ×2"); hovering a pin lists the events. The map zooms to fit all pins and stays hidden until the first entry has a city. Coordinates come from Open-Meteo's free place search (remembered in the visitor's browser), the land outlines from Natural Earth; both only load when someone scrolls near the section. Example:
+
+```js
+{ year: 2026, type: 'Talk', title: 'SMLMFlow', where: 'Focus on Microscopy 2026', city: 'Lisbon', url: 'https://…' },
+```
+
 ## Notes (short posts)
 
 A **Notes** section (and "Notes" in the menu) appears on the home page as soon as the first note exists. Each note gets its own page, `note.html?n=<name>`, in the same style, with light/dark following daylight in Vienna and the seasonal accent colour.
