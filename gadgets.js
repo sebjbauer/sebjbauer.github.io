@@ -282,10 +282,52 @@ cyclist.addEventListener('click', () => {
   earnBadge('cyclist');
 });
 
-// stride animation: swap the left and right legs and arms back and forth
-function stride(fig, t, period = 120) {
-  const swap = Math.sin(t / period) > 0 ? 'scale(-1 1)' : '';
-  fig.querySelectorAll('.leg-a, .leg-b, .arm-a, .arm-b, .pole-a, .pole-b').forEach((el) => el.setAttribute('transform', swap));
+// Smooth gaits for the runner and the skier (drawn facing right, y points down).
+// Each leg swings from the hip and bends at the knee; the arms swing opposite to the legs.
+const deg = Math.PI / 180;
+const joint = ([x, y], len, angle) => [x + len * Math.sin(angle * deg), y + len * Math.cos(angle * deg)]; // angle from straight down, + = forward
+const pts = (...ps) => 'M' + ps.map(([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`).join(' L');
+
+function runPose(fig, t) {
+  const phase = (t / 1000) * 2 * Math.PI * 1.45; // about 175 steps a minute
+  const hip = [0, -7.4], shoulder = [1, -11.6];
+  const leg = (p) => {
+    const thigh = 34 * Math.sin(p);
+    const bend = 12 + 62 * Math.max(0, Math.cos(p)); // folded while swinging through, straight when pushing off
+    const knee = joint(hip, 3.8, thigh);
+    return pts(hip, knee, joint(knee, 3.8, thigh - bend));
+  };
+  const arm = (p) => {
+    const upper = 32 * Math.sin(p + Math.PI);
+    const elbow = joint(shoulder, 2.6, upper);
+    return pts(shoulder, elbow, joint(elbow, 2.3, upper + 95)); // elbows bent, hands forward
+  };
+  fig.querySelector('.leg-a').setAttribute('d', leg(phase));
+  fig.querySelector('.leg-b').setAttribute('d', leg(phase + Math.PI));
+  fig.querySelector('.arm-a').setAttribute('d', arm(phase));
+  fig.querySelector('.arm-b').setAttribute('d', arm(phase + Math.PI));
+  // a light bounce: highest in the middle of each stride
+  fig.querySelector('.figure').setAttribute('transform', `translate(0 ${(-0.8 * Math.abs(Math.sin(phase))).toFixed(2)})`);
+}
+
+function skiPose(fig, t) {
+  const phase = (t / 1000) * 2 * Math.PI * 0.95; // a calmer, gliding rhythm
+  const hip = [-0.2, -6.2], shoulder = [2, -10.2];
+  const leg = (p) => {
+    const thigh = 20 * Math.sin(p);
+    const knee = joint(hip, 3.2, thigh);
+    return pts(hip, knee, joint(knee, 3.2, thigh - (8 + 22 * Math.max(0, Math.cos(p)))));
+  };
+  const armAndPole = (p) => {
+    const swing = 48 * Math.sin(p + Math.PI);
+    const hand = joint(shoulder, 3.4, swing);
+    return [pts(shoulder, hand), pts(hand, [hand[0] - 2.2 - 1.8 * Math.cos(p), 0.3])]; // pole planted behind the hand
+  };
+  fig.querySelector('.leg-a').setAttribute('d', leg(phase));
+  fig.querySelector('.leg-b').setAttribute('d', leg(phase + Math.PI));
+  const [armA, poleA] = armAndPole(phase), [armB, poleB] = armAndPole(phase + Math.PI);
+  fig.querySelector('.arm-a').setAttribute('d', armA); fig.querySelector('.pole-a').setAttribute('d', poleA);
+  fig.querySelector('.arm-b').setAttribute('d', armB); fig.querySelector('.pole-b').setAttribute('d', poleB);
 }
 
 /* ---------------- triathlon: swim across the lake, bike through the valley, run back ---------------- */
@@ -306,7 +348,7 @@ async function triathlon(force = false) {
   // bike (back through the valley), then run
   await ride({ reverse: true, force: true });
   runner.classList.add('out');
-  await alongRoad(runner, { speed: 55, onStep: (t) => stride(runner, t, 110) });
+  await alongRoad(runner, { speed: 55, onStep: (t) => runPose(runner, t) });
   runner.classList.remove('out');
   roadBusy = false; tri = false;
 }
@@ -330,7 +372,7 @@ async function xcSki(force = false) {
   const snow = currentSeason() === 'winter' || live.particle === 'snow' || live.frozen;
   xc.classList.toggle('snow', snow);
   xc.classList.add('out');
-  await alongRoad(xc, { reverse: Math.random() < 0.5, speed: snow ? 48 : 60, onStep: (t) => stride(xc, t, 170) });
+  await alongRoad(xc, { reverse: Math.random() < 0.5, speed: snow ? 48 : 60, onStep: (t) => skiPose(xc, t) });
   xc.classList.remove('out');
   roadBusy = false;
 }
