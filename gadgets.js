@@ -27,6 +27,8 @@ const BADGES = [
   ['life', 'Conway', 'brought the stars to life', 'a game with no players, on a clear night'],
   ['descend', 'Momentum', 'helped the hiker find the lowest point', 'the hiker knows some optimisation'],
   ['fractal', 'Self-similar', 'saw the forest grow as fractals', 'trees made of smaller trees'],
+  ['moose', 'Älgvarning', 'met the moose on the road', 'a rare visitor on the Swedish side'],
+  ['snowman', 'Snow day', "knocked the snowman's hat off", 'cold winter days by the lake'],
 ];
 let earned = (() => { try { return JSON.parse(store.get('badges') || '[]'); } catch { return []; } })();
 function earnBadge(id) {
@@ -804,6 +806,75 @@ function wake() {
 ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll'].forEach((ev) => addEventListener(ev, wake, { passive: true }));
 wake();
 
+/* ---------------- the moose (älg) ---------------- */
+// Now and then a moose steps out of the Swedish forest, stops in the middle of the road to look
+// around, and walks on. A warning sign appears while it's there. Clicking it makes it hurry.
+const moose = $('#moose'), mooseLegs = moose.querySelector('.ms-legs'), mooseFlip = moose.querySelector('.ms-flip');
+let mooseOut = false, mooseHurry = false;
+function mooseCrossing(force = false) {
+  if (mooseOut || roadBusy || riding || tri || reduceMotion || !heroVisible()) return;
+  if (!force && (lastSky.d > 0.85 || Math.random() > 0.35)) return;
+  mooseOut = true; roadBusy = true; mooseHurry = false;
+  const down = Math.random() < 0.5; // out of the forest towards the meadow, or the other way
+  const A = [772, 451], B = [818, 507], [from, to] = down ? [A, B] : [B, A];
+  const dir = to[0] > from[0] ? 1 : -1, len = Math.hypot(to[0] - from[0], to[1] - from[1]);
+  $('#algSign').classList.add('show');
+  moose.classList.add('out');
+  let pos = 0, last = 0, walked = 0, drawn = 0, paused = 0;
+  const hips = [[-6.5, -9.8], [-4.8, -9.8], [5, -10.4], [6.6, -10.4]];
+  return new Promise((done) => {
+    const step = (t) => {
+      const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
+      // stop for a moment in the middle of the road
+      const onRoad = pos > len * 0.45 && pos < len * 0.5;
+      if (onRoad && paused < 1.8 && !mooseHurry) paused += dt;
+      else { const v = mooseHurry ? 16 : 5.5; pos = Math.min(len, pos + v * dt); walked += v * dt; }
+      if (t - drawn > 33) {
+        drawn = t;
+        const k = pos / len, x = from[0] + (to[0] - from[0]) * k, y = from[1] + (to[1] - from[1]) * k;
+        const scale = 0.85 + (y - 451) / 56 * 0.3; // a little bigger closer to us
+        moose.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${scale.toFixed(3)})`);
+        mooseFlip.setAttribute('transform', dir < 0 ? 'scale(-1 1)' : '');
+        // walking legs: diagonal pairs swing together
+        const phase = walked * 0.9;
+        mooseLegs.setAttribute('d', hips.map(([hx, hy], i) => {
+          const a = Math.sin(phase + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.3;
+          return `M${hx} ${hy} L${(hx + Math.sin(a) * 9.8).toFixed(2)} ${(hy + Math.cos(a) * 9.8).toFixed(2)}`;
+        }).join(' '));
+      }
+      if (pos < len) requestAnimationFrame(step);
+      else {
+        moose.classList.remove('out'); $('#algSign').classList.remove('show');
+        mooseOut = false; roadBusy = false; done();
+      }
+    };
+    requestAnimationFrame(step);
+  });
+}
+moose.addEventListener('click', () => { mooseHurry = true; earnBadge('moose'); });
+
+/* ---------------- the snowman ---------------- */
+// On cold winter days a snowman gets built bit by bit after sunrise: base, middle, head, face,
+// then hat, scarf and arms. Above 2 °C it starts to melt; above 8 °C it's gone.
+const snowman = $('#snowman'), snowParts = [...snowman.querySelectorAll('[data-stage]')];
+let snowPreview = null;
+function snowmanStage({ h, sunT }) {
+  const temp = (simulated || weatherNow)?.temp ?? 0;
+  let stage = h < sunT.rise ? 5 : Math.min(5, 1 + Math.floor((h - sunT.rise) / 1.2));
+  let melting = temp > 2;
+  if (snowPreview) ({ stage, melting } = snowPreview);
+  const show = snowPreview || (currentSeason() === 'winter' && temp <= 8);
+  snowman.classList.toggle('show', !!show);
+  snowman.classList.toggle('melting', !!melting);
+  snowParts.forEach((el) => { el.style.display = +el.dataset.stage <= stage ? '' : 'none'; });
+}
+skyHooks.push(snowmanStage);
+if (lastSky.sunT) snowmanStage(lastSky);
+snowman.addEventListener('click', () => {
+  snowman.classList.remove('hop'); void snowman.getBoundingClientRect(); snowman.classList.add('hop');
+  earnBadge('snowman');
+});
+
 /* ---------------- schedule ---------------- */
 setTimeout(() => ride(), 6000);
 every(35, 90, () => ride());
@@ -816,6 +887,7 @@ setTimeout(ski, 4000);
 every(20, 50, ski);
 setTimeout(birds, 8000);
 every(45, 110, birds);
+every(90, 240, () => mooseCrossing());
 setTimeout(checkIss, 3000);
 every(45, 100, () => { if (live.frozen && !penguinOut && heroVisible() && !reduceMotion) penguinOuting(Math.random() < 0.5 ? 'slide' : 'fish'); });
 every(60, 130, () => { if (hotDay() && !penguinOut && heroVisible() && !reduceMotion) penguinOuting('swim'); });
@@ -838,3 +910,9 @@ if (params.has('iss')) { // preview: a pass from west-south-west to east over 40
   const demo = setInterval(() => { k += 1; placeIss(240 - k * 12, 12 + Math.sin((k / 12) * Math.PI) * 45); if (k >= 12) { clearInterval(demo); setTimeout(() => issDot.classList.remove('show', 'demo'), 4000); } }, 3300);
 }
 if (params.has('birds')) setTimeout(() => birds(true), 800);
+if (params.has('moose')) setTimeout(() => mooseCrossing(true), 800);
+if (params.has('snowman')) { // preview: builds up stage by stage, then melts (?snowman) or starts melted (?snowman=melt)
+  let k = 0;
+  const tick = () => { k++; snowPreview = { stage: Math.min(5, k), melting: params.get('snowman') === 'melt' || k > 7 }; paintSky(); if (k < 9) setTimeout(tick, 1500); };
+  tick();
+}

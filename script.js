@@ -732,6 +732,8 @@ function renderContent() {
   $('#heroPlace').textContent = SITE.location;
   $('#nowText').textContent = SITE.now.text;
   $('#keywords').innerHTML = SITE.keywords.map((k) => `<li>${esc(k)}</li>`).join('');
+  // languages from the CV: "German (native)" → "German"
+  if (SITE.skills.Languages) $('#speaks').textContent = SITE.skills.Languages.map((l) => l.replace(/\s*\(.*\)/, '')).join(', ');
   const [ny, nm] = SITE.now.updated.split('-').map(Number);
   $('#nowDate').textContent = `Updated ${new Date(ny, nm - 1).toLocaleString('en-GB', { month: 'long', year: 'numeric' })}`;
 

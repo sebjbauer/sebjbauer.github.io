@@ -427,3 +427,14 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 | **Flowers sleep** | Spring flowers close at night and open in the morning (nyctinasty). | `?season=spring&sky=night` |
 | **Jumping fish** | Summer dawn and dusk: a fish jumps now and then, with ripples where it leaves and re-enters the water. | `?fish` (every 4 s) |
 | **Synchronous fireflies** | Summer nights: every flash nudges nearby fireflies' inner clocks forward (Mirollo–Strogatz), so within a minute they blink in sync. | `?season=summer&sky=night` |
+
+## More landscape life
+
+| What | Where / when | Preview |
+|---|---|---|
+| **Moose (älg)** | Now and then (not at night) a moose walks out of the Swedish forest, stops in the middle of the road, and walks on; a Swedish "Älgvarning" sign appears while it's there. Click it and it hurries off (badge *Älgvarning*). | `?moose` |
+| **Snowman** | Winter days at ≤ 2 °C: a snowman by the forest edge gets built after sunrise (base, middle, head, face, then hat, scarf and arms, about one step every 1.2 h). Between 2 and 8 °C it slumps and melts; warmer, it's gone. Click it: the hat hops (badge *Snow day*). | `?snowman`, `?snowman=melt` (add `&season=winter`) |
+
+## Printing
+
+Printing the page (or "Save as PDF") gives a clean light one-column version: no sky, menu, terminal, timeline, map or buttons; contact links show their addresses.

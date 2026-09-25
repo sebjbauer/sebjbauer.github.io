@@ -243,6 +243,37 @@ kbd {
 [data-season="summer"][data-frozen="no"][data-daylight="yes"] .ducks { display: inline; }
 .dk-body { fill: #7A5B3A; } .dk-head { fill: #2F6B3C; } .dk-head2 { fill: #8A6A48; } .dk-beak { fill: #E0A030; }
 
+/* moose and the warning sign */
+.moose, .alg-sign { display: none; }
+.moose.out { display: inline; }
+.alg-sign.show { display: inline; }
+.ms-body { fill: #3E2C21; }
+.ms-legs { fill: none; stroke: #3E2C21; stroke-width: 1.3; stroke-linecap: round; }
+.ms-antler { fill: #B89E7C; }
+[data-daylight="no"] .ms-body { fill: #2A211C; }
+[data-daylight="no"] .ms-legs { stroke: #2A211C; }
+.sign-post { stroke: #8A8F94; stroke-width: 1; }
+.sign-board { fill: #F2C230; stroke: #C8102E; stroke-width: 1; stroke-linejoin: round; }
+.sign-moose path { fill: #111111; }
+.sign-moose .l { fill: none; stroke: #111111; stroke-width: 1.6; }
+/* snowman */
+.snowman { display: none; }
+.snowman.show { display: inline; }
+.sm-snow { fill: #FAFCFD; stroke: #A9B7C4; stroke-width: .5; }
+.sm-coal { fill: #1B1B1B; }
+.sm-carrot { fill: #E8792A; }
+.sm-arms { fill: none; stroke: #5A3E2B; stroke-width: .6; stroke-linecap: round; }
+.sm-scarf { fill: none; stroke: #C8102E; stroke-width: 1.1; stroke-linecap: round; }
+.sm-hat { fill: #1B1B1B; }
+.sm-hat, .sm-body { transform-box: fill-box; }
+.sm-body { transform-origin: center bottom; transition: transform 4s ease-in-out; }
+.sm-puddle { fill: #9DB6C8; opacity: 0; transition: opacity 4s; }
+.snowman.melting .sm-body { transform: scale(1.08, .72); }
+.snowman.melting .sm-puddle { opacity: .5; }
+.snowman.melting .sm-hat { transform: rotate(-18deg) translate(-.6px, 1.2px); }
+.sm-hat { transform-origin: center bottom; }
+.snowman.hop .sm-hat { animation: hat-hop .9s ease-out; }
+@keyframes hat-hop { 30% { transform: translateY(-7px) rotate(25deg); } 60% { transform: translateY(-2px) rotate(-10deg); } 100% { transform: none; } }
 .fish { display: none; }
 .fish.show { display: inline; }
 .fish path { fill: var(--figure); }
@@ -706,4 +737,39 @@ span.pub-title { display: inline; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   html { scroll-behavior: auto; }
+}
+
+/* ---------- print: a clean, light one-column page without the sky ---------- */
+@media print {
+  :root, [data-theme] {
+    --bg: #FFFFFF !important; --raised: #FFFFFF !important; --text: #111111 !important; --muted: #555555 !important;
+    --accent: #111111 !important; --edu: #111111 !important; --line: #DDDDDD !important; --line-strong: #BBBBBB !important;
+    color-scheme: light;
+  }
+  @page { margin: 15mm 14mm; }
+  html, body { background: #FFFFFF !important; color: #111111 !important; font-size: 10.5pt; }
+  .nav, .skip-link, .gps, .toast, .copied-note, #timeline, .talk-map, .pub-cite, #cvDownload, .entry-links svg, .links svg,
+  .hero > :not(.hero-text), .hero::after, .hero-time, .hero-text::before, .badges { display: none !important; }
+  .hero { height: auto !important; min-height: 0 !important; background: none !important; color: #111111 !important; overflow: visible; margin: 0 auto 6mm; max-width: 1180px; padding: 0 clamp(16px, 5vw, 64px); }
+  .hero-text { position: static !important; opacity: 1 !important; max-width: none; }
+  .hero h1 { font-size: 30pt !important; margin: 0 0 2mm; color: #111111 !important; }
+  .hero-line, .hero-place { color: #111111 !important; font-size: 11pt; margin: 0 0 1mm; }
+  .hero-line a { color: inherit !important; }
+  .section { display: block !important; padding-top: 7mm !important; }
+  .section h2 { border-top: 0 !important; padding-top: 0 !important; margin: 0 0 2mm; font-size: 14pt; break-after: avoid; }
+  .section .body { padding-top: 3mm; }
+  .photo { display: none; }
+  .about { display: block !important; }
+  .links { display: block !important; }
+  .links li { margin: 0 0 1mm; }
+  .links a { display: inline !important; }
+  .footer > span:last-child { display: none; }
+  .links li:has(a[href$=".vcf"]), .links li:has(a[href$=".pdf"]) { display: none; }
+  .links a[href^="http"]::after { content: ': ' attr(href); color: #555555; }
+  .links a[href^="mailto:"]::after { content: ': ' attr(title); color: #555555; }
+  li, tr, .pub-year h3, dt { break-inside: avoid; }
+  a { color: inherit !important; text-decoration: none !important; }
+  .footer { margin-top: 8mm; padding: 3mm 0 0; border-top: 1px solid #DDDDDD; }
+  .footer::after { content: 'sebjbauer.github.io'; }
+  * { transition: none !important; animation: none !important; }
 }
