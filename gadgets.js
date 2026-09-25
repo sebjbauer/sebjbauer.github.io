@@ -136,11 +136,14 @@ $('#stugaHit').addEventListener('click', () => {
 });
 // every third time the penguin comes out, it goes to the barbecue instead
 let penguinTrips = 0;
-function penguinOuting(kind) {
+async function penguinOuting(kind) {
+  penguinOut = true;
   penguinTrips += 1;
-  if (penguinTrips % 3 === 0) return penguinGrill();
-  return kind === 'slide' ? penguinSlide() : penguinWalk();
+  if (penguinTrips % 3 === 0) await penguinGrill();
+  else await ({ slide: penguinSlide, fish: penguinFish, swim: penguinSwim }[kind] || penguinWalk)();
+  penguinOut = false;
 }
+const hotDay = () => !live.frozen && !live.particle && lastSky.d < 0.4 && (weatherNow?.temp ?? 0) >= 25;
 
 async function penguinGrill() {
   penguinOut = true;
@@ -202,37 +205,69 @@ async function penguinWalk() {
   penguinOut = false;
 }
 
-// when the lake is frozen, the penguin sometimes comes out by itself and slides across the ice
-async function penguinSlide() {
-  if (!live.frozen || penguinOut || !heroVisible() || reduceMotion) return;
-  penguinOut = true;
-  const pg = $('#penguin'), flip = pg.querySelector('.pg-flip'), waddle = pg.querySelector('.pg-waddle');
-  waddle.removeAttribute('clip-path'); pg.querySelector('.pg-ripple').style.opacity = 0;
+// The penguin follows a route of steps. Poses: walk (waddle), slide (belly), jump, swim, wait.
+async function penguinRoute(steps) {
+  const pg = $('#penguin'), flip = pg.querySelector('.pg-flip'), waddle = pg.querySelector('.pg-waddle'), ripple = pg.querySelector('.pg-ripple');
+  waddle.removeAttribute('clip-path'); ripple.style.opacity = 0;
   pg.classList.add('out');
-  const at = (x, y, dir, pose) => {
-    pg.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(1 + (y - 447) * 0.014).toFixed(3)})`);
-    flip.setAttribute('transform', dir < 0 ? 'scale(-1 1)' : '');
-    waddle.setAttribute('transform', pose);
-  };
-  const leg = (from, to, ms, pose) => new Promise((done) => {
-    let t0 = 0;
-    const step = (t) => {
-      if (!t0) t0 = t;
-      const k = Math.min(1, (t - t0) / ms), e = pose === 'slide' ? 1 - (1 - k) ** 2 : k; // slides slow down
-      const x = from[0] + (to[0] - from[0]) * e, y = from[1] + (to[1] - from[1]) * e;
-      at(x, y, to[0] - from[0], pose === 'slide' ? 'translate(0 -1.5) rotate(78)' : `rotate(${(Math.sin(t / 90) * 9).toFixed(1)})`);
-      if (k < 1) requestAnimationFrame(step); else done();
-    };
-    requestAnimationFrame(step);
-  });
-  await leg([1195, 447], [1203, 458], 1400, 'walk');   // out of the door, onto the ice
-  await leg([1203, 458], [1335, 462], 2400, 'slide');  // belly slide
-  await leg([1335, 462], [1203, 458], 6500, 'walk');   // waddle back
-  await leg([1203, 458], [1195, 447], 1200, 'walk');
-  pg.classList.remove('out');
+  let pos = [1195, 447], dir = 1;
+  for (const s of steps) {
+    const from = pos, to = s.to || pos;
+    if (to[0] !== from[0]) dir = Math.sign(to[0] - from[0]);
+    await new Promise((done) => {
+      let t0 = 0;
+      const step = (t) => {
+        if (!t0) t0 = t;
+        const k = Math.min(1, (t - t0) / s.ms);
+        const e = s.pose === 'slide' ? 1 - (1 - k) ** 2 : k; // slides slow down
+        let x = from[0] + (to[0] - from[0]) * e, y = from[1] + (to[1] - from[1]) * e, pose = '';
+        if (s.pose === 'walk') pose = `rotate(${(Math.sin(t / (s.fast ? 55 : 90)) * 9).toFixed(1)})`;
+        if (s.pose === 'slide') pose = 'translate(0 -1.5) rotate(78)';
+        if (s.pose === 'jump') { y -= Math.sin(Math.PI * k) * 9; pose = `rotate(${(20 + 70 * k).toFixed(0)})`; }
+        const swimming = s.pose === 'swim';
+        pg.setAttribute('transform', `translate(${x.toFixed(1)} ${(y + (swimming ? 2.5 : 0)).toFixed(1)}) scale(${(1 + (y - 447) * 0.014).toFixed(3)})`);
+        flip.setAttribute('transform', dir < 0 ? 'scale(-1 1)' : '');
+        waddle.setAttribute('transform', pose);
+        if (swimming) waddle.setAttribute('clip-path', 'url(#pgClip)'); else waddle.removeAttribute('clip-path');
+        ripple.style.opacity = swimming ? 0.6 : 0;
+        if (s.tick) s.tick(k, pg);
+        if (k < 1) requestAnimationFrame(step); else done();
+      };
+      requestAnimationFrame(step);
+    });
+    pos = to;
+  }
+  pg.classList.remove('out', 'fishing', 'caught');
   earnBadge('penguin');
-  penguinOut = false;
 }
+
+// frozen lake: a belly slide across the ice
+const penguinSlide = () => penguinRoute([
+  { to: [1203, 458], ms: 1400, pose: 'walk' },   // out of the door, onto the ice
+  { to: [1335, 462], ms: 2400, pose: 'slide' },  // belly slide
+  { to: [1203, 458], ms: 6500, pose: 'walk' },   // waddle back
+  { to: [1195, 447], ms: 1200, pose: 'walk' },
+]);
+
+// frozen lake: ice fishing (pimpelfiske) at a hole in the ice, until a fish bites
+const penguinFish = () => penguinRoute([
+  { to: [1203, 458], ms: 1400, pose: 'walk' },
+  { to: [1290, 461], ms: 5000, pose: 'walk' },
+  { ms: 9000, pose: 'wait', tick: (k, pg) => { pg.classList.add('fishing'); pg.classList.toggle('caught', k > 0.72); } },
+  { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.remove('fishing', 'caught') },
+  { to: [1203, 458], ms: 5000, pose: 'walk' },
+  { to: [1195, 447], ms: 1200, pose: 'walk' },
+]);
+
+// hot summer days: a run down the jetty, a jump into the lake, and a swim back
+const penguinSwim = () => penguinRoute([
+  { to: [1300, 449], ms: 3800, pose: 'walk', fast: true },  // along the shore to the jetty
+  { to: [1302, 470], ms: 1300, pose: 'walk', fast: true },  // down the jetty
+  { to: [1307, 481], ms: 650, pose: 'jump' },                // and in!
+  { to: [1212, 466], ms: 8000, pose: 'swim' },               // swim back
+  { to: [1204, 452], ms: 1800, pose: 'swim' },
+  { to: [1195, 447], ms: 900, pose: 'walk' },
+]);
 
 // rain poncho, woolly hat and scarf, or sunglasses, from the real weather in Vienna
 function cyclistGear() {
@@ -679,7 +714,8 @@ every(20, 50, ski);
 setTimeout(birds, 8000);
 every(45, 110, birds);
 setTimeout(checkIss, 3000);
-every(45, 100, () => { if (live.frozen && !penguinOut && heroVisible() && !reduceMotion) penguinOuting('slide'); });
+every(45, 100, () => { if (live.frozen && !penguinOut && heroVisible() && !reduceMotion) penguinOuting(Math.random() < 0.5 ? 'slide' : 'fish'); });
+every(60, 130, () => { if (hotDay() && !penguinOut && heroVisible() && !reduceMotion) penguinOuting('swim'); });
 
 // preview helpers for FEATURES.md: ?ride, ?penguin, ?smlm
 if (params.has('ride')) setTimeout(() => ride({ force: true }), 800);
@@ -688,6 +724,8 @@ if (params.has('xc')) setTimeout(() => xcSki(true), 800);
 if (params.has('plane')) setTimeout(() => flyPlane(true), 800);
 if (params.has('bbq')) setTimeout(penguinGrill, 800);
 if (params.has('penguin')) setTimeout(() => (live.frozen ? penguinSlide() : penguinWalk()), 800);
+if (params.has('fishing')) setTimeout(penguinFish, 800);
+if (params.has('swim')) setTimeout(penguinSwim, 800);
 if (params.has('smlm')) setTimeout(() => (lastSky.d >= 0.75 ? smlmShow() : toast('The microscope only works at night.')), 900);
 if (params.has('timelapse')) setTimeout(() => timelapse(params.get('timelapse') === 'year' ? 'year' : ''), 900);
 if (params.has('iss')) { // preview: a pass from west-south-west to east over 40 seconds

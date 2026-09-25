@@ -292,10 +292,21 @@ kbd {
 .flagpole .pole { stroke: #F3EEE6; stroke-width: .8; }
 .flagpole .knob { fill: #D9B44A; }
 .flagpole .flag { display: none; transform-box: fill-box; transform-origin: 0% 50%; animation: flag-wave 3.2s ease-in-out infinite; }
-.flagpole[data-flag="se"] .flag-se, .flagpole[data-flag="at"] .flag-at, .flagpole[data-flag="vimpel"] .flag-vimpel { display: inline; }
+.flagpole[data-flag="se"] .flag-se, .flagpole[data-flag="at"] .flag-at { display: inline; }
 @keyframes flag-wave { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(3deg) scaleX(.94); } }
 [data-holiday="christmas"] .flagpole { display: none; } /* the Christmas tree stands there */
 .pg-spatula { display: none; }
+.pg-rod, .pg-fish, .pg-hole { display: none; }
+.penguin.fishing .pg-rod, .penguin.fishing .pg-hole { display: inline; }
+.penguin.caught .pg-fish { display: inline; }
+.penguin.caught .pg-rod .line { display: none; }
+.pg-rod .rod { stroke: #6B4A2B; stroke-width: .7; }
+.pg-rod .line { stroke: rgba(255, 255, 255, .8); stroke-width: .25; }
+.pg-fish path { fill: #8FA3AD; }
+.pg-hole { fill: #1E2A33; }
+.jetty-deck { fill: color-mix(in srgb, #8A6A4A 70%, var(--mid)); }
+.jetty-planks, .jetty-posts { stroke: color-mix(in srgb, #5A4430 75%, var(--mid)); stroke-width: .7; fill: none; }
+.jetty-posts { stroke-width: 1.2; }
 .penguin.grill .pg-spatula { display: inline; }
 .pg-handle { stroke: #6B6B6B; stroke-width: .7; }
 .pg-blade { fill: #9A9A9A; }
@@ -450,6 +461,10 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 #profile .hiker circle { fill: var(--text); }
 #profile .hiker .pack { fill: var(--accent); }
 #profile .hiker .pole { stroke: var(--muted); stroke-width: 1; }
+#profile .hiker .lamp, #profile .hiker .beam { display: none; }
+[data-daylight="no"] #profile .hiker .lamp, [data-daylight="no"] #profile .hiker .beam { display: inline; }
+#profile .hiker .lamp { fill: #FFF3B0; }
+#profile .hiker .beam { fill: #FFF3B0; opacity: .22; stroke: none; }
 #profile .hiker .cup, #profile .hiker .sit-legs { display: none; }
 #profile .hiker .sit-legs { fill: none; stroke: var(--text); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 #profile .hiker.sitting .walk-legs { display: none; }

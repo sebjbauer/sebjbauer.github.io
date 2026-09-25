@@ -168,13 +168,13 @@ function holidayToday() {
 const HOLIDAY_GREETING = { christmas: 'Merry Christmas · Frohe Weihnachten · God jul.', easter: 'Happy Easter · Frohe Ostern · Glad påsk.', midsommar: 'Happy Midsummer · Glad midsommar!' };
 specialGreeting = () => HOLIDAY_GREETING[holidayToday()] || null;
 
-// Flag by the cottage: Swedish National Day (6 June), Austrian National Day (26 October), pennant
-// otherwise. National flags are only up between sunrise and sunset, as is Swedish custom.
+// Flag by the cottage: only on Swedish National Day (6 June) and Austrian National Day (26 October),
+// between sunrise and sunset (Swedish custom). The rest of the time the pole is empty.
 function flagToday(isDay) {
-  if (params.get('flag')) return params.get('flag'); // preview: ?flag=se, ?flag=at or ?flag=vimpel
+  if (params.get('flag')) return params.get('flag'); // preview: ?flag=se or ?flag=at
   const [, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date()).split('-').map(Number);
   const national = m === 6 && d === 6 ? 'se' : m === 10 && d === 26 ? 'at' : null;
-  return national && isDay ? national : 'vimpel';
+  return national && isDay ? national : 'none';
 }
 skyHooks.push(({ isDay }) => { const f = $('#flagpole'); const flag = flagToday(isDay); if (f.dataset.flag !== flag) f.dataset.flag = flag; });
 
@@ -274,6 +274,7 @@ function setupHiker() {
     <g class="hk-upper">
       <rect class="pack" x="-5.5" y="-17" width="4" height="7" rx="1.2"/>
       <circle cx="0" cy="-20" r="3"/>
+      <path class="beam" d="M3 -20.6 L16 -25 L16 -15 Z"/><circle class="lamp" cx="2.7" cy="-20.6" r=".9"/>
       <line x1="0" y1="-17" x2="0" y2="-9"/>
       <g class="cup"><rect x="2.4" y="-14" width="2.6" height="3" rx=".6"/><path class="steam" d="M3.2 -15.5 q-1 -1.5 0 -3 M4.4 -15.5 q1 -1.5 0 -3"/><line x1="0" y1="-14" x2="2.6" y2="-12.6"/></g>
     </g>

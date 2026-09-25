@@ -90,7 +90,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260925091510">
+  <link rel="stylesheet" href="style.css?v=20260925091912">
 </head>
 <body>
 <a class="skip-link" href="#about">Skip to content</a>
@@ -186,6 +186,12 @@
     <path class="l-lake" d="M930 452 C1040 444 1300 444 1440 449 L1440 488 C1300 494 1040 492 930 476 Z"/>
     <path class="l-shimmer" d="M1010 462 H1090 M1150 470 H1260 M1300 460 H1380"/>
     <path class="ice-cracks" d="M990 462 l30 4 l18 -3 M1100 471 l26 -5 l20 6 M1270 458 l34 5 l14 -4 M1340 475 l28 -3"/>
+    <!-- a wooden jetty (brygga) -->
+    <g class="jetty">
+      <path class="jetty-posts" d="M1294.2 473 v5 M1309.8 473 v5 M1296 461 v3.5 M1308 461 v3.5"/>
+      <path class="jetty-deck" d="M1296.5 448.5 L1306.5 448.5 L1311 474 L1293 474 Z"/>
+      <path class="jetty-planks" d="M1295.8 454 H1307.4 M1295 460 H1308.4 M1294.2 466.5 H1309.6"/>
+    </g>
     <g id="trees"></g>
     <g id="leafy"></g>
     <path class="road" id="road" d="M-20 476 C150 462 300 488 450 473 C600 458 760 482 930 478"/>
@@ -317,8 +323,10 @@
       <circle class="pg-black" cx="0.4" cy="-10.6" r="2.7"/><circle class="pg-white" cx="1.5" cy="-11.2" r="0.55"/>
       <path class="pg-orange" d="M2.8 -10.8 l2.2 0.6 -2.2 0.5Z"/><path class="pg-black" d="M-2.8 -7.4 q-1.9 3.2 -0.4 5.3 q0.8 -2.6 0.4 -5.3Z"/>
       <ellipse class="pg-orange pg-feet" cx="-0.9" cy="0" rx="1.4" ry="0.55"/><ellipse class="pg-orange pg-feet" cx="1.5" cy="0" rx="1.4" ry="0.55"/>
+      <g class="pg-rod"><path d="M2 -6.8 L10.5 -13.5" class="rod"/><path d="M10.5 -13.5 V-0.2" class="line"/></g>
+      <g class="pg-fish"><path d="M9 -9 q2.4 -1.6 4.2 0 q-1.8 1.6 -4.2 0 Z M13.2 -9 l1.6 -1.2 v2.4 Z"/></g>
       <g class="pg-spatula"><path d="M2.6 -6.6 L6.4 -9.4" class="pg-handle"/><rect x="5.8" y="-10.9" width="2.4" height="1.6" transform="rotate(-36 7 -10.1)" class="pg-blade"/></g>
-    </g></g><ellipse class="pg-ripple" cx="0" cy="-3" rx="6" ry="1.2"/></g>
+    </g></g><ellipse class="pg-hole" cx="10.5" cy="0.4" rx="2.8" ry="0.9"/><ellipse class="pg-ripple" cx="0" cy="-3" rx="6" ry="1.2"/></g>
     <rect class="stuga-hit" id="stugaHit" x="1170" y="405" width="50" height="45"/>
   </svg>
 
@@ -450,9 +458,9 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="notes.js?v=20260925091510"></script>
-<script src="script.js?v=20260925091510"></script>
-<script src="extras.js?v=20260925091510"></script>
-<script src="gadgets.js?v=20260925091510"></script>
+<script src="notes.js?v=20260925091912"></script>
+<script src="script.js?v=20260925091912"></script>
+<script src="extras.js?v=20260925091912"></script>
+<script src="gadgets.js?v=20260925091912"></script>
 </body>
 </html>

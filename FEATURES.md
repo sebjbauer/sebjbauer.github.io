@@ -15,7 +15,7 @@ This file is not part of the website (see `_config.yml`), it only lives in the r
 | `star` | no value; shows a shooting star right after loading |
 | `smlm` | no value; runs the microscope stars right away (needs `sky=night`) |
 | `ride`, `penguin`, `birds` | no value; sends out the cyclist, the penguin or the birds right away |
-| `triathlon`, `xc`, `plane`, `bbq` | no value; starts the triathlon, the cross-country / roller skier, a plane, or the penguin's barbecue right away |
+| `triathlon`, `xc`, `plane`, `bbq`, `fishing`, `swim` | no value; starts the triathlon, the cross-country / roller skier, a plane, the penguin's barbecue, ice fishing (use with `weather=frost`) or the jetty swim right away |
 | `iss` | no value; shows a pretend ISS pass across the sky (needs `sky=night`) |
 | `card` | no value; the clean 1200 × 630 scene used for the link-preview image |
 | `timelapse` | `day` or `year`; plays the time-lapse right after loading |
@@ -142,6 +142,7 @@ Based on the date in Vienna.
 - **The cottage:** clicking the red cottage switches its light and chimney smoke on or off (no message). On its own, the light is on in the evening, and the chimney smokes in the evening and in autumn and winter.
 - **The deer:** appears at the forest edge only at **dusk and dawn**, and sometimes lowers its head to graze. Clicking it makes it run into the forest (it comes back after 90 seconds).
 - **The Timeline section (mountain trail):** from 2008 to today, above the Career and Education sections. Orange circles (year above the line) mark where each job starts, green diamonds (year below) where each degree starts; a bigger diamond around a circle means both started that year. Every period is shaded faintly under the line; clicking a marker, a Career table row or an Education entry highlights that period. The line turns dashed after today.
+- **Headlamp:** after dark, the hiker wears a small headlamp with a soft beam.
 - **Fika:** from 15:00 to 15:15 Vienna time, the hiker sits down on the trail with a steaming cup of coffee.
 - **The hiker:** a small figure with an orange backpack walks along the trail to the latest job when the Career section comes into view. Hovering over or clicking any marker makes them walk there.
 
@@ -158,8 +159,9 @@ Based on the date in Vienna.
 | **Triathlon** | On summer days (or from 18 °C in other seasons), dry and not frozen, every 3 to 6 minutes: a swimmer in an orange cap crosses the lake, then the cyclist rides back through the valley, then a runner with a race bib runs along the road. Click an athlete: "Triathlon: 1.5 km swim, 40 km bike, 10 km run." Terminal: `triathlon` starts a race. |
 | **Cross-country skier** | Daytime, every 60 to 140 seconds, along the valley road: on long skis across the snow in winter, on roller skis (little wheels) in the other seasons. Click for a line about cross-country skiing. |
 | **Barbecue** | A kettle grill next to the cottage (hidden at Christmas, when the tree stands there). **Every third time the penguin comes out**, it walks to the grill, opens the lid and grills for a while (smoke, flipping with a spatula), then goes back in. |
-| **Flagpole** by the cottage | The Swedish flag on 6 June (Sweden's National Day), the Austrian flag on 26 October (Austria's National Day), the long Swedish pennant (vimpel) every other day. National flags only fly between sunrise and sunset (Swedish custom); at night the pennant is up. Hidden at Christmas (the tree stands there). Preview: `?flag=se`, `?flag=at`. |
-| **Penguin on the ice** | When the lake is frozen, every 45 to 100 seconds it comes out by itself, slides across the ice on its belly and waddles back. |
+| **Flagpole** by the cottage | The Swedish flag only on 6 June (Sweden's National Day), the Austrian flag only on 26 October (Austria's National Day), between sunrise and sunset (Swedish custom). Every other time the pole is empty. Hidden at Christmas (the tree stands there). Preview: `?flag=se`, `?flag=at`. |
+| **Penguin on the ice** | When the lake is frozen, every 45 to 100 seconds it comes out by itself: either a belly slide across the ice, or ice fishing (*pimpelfiske*): it sits at a hole in the ice with a rod until a fish bites, then waddles home. |
+| **Jetty and summer swims** | A wooden jetty (*brygga*) on the lake. On hot days (from 25 °C, sunny, not raining), every 1 to 2 minutes the penguin runs along the shore and down the jetty, jumps in and swims back to the cottage. |
 | **Penguin** | Every 5th click on the cottage: it walks out, does a loop (swimming if the lake isn't frozen) and goes back in. No message, just the penguin. |
 
 Everything pauses when the top of the page is scrolled out of view.
