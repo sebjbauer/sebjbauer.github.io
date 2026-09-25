@@ -265,6 +265,33 @@ kbd {
 /* glints of sun or moonlight on the lake */
 .glints path { fill: none; stroke-linecap: round; animation: glint 3.2s ease-in-out infinite; }
 @keyframes glint { 0%, 100% { opacity: var(--o); } 50% { opacity: calc(var(--o) * .35); } }
+/* cows on the meadow */
+.cow .body, .cow .face { fill: #F4F2EC; stroke: #2A2A2A; stroke-width: .35; }
+.cow .spot { fill: #2A2A2A; }
+.cow .muzzle, .cow .udder { fill: #E7A9A3; }
+.cow .legs path, .cow .tail, .cow .horn { fill: none; stroke: #2A2A2A; stroke-width: .8; stroke-linecap: round; }
+.cow .horn { stroke: #D9CBB0; stroke-width: .5; }
+.cow .ear, .cow .eye { fill: #2A2A2A; }
+.cow .bell { fill: #D4A93A; }
+.cow .scarf { display: none; fill: none; stroke: #C8102E; stroke-width: 1.1; stroke-linecap: round; }
+#cows.cold .cow .scarf { display: inline; }
+.cow.sleep .legs { display: none; }
+.cow.sleep .cow-body { transform: translateY(2.4px); }
+.cow .tail { transform-box: fill-box; transform-origin: top; animation: swish 7s ease-in-out infinite; }
+.cow:nth-child(2) .tail { animation-delay: -2.3s; } .cow:nth-child(3) .tail { animation-delay: -4.6s; }
+@keyframes swish { 0%, 80%, 100% { transform: rotate(0); } 86% { transform: rotate(28deg); } 92% { transform: rotate(-18deg); } }
+[data-daylight="no"] .cow .body, [data-daylight="no"] .cow .face { fill: #A9ADB1; }
+/* the UFO */
+.ufo { display: none; }
+.ufo.out { display: inline; }
+.ufo .saucer { fill: #B8C1C9; stroke: #6F7880; stroke-width: .4; }
+.ufo .dome { fill: #A8DDEB; opacity: .9; }
+.ufo .rim { fill: #7E878F; }
+.ufo .light { fill: #FFE27A; animation: ufo-blink .8s steps(1) infinite; }
+.ufo .l2 { animation-delay: -.27s; fill: #7AF0B4; } .ufo .l3 { animation-delay: -.53s; fill: #FF8FA3; }
+@keyframes ufo-blink { 50% { opacity: .2; } }
+.ufo .beam { fill: #D8FFE8; opacity: 0; transition: opacity .5s; }
+.ufo.beaming .beam { opacity: .35; }
 /* tent and campfire */
 .camp { display: none; }
 .camp.show { display: inline; }

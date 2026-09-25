@@ -90,7 +90,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260925204015">
+  <link rel="stylesheet" href="style.css?v=20260925222951">
 </head>
 <body>
 <a class="skip-link" href="#about">Skip to content</a>
@@ -266,6 +266,16 @@
 
   <!-- small moving details live in their own light layer, so the big landscape never has to redraw -->
   <svg class="landscape fx" id="landscapeFx" viewBox="0 0 1440 520" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <!-- cows grazing on the meadow (gadgets.js draws them) and, very rarely, a UFO -->
+    <g id="cows"></g>
+    <g class="ufo" id="ufo">
+      <path class="beam" d="M-4 1 L4 1 L10 60 L-10 60 Z"/>
+      <ellipse class="dome" cx="0" cy="-2.3" rx="4" ry="3.1"/>
+      <ellipse class="saucer" cx="0" cy="0" rx="10" ry="2.6"/>
+      <ellipse class="rim" cx="0" cy="1" rx="6.5" ry="1"/>
+      <circle class="light l1" cx="-6" cy=".5" r=".65"/><circle class="light l2" cx="0" cy="1.3" r=".65"/><circle class="light l3" cx="6" cy=".5" r=".65"/>
+      <rect class="hit" x="-11" y="-6" width="22" height="9"/>
+    </g>
     <!-- a deer at the forest edge, only around dusk and dawn -->
     <g id="deer" class="deer" transform="translate(655 424)">
       <g class="deer-body">
@@ -550,11 +560,11 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="notes.js?v=20260925204015"></script>
+<script src="notes.js?v=20260925222951"></script>
 <script src="cv-data.js?v=local"></script>
-<script src="script.js?v=20260925204015"></script>
-<script src="extras.js?v=20260925204015"></script>
-<script src="gadgets.js?v=20260925204015"></script>
-<script src="science.js?v=20260925204015"></script>
+<script src="script.js?v=20260925222951"></script>
+<script src="extras.js?v=20260925222951"></script>
+<script src="gadgets.js?v=20260925222951"></script>
+<script src="science.js?v=20260925222951"></script>
 </body>
 </html>

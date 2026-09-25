@@ -30,6 +30,7 @@ const BADGES = [
   ['moose', 'Älgvarning', 'met the moose on the road', 'a rare visitor on the Swedish side'],
   ['snowman', 'Snow day', "knocked the snowman's hat off", 'cold winter days by the lake'],
   ['camp', 'Allemansrätten', 'poked the campfire', 'summer evenings in the Swedish forest'],
+  ['ufo', 'Close encounter', 'clicked the UFO', 'keep an eye on the cows after dark'],
 ];
 let earned = (() => { try { return JSON.parse(store.get('badges') || '[]'); } catch { return []; } })();
 function earnBadge(id) {
@@ -847,6 +848,128 @@ function wake() {
 ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll'].forEach((ev) => addEventListener(ev, wake, { passive: true }));
 wake();
 
+/* ---------------- cows on the meadow, and a UFO ---------------- */
+// Three cows graze between the tree line and the valley road: they eat for a while (head
+// down), then amble somewhere else. In the cold they wear scarves; at night they lie down.
+// Very rarely, after dark, a UFO beams one up, has a look at it, and puts it back (facing
+// the other way).
+const cowSVG = `<g class="cow-flip"><g class="cow-body">
+    <g class="legs back"><path d="M-3.8 -2.6 V0 M-2.5 -2.6 V0"/></g><g class="legs front"><path d="M2.4 -2.6 V0 M3.7 -2.6 V0"/></g>
+    <path class="tail" d="M-5 -6.4 q-1.2 1.6 -.8 3.6"/>
+    <rect class="body" x="-5.2" y="-7.2" width="9.8" height="4.9" rx="1.7"/>
+    <path class="spot" d="M-3.4 -7.2 q.4 2.2 2.6 1.8 q1.7 -.5 1.1 -1.8 Z"/><path class="spot" d="M1.2 -4.6 q1.2 -1.5 2.6 -.4 q.3 1.7 -1.1 2 q-1.4 .2 -1.5 -1.6 Z"/>
+    <ellipse class="udder" cx="1" cy="-2.2" rx="1" ry=".55"/>
+    <g class="head"><path class="ear" d="M3.9 -8.4 l-1.1 -.2 .9 .9 Z"/><rect class="face" x="3.7" y="-9" width="2.9" height="2.7" rx=".8"/>
+      <rect class="muzzle" x="5.5" y="-7.6" width="1.5" height="1.4" rx=".5"/><path class="horn" d="M4.2 -9 l-.4 -1 M5.8 -9 l.3 -1"/><circle class="eye" cx="5.4" cy="-8.2" r=".27"/></g>
+    <path class="scarf" d="M3.6 -7.1 Q4.3 -5.5 5 -6.9 M4.4 -6.2 l-.4 2"/><circle class="bell" cx="4.3" cy="-5.2" r=".45"/>
+  </g></g><rect class="hit" x="-6" y="-10.5" width="13.5" height="11"/>`;
+const cowsEl = $('#cows'), ufo = $('#ufo'), ufoBeam = ufo.querySelector('.beam');
+const roadAt = (() => { // y of the valley road at x, sampled once
+  const len = road.getTotalLength(), ys = {};
+  for (let s = 0; s <= 600; s++) { const p = road.getPointAtLength((s / 600) * len); ys[Math.round(p.x / 5)] = p.y; }
+  return (x) => ys[Math.round(x / 5)] ?? 470;
+})();
+const cowBand = (x) => [groundY(x) + 9, roadAt(x) - 6]; // grass between the trees and the road
+const herd = [[395, 447], [462, 455], [548, 444]].map(([x, y], i) => {
+  cowsEl.insertAdjacentHTML('beforeend', `<g class="cow">${cowSVG}</g>`);
+  const el = cowsEl.lastElementChild;
+  return { el, flip: el.querySelector('.cow-flip'), head: el.querySelector('.head'), back: el.querySelector('.legs.back'), front: el.querySelector('.legs.front'),
+    x, y, tx: x, ty: y, dir: i === 1 ? -1 : 1, walking: false, until: performance.now() + 2000 + Math.random() * 6000, busy: false };
+});
+function drawCow(c, t = 0) {
+  const s = 0.95 + (c.y - 440) * 0.012; // a little bigger closer to us
+  c.el.setAttribute('transform', `translate(${c.x.toFixed(1)} ${c.y.toFixed(1)}) scale(${(s * c.dir).toFixed(3)} ${s.toFixed(3)})`);
+  const swing = c.walking ? Math.sin(t / 160) * 14 : 0;
+  c.back.setAttribute('transform', swing ? `rotate(${swing.toFixed(1)} -3.1 -2.6)` : '');
+  c.front.setAttribute('transform', swing ? `rotate(${(-swing).toFixed(1)} 3 -2.6)` : '');
+  c.head.setAttribute('transform', c.walking || c.busy ? '' : 'rotate(38 4.2 -6.8)'); // grazing: head down
+}
+herd.forEach((c) => drawCow(c));
+let cowRaf = 0, cowLast = 0, cowDrawn = 0;
+function cowStep(t) {
+  const dt = Math.min(0.1, (t - (cowLast || t)) / 1000); cowLast = t;
+  const asleep = lastSky.d > 0.82;
+  herd.forEach((c) => {
+    c.el.classList.toggle('sleep', asleep && !c.busy);
+    if (c.busy || asleep) return;
+    if (!c.walking && t > c.until) { // time to find fresh grass nearby
+      c.tx = Math.max(350, Math.min(610, c.x + (Math.random() - 0.5) * 90));
+      const [top, bottom] = cowBand(c.tx);
+      c.ty = top + Math.random() * Math.max(0, bottom - top);
+      c.walking = true; c.dir = c.tx >= c.x ? 1 : -1;
+    }
+    if (c.walking) {
+      const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy), v = 2.6 * dt;
+      if (d <= v) { c.x = c.tx; c.y = c.ty; c.walking = false; c.until = t + 5000 + Math.random() * 9000; }
+      else { c.x += (dx / d) * v; c.y += (dy / d) * v; }
+    }
+  });
+  if (t - cowDrawn > 50) { // 20 frames a second is plenty for cows
+    cowDrawn = t;
+    herd.forEach((c) => { if (!c.busy) drawCow(c, t); });
+    // the cow closest to us is drawn in front
+    herd.slice().sort((a, b) => a.y - b.y).forEach((c) => cowsEl.appendChild(c.el));
+  }
+  cowRaf = requestAnimationFrame(cowStep);
+}
+setInterval(() => {
+  const on = heroVisible() && !reduceMotion;
+  if (on && !cowRaf) { cowLast = 0; cowRaf = requestAnimationFrame(cowStep); }
+  if (!on && cowRaf) { cancelAnimationFrame(cowRaf); cowRaf = 0; }
+}, 1000);
+const cowWeather = () => cowsEl.classList.toggle('cold', currentSeason() === 'winter' || live.frozen || ((simulated || weatherNow)?.temp ?? 10) < 3);
+skyHooks.push(cowWeather);
+cowWeather();
+
+// animate(ms, k => …): calls back with k from 0 to 1, resolves when done
+const animate = (ms, fn) => new Promise((done) => {
+  let t0 = 0;
+  const step = (t) => { if (!t0) t0 = t; const k = Math.min(1, (t - t0) / ms); fn(k, t); if (k < 1) requestAnimationFrame(step); else done(); };
+  requestAnimationFrame(step);
+});
+const ease = (k) => (k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2);
+let ufoOut = false;
+async function ufoVisit(force = false) {
+  if (ufoOut || reduceMotion || !heroVisible()) return;
+  if (!force && (lastSky.d < 0.6 || live.overcast > 0.7 || Math.random() > 0.3)) return;
+  ufoOut = true;
+  const cow = herd[Math.floor(Math.random() * herd.length)];
+  cow.busy = true; cow.walking = false; cow.el.classList.remove('sleep'); drawCow(cow);
+  const hx = cow.x, hy = cow.y - 78, from = [hx + 260, hy - 90];
+  const place = (x, y, tilt = 0) => ufo.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${tilt.toFixed(1)})`);
+  const beamTo = (depth) => ufoBeam.setAttribute('d', `M-4 1 L4 1 L${(4 + depth * 0.1).toFixed(1)} ${depth.toFixed(1)} L${(-4 - depth * 0.1).toFixed(1)} ${depth.toFixed(1)} Z`);
+  ufo.classList.add('out');
+  // swoop in and stop above the cow
+  await animate(2600, (k) => { const e = ease(k); place(from[0] + (hx - from[0]) * e, from[1] + (hy - from[1]) * e, (1 - e) * -14); });
+  await animate(700, (k, t) => place(hx, hy + Math.sin(t / 120) * 1.2));
+  // beam it up
+  beamTo(80); ufo.classList.add('beaming');
+  const s0 = 0.95 + (cow.y - 440) * 0.012, y0 = cow.y;
+  await animate(3600, (k, t) => {
+    const e = ease(k), s = s0 * (1 - 0.55 * e);
+    cow.el.setAttribute('transform', `translate(${(hx + Math.sin(t / 300) * 1.5).toFixed(1)} ${(y0 - 76 * e).toFixed(1)}) rotate(${(Math.sin(t / 250) * 12 * e).toFixed(1)}) scale(${(s * cow.dir).toFixed(3)} ${s.toFixed(3)})`);
+    place(hx, hy + Math.sin(t / 120) * 1.2);
+  });
+  cow.el.style.opacity = 0; ufo.classList.remove('beaming');
+  // a quick look at it on board
+  await animate(2600, (k, t) => place(hx + Math.sin(t / 180) * 3, hy + Math.sin(t / 90) * 1.5, Math.sin(t / 200) * 5));
+  // … and back it goes, facing the other way
+  cow.dir *= -1; cow.el.style.opacity = 1; ufo.classList.add('beaming');
+  await animate(3200, (k, t) => {
+    const e = ease(k), s = s0 * (0.45 + 0.55 * e);
+    cow.el.setAttribute('transform', `translate(${hx.toFixed(1)} ${(y0 - 76 * (1 - e)).toFixed(1)}) rotate(${(Math.sin(t / 250) * 12 * (1 - e)).toFixed(1)}) scale(${(s * cow.dir).toFixed(3)} ${s.toFixed(3)})`);
+    place(hx, hy + Math.sin(t / 120) * 1.2);
+  });
+  ufo.classList.remove('beaming');
+  cow.busy = false; cow.until = performance.now() + 4000; drawCow(cow);
+  await animate(400, () => {});
+  // and off it goes
+  await animate(1300, (k) => { const e = k * k; place(hx - 420 * e, hy - 160 * e, -16 * e); });
+  ufo.classList.remove('out');
+  ufoOut = false;
+}
+ufo.querySelector('.hit').addEventListener('click', () => earnBadge('ufo'));
+
 /* ---------------- the moose (älg) ---------------- */
 // Now and then a moose steps out of the Swedish forest, stops in the middle of the road to look
 // around, and walks on. A warning sign appears while it's there. Clicking it makes it hurry.
@@ -952,6 +1075,7 @@ every(20, 50, ski);
 setTimeout(birds, 8000);
 every(45, 110, birds);
 every(90, 240, () => mooseCrossing());
+every(240, 600, () => ufoVisit());
 setTimeout(checkIss, 3000);
 every(45, 100, () => { if (live.frozen && !penguinOut && heroVisible() && !reduceMotion) penguinOuting(Math.random() < 0.5 ? 'slide' : 'fish'); });
 every(60, 130, () => { if (hotDay() && !penguinOut && heroVisible() && !reduceMotion) penguinOuting('swim'); });
@@ -975,6 +1099,7 @@ if (params.has('iss')) { // preview: a pass from west-south-west to east over 40
 }
 if (params.has('birds')) setTimeout(() => birds(true), 800);
 if (params.has('moose')) setTimeout(() => mooseCrossing(true), 800);
+if (params.has('ufo')) setTimeout(() => ufoVisit(true), 1500);
 if (params.has('snowman')) { // preview: builds up stage by stage, then melts (?snowman) or starts melted (?snowman=melt)
   let k = 0;
   const tick = () => { k++; snowPreview = { stage: Math.min(5, k), melting: params.get('snowman') === 'melt' || k > 7 }; paintSky(); if (k < 9) setTimeout(tick, 1500); };
