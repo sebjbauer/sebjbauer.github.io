@@ -355,6 +355,17 @@ kbd {
 .swimmer .stroke-b, .swimmer.alt .stroke-a { opacity: 0; }
 .swimmer.alt .stroke-b { opacity: 1; }
 .swimmer circle { fill: #F2A13B; } /* orange swim cap */
+.diver { display: none; }
+.diver.out { display: inline; }
+.diver .figure circle { fill: #F2A13B; }
+.diver .arms-up, .diver.up .arms-down { display: none; }
+.diver.up .arms-up { display: inline; }
+.splash { display: none; }
+.splash.go { display: inline; }
+.splash circle { fill: rgba(255, 255, 255, .85); animation: splash .55s ease-out forwards; }
+.splash circle:nth-child(1) { --dx: -3px; } .splash circle:nth-child(2) { --dx: 0px; } .splash circle:nth-child(3) { --dx: 3px; }
+.splash circle:nth-child(4) { --dx: -1.5px; animation-duration: .45s; } .splash circle:nth-child(5) { --dx: 1.5px; animation-duration: .5s; }
+@keyframes splash { 0% { transform: translate(0, 0); opacity: 1; } 50% { transform: translate(var(--dx), -4px); } 100% { transform: translate(calc(var(--dx) * 1.5), 0); opacity: 0; } }
 .runner .bib { fill: #FFFFFF; stroke: none; }
 .xc .rollers circle { fill: none; stroke: var(--figure); stroke-width: .6; }
 .xc .skis { stroke-width: 1.1; }

@@ -455,12 +455,41 @@ let tri = false;
 const swimmer = $('#swimmer'), runner = $('#runner');
 const triWeather = () => !live.frozen && !live.particle && lastSky.d < 0.5 &&
   (currentSeason() === 'summer' || (weatherNow?.temp ?? 0) >= 18);
+const diver = $('#diver'), splash = $('#splash');
+const wait = (ms) => new Promise((ok) => setTimeout(ok, ms));
+async function dive() {
+  const [sx, sy] = [1301, 474], [ex, ey] = [1283, 479]; // end of the jetty → into the water beside it
+  diver.setAttribute('transform', `translate(${sx} ${sy})`);
+  diver.classList.remove('up'); diver.classList.add('out');
+  await wait(900);
+  diver.classList.add('up');          // arms up, ready
+  await wait(700);
+  await new Promise((done) => {
+    let t0 = 0;
+    const step = (t) => {
+      if (!t0) t0 = t;
+      const k = Math.min(1, (t - t0) / 750);
+      // a parabola off the jetty, turning head first on the way down
+      const x = sx + (ex - sx) * k, y = sy + (ey - sy) * k - 9 * 4 * k * (1 - k);
+      diver.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(-165 * k * k).toFixed(0)} 0 -7)`);
+      if (k < 1) requestAnimationFrame(step); else done();
+    };
+    requestAnimationFrame(step);
+  });
+  diver.classList.remove('out', 'up');
+  splash.setAttribute('transform', `translate(${ex} ${ey})`);
+  splash.classList.remove('go'); void splash.getBoundingClientRect(); splash.classList.add('go');
+  if (typeof ripples !== 'undefined') ripples.add(ex, ey, 1, 1.2);
+  setTimeout(() => splash.classList.remove('go'), 700);
+  await wait(350);
+}
 async function triathlon(force = false) {
   if (tri || riding || roadBusy || (!force && (!triWeather() || !heroVisible())) || reduceMotion) return;
   tri = true; roadBusy = true;
-  // swim
+  // the start: arms up at the end of the jetty, then a dive into the lake
+  await dive();
   swimmer.classList.add('out');
-  await travel(swimmer, $('#swimLane'), 14000, { onStep: (p, q, t) => {
+  await travel(swimmer, $('#swimLane'), 11000, { onStep: (p, q, t) => {
     swimmer.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`); // drawn facing left, the way it swims
     swimmer.classList.toggle('alt', Math.sin(t / 260) > 0);
   } });
@@ -472,7 +501,7 @@ async function triathlon(force = false) {
   runner.classList.remove('out');
   roadBusy = false; tri = false;
 }
-[swimmer, runner].forEach((el) => el.addEventListener('click', () => {
+[swimmer, runner, diver].forEach((el) => el.addEventListener('click', () => {
   toast('Triathlon: 1.5 km swim, 40 km bike, 10 km run.');
   earnBadge('triathlon');
 }));
