@@ -1,0 +1,222 @@
+% =====================================================================
+%  Curriculum vitae -- Sebastian Bauer
+%  Compile with:  latexmk -pdf cv.tex     (or: pdflatex cv.tex)
+%
+%  Editing guide
+%   * Every entry uses one of three commands:
+%       \entry{Title}{Dates}{Place / organisation}{Location}   + optional text below
+%       \pub{Authors}{Title}{Venue}{DOI}
+%       \item[Year] ...                                           (talks, awards, service)
+%   * Your own name in author lists: write \me (prints S.~Bauer in bold).
+% =====================================================================
+\documentclass[10pt,a4paper]{article}
+
+% ---------- fonts and layout -------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}                 % Computer Modern: the classic math / CS look
+\usepackage[protrusion=true,expansion=true]{microtype}
+\usepackage[a4paper,margin=1.9cm,top=1.6cm,bottom=1.6cm]{geometry}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{same}                      % links in the normal font, allowed to wrap at / and .
+
+\definecolor{ink}{HTML}{111111}
+\definecolor{muted}{HTML}{5E5E5B}
+\definecolor{linkblue}{HTML}{1F4E8C}
+\hypersetup{colorlinks=true, urlcolor=linkblue, linkcolor=ink,
+  pdftitle={Curriculum Vitae -- Sebastian Bauer}, pdfauthor={Sebastian Bauer}}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\color{ink}
+
+% section headings: small caps with a thin rule
+\titleformat{\section}{\large\scshape}{}{0pt}{}[\vspace{-6pt}\rule{\textwidth}{0.4pt}]
+\titlespacing*{\section}{0pt}{11pt}{6pt}
+
+% ---------- entry commands ------------------------------------------------
+% \entry{Title}{Dates}{Organisation}{Location}
+\newcommand{\entry}[4]{%
+  \begin{tabularx}{\textwidth}{@{}X r@{}}
+    \textbf{#1} & #2 \\
+    \textit{#3} & \textit{\color{muted}#4} \\
+  \end{tabularx}\par}
+% text under an entry
+\newcommand{\details}[1]{\vspace{1pt}{\small #1}\par\vspace{5pt}}
+\newcommand{\gap}{\vspace{5pt}}
+
+% publications: \pub{Authors}{Title}{Venue}{DOI}   (the DOI becomes a short, clickable link)
+\newcommand{\me}{\textbf{S.~Bauer}}
+\newcommand{\pub}[4]{#1. \emph{#2}. #3.%
+  \ifx&#4&\else\ {\small\href{https://doi.org/#4}{\nolinkurl{doi:#4}}}\fi}
+
+% dated lists (talks, awards, service): year in a narrow left column
+\newlist{dated}{description}{1}
+\setlist[dated]{leftmargin=4.2em, labelwidth=3.6em, labelsep=0.6em, align=left,
+  font=\normalfont\color{muted}, itemsep=1pt, topsep=0pt}
+% numbered publications with a letter prefix, e.g. [J1]
+\newlist{publist}{enumerate}{1}
+\setlist[publist]{leftmargin=2.6em, labelsep=0.6em, itemsep=2pt, topsep=1pt,
+  before={\interlinepenalty=10000}}  % never split a publication across pages
+
+\begin{document}
+
+% ======================================================================
+%  HEADER
+% ======================================================================
+\begin{center}
+  {\Huge\scshape Sebastian Bauer}\\[5pt]
+  PhD Student in Bioinformatics, Stockholm University \& SciLifeLab\\
+  Guest Researcher, AITHYRA, Vienna\\[5pt]
+  {\small
+  \href{mailto:sebastian.bauer@scilifelab.se}{sebastian.bauer@scilifelab.se} \enspace$\cdot$\enspace
+  \href{https://sebjbauer.github.io}{sebjbauer.github.io} \enspace$\cdot$\enspace
+  \href{https://orcid.org/0009-0009-7265-1527}{ORCID 0009-0009-7265-1527}\\[1pt]
+  \href{https://scholar.google.com/citations?user=Dqq0FUYAAAAJ}{Google Scholar} \enspace$\cdot$\enspace
+  \href{https://github.com/sebjbauer}{github.com/sebjbauer} \enspace$\cdot$\enspace
+  \href{https://www.linkedin.com/in/sebjbauer/}{linkedin.com/in/sebjbauer}}
+\end{center}
+
+\vspace{4pt}
+{\small
+I develop machine-learning methods for light microscopy that build in inductive biases from
+geometry, structure and physics, with a focus on generative models (flow matching, graph neural
+networks) for single-molecule localization microscopy.\par}
+
+% ======================================================================
+\section{Education}
+% ======================================================================
+\entry{PhD in Bioinformatics}{Nov 2023 -- present (exp.\ Mar 2028)}
+      {Stockholm University \& SciLifeLab}{Stockholm, Sweden}
+\details{Advisor: Prof.\ Juliette Griffi\'e. Inductive biases from geometry, structure and physics
+for machine-learning-based analysis of light microscopy; generative models for single-molecule
+localization microscopy (SMLM).}
+
+\entry{MSc in Engineering Physics, specialisation Biomedical Physics}{Aug 2021 -- Jun 2023}
+      {KTH Royal Institute of Technology}{Stockholm, Sweden}
+\details{Thesis: \href{https://kth.diva-portal.org/smash/record.jsf?pid=diva2:1768469}{\emph{Co-evolutional analysis
+of the Na$^+$,K$^+$-ATPase's $\beta$-subunit dimerization}}. Advisors: Prof.\ Lucie Delemotte,
+Prof.\ Hjalmar Brismar.}
+
+\entry{Erasmus exchange year}{Aug 2020 -- Jun 2021}
+      {KTH Royal Institute of Technology}{Stockholm, Sweden}
+\gap
+
+\entry{BSc in Technical Physics}{Oct 2017 -- Jul 2020}
+      {TU Wien}{Vienna, Austria}
+\details{Thesis in quantum optics: \emph{The difference in maximum power between pulsed and cw LED
+operation}. Advisor: Prof.\ Philipp Haslinger, Institute of Atomic and Subatomic Physics.}
+
+% ======================================================================
+\section{Research Experience}
+% ======================================================================
+\entry{Guest Researcher}{2026 -- present}
+      {AITHYRA, Tong Group}{Vienna, Austria}
+\details{Improving generative models for single-molecule localization microscopy.}
+
+\entry{Research Assistant}{Aug 2021 -- Jun 2023}
+      {SciLifeLab \& KTH, Brismar Lab}{Stockholm, Sweden}
+\details{Developed microscopy methods for imaging the Na$^+$,K$^+$-ATPase: expansion microscopy,
+STED microscopy and click chemistry, alongside work on cell synchronization and mitochondrial
+dynamics. Cell culture, sample preparation and labelling, confocal, light-sheet and STED
+microscopy.}
+
+\entry{Summer Intern}{Jul 2019}
+      {Nuclear Engineering Seibersdorf}{Seibersdorf, Austria}
+\details{Measurements on radioactive samples.}
+
+\entry{Summer Intern}{Jul 2018}
+      {RUAG Space}{Vienna, Austria}
+\details{Material tests and predictive modelling of the thermal insulation of rocket boosters.}
+
+% ======================================================================
+\section{Publications}
+% ======================================================================
+{\small\color{muted}Full list on \href{https://scholar.google.com/citations?user=Dqq0FUYAAAAJ}{Google Scholar}.\par}
+\vspace{4pt}
+\textit{Journal articles}
+\begin{publist}[label={[J\arabic*]}]
+  \item \pub{S.~Edwards, B.~Meineke, \me, H.~Blom, S.~Els\"asser, H.~Brismar}
+    {Dual-color expansion microscopy of membrane proteins using bioorthogonal labeling}
+    {Nano Letters 26(4), 1321--1326, 2026}{10.1021/acs.nanolett.5c05301}
+  \item \pub{I.~Cunha, E.~Latron, \me, D.~Sage, J.~Griffi\'e}
+    {Machine learning in microscopy -- insights, opportunities and challenges}
+    {Journal of Cell Science 137(20), jcs262095, 2024}{10.1242/jcs.262095}
+\end{publist}
+
+\vspace{4pt}
+\textit{Preprints}
+\begin{publist}[label={[P\arabic*]}]
+  \item \pub{\me, L.~Panconi, I.~Cunha, E.~Latron, D.~Sage, R.~Peters, J.~Griffi\'e}
+    {SMLMFlow: Improving structural resolution in single molecule localization microscopy with flow matching}
+    {bioRxiv, 2026}{10.64898/2026.06.11.731424}
+  \item \pub{I.~Cunha, L.~Panconi, \me, M.~Gestin, E.~Latron, E.~Sahai, A.~Le~Marois, J.~Griffi\'e}
+    {AI4CellFate: Interpretable early cell fate prediction with generative AI}
+    {bioRxiv, 2025}{10.1101/2025.05.12.653464}
+  \item \pub{O.~Sarig\"oz, V.~D.~Valeriano, U.~Avican, H.~Wang, K.~Nilsson, N.~Hasanzade, F.~Mahmood,
+    A.~Fahlgren, \me, J.~Griffi\'e, M.~F\"allman, K.~Avican}
+    {6S RNA facilitates bacterial virulence and adaptation at the epithelial barrier}
+    {bioRxiv, 2025}{10.1101/2025.10.07.681022}
+\end{publist}
+
+\vspace{4pt}
+\textit{Conference abstracts}
+\begin{publist}[label={[C\arabic*]}]
+  \item \pub{S.~Edwards, \me, P.~Graef, B.~Meineke, S.~Els\"asser, H.~Brismar}
+    {Expansion microscopy and bioorthogonal labeling with non-canonical amino acids enables
+    cluster analysis of Na,K-ATPase in the plasma membrane}
+    {Physiology 38(S1), 5732753, 2023}{10.1152/physiol.2023.38.S1.5732753}
+  \item \pub{H.~Brismar, S.~Edwards, \me, B.~Meineke, S.~Els\"asser, S.~Wennmalm}
+    {Click chemistry, FRET-FCS, and expansion microscopy reveal that Na,K-ATPase forms complexes
+    in the plasma membrane}
+    {Physiology 38(S1), 5732603, 2023}{10.1152/physiol.2023.38.S1.5732603}
+\end{publist}
+
+% ======================================================================
+\section{Talks, Posters \& Awards}
+% ======================================================================
+\begin{dated}
+  \item[2026] Invited talk, \emph{Beyond localization}.
+    SMLMS 2026, 15th Single Molecule Localization Microscopy Symposium, Stockholm.
+  \item[2025] Selected talk, \emph{SMLMFlow: Improving structural resolution in SMLM with flow matching and GNNs}.
+    SMLMS 2025, Single Molecule Localization Microscopy Symposium, Bonn.
+  \item[2025] Invited talk, \emph{SMLMFlow}, and \textbf{Best Poster Prize}.
+    Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge, Gothenburg.
+  \item[2025] Poster, \emph{SMLMFlow}.
+    LOGML 2025, London Geometry and Machine Learning Summer School, Imperial College London.
+  \item[2016] \textbf{1st place, Hans Riegel-Fachpreis} in physics, region Vienna,
+    for the high-school thesis on aerodynamics in road cycling.
+\end{dated}
+
+% ======================================================================
+\section{Service \& Teaching}
+% ======================================================================
+\begin{dated}
+  \item[2026] Local coordinator, SMLMS 2026, Stockholm.
+  \item[2026] Local organising team, Protein Folding Conference, Stockholm.
+  \item[2021--23] Swim coach and board member, KTH Simf\"orening, Stockholm; organised the club's weekly training.
+  \item[2017--20] Mathematics tutor for high-school students, Vienna.
+  \item[2016--17] Civilian service: teaching assistant, Karl Schubert Schule (school for children
+    with special needs), Vienna.
+\end{dated}
+
+% ======================================================================
+\section{Skills \& Interests}
+% ======================================================================
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+  \textbf{Research}     & Single-molecule localization microscopy, generative models, flow matching, graph neural networks \\[1pt]
+  \textbf{Computing}    & Python, machine learning \\[1pt]
+  \textbf{Laboratory}   & Fluorescence microscopy (confocal, light-sheet, STED, expansion microscopy), cell culture, sample preparation and labelling \\[1pt]
+  \textbf{Languages}    & German (native), English (fluent), Swedish (intermediate) \\[1pt]
+  \textbf{Interests}    & Competitive triathlete for more than ten years (national and international level); cycling, cross-country skiing, travelling \\
+\end{tabularx}
+
+\vspace{8pt}
+{\small\color{muted}References available on request.\hfill Last updated: \today}
+
+\end{document}

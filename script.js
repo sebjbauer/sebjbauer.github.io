@@ -796,10 +796,12 @@ function renderContent() {
     [SITE.github, 'GitHub'],
     [SITE.bluesky, 'Bluesky'],
     [SITE.x, 'X (Twitter)'],
+    ['cv.pdf', 'CV (PDF)'],
     ['contact.vcf', 'Add to contacts'],
-  ].map(([href, label]) => `<li><a href="${esc(href)}"${external(href)}${href.startsWith('mailto:') ? ` title="${esc(SITE.email)}"` : ''}>${label}${href.endsWith('.vcf') ? iconDown : iconOut}</a></li>`).join('');
+  ].map(([href, label]) => `<li><a href="${esc(href)}"${external(href)}${href.startsWith('mailto:') ? ` title="${esc(SITE.email)}"` : ''}>${label}${/\.(vcf|pdf)$/.test(href) ? iconDown : iconOut}</a></li>`).join('');
 
   const mail = $('#contactLinks a[href^="mailto:"]');
+  $('#contactLinks a[href="cv.pdf"]').setAttribute('download', 'Sebastian_Bauer_CV.pdf');
   mail.addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(SITE.email); } catch { return; }
     const note = document.createElement('span');

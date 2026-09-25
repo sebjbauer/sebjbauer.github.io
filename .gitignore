@@ -1,2 +1,13 @@
 .DS_Store
 .claude/
+
+# LaTeX build files
+cv/*.aux
+cv/*.log
+cv/*.out
+cv/*.fls
+cv/*.fdb_latexmk
+cv/*.synctex.gz
+# the CV PDF is built automatically on GitHub; locally it's only a preview
+cv/cv.pdf
+/cv.pdf

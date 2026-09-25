@@ -1,0 +1,52 @@
+# Builds and publishes the website on every push to main:
+#   1. compiles the CV (cv/cv.tex → cv.pdf, downloadable at /cv.pdf)
+#   2. builds the site with Jekyll, exactly like GitHub Pages does (respects _config.yml)
+#   3. publishes both together
+name: Build and publish the website
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # also allows a manual run from the Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile the CV
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: cv.tex
+          working_directory: cv
+
+      - name: Build the site with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+
+      - name: Add the CV to the site
+        run: sudo cp cv/cv.pdf _site/cv.pdf
+
+      - uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

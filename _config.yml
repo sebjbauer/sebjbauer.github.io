@@ -2,3 +2,4 @@
 exclude:
   - FEATURES.md
   - README.md
+  - cv          # the CV source; the compiled PDF is published as /cv.pdf by the workflow

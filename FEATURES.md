@@ -367,6 +367,15 @@ Tab completes commands, ↑ repeats the last one.
 - **Size:** about 115 KB for a first visit (page, styles, scripts, fonts); the photo only loads when scrolling to About.
 - **Tested:** all links and DOIs work; the HTML passes the W3C validator; no script errors in Safari's engine (iPhone size) or Chrome.
 
+## CV (PDF)
+
+The CV is written in LaTeX in `cv/cv.tex` (the top of the file explains the three entry commands). **You never upload a PDF yourself:** on every push, GitHub compiles `cv/cv.tex` and publishes the result as https://sebjbauer.github.io/cv.pdf, together with the website (see `.github/workflows/pages.yml`). The "Last updated" date in the CV is the build date.
+
+- Links: **CV** in the menu, "Download the full CV as PDF" under Career, "CV (PDF)" in Contact, and `download cv` in the terminal. All download it as `Sebastian_Bauer_CV.pdf`.
+- **To preview locally before pushing:** in the `cv` folder run `latexmk -pdf cv.tex`, then open `cv/cv.pdf`.
+- If the CV has a LaTeX error, the build stops and the website stays at the previous version; the red cross in the **Actions** tab shows the error message.
+- A push now takes about 2 to 3 minutes to go live (the CV is compiled first).
+
 ## Where things live in the code
 
 | What | File |
@@ -380,6 +389,7 @@ Tab completes commands, ↑ repeats the last one.
 | Page for a single note, and the Markdown renderer | `note.html`, `notes.js` |
 | Link-preview image | `og-image.jpg` |
 | For search engines | `robots.txt`, `sitemap.xml` |
+| CV source / build script | `cv/cv.tex` / `.github/workflows/pages.yml` |
 | Landscape drawing (mountains, trees, cottage, deer, decorations) | `index.html`, inside the hero section |
 | Colours, fonts, layout, animations | `style.css` |
 
