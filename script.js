@@ -88,17 +88,18 @@ const SITE = {
   ],
 
   // TALKS, POSTERS, AWARDS AND ORGANISING: newest year first. type: e.g. 'Invited talk', 'Selected talk',
-  // 'Poster', 'Award' or 'Organisation'.
+  // 'Poster', 'Award' or 'Organisation'. Several things at the same event go into one entry with
+  // `roles: [{ type, title }, …]` instead of `type` and `title`.
   // `where` is the event or institution; `url` (slides, poster, announcement) is optional.
   // `city` (e.g. 'Lisbon' or 'Cambridge, United Kingdom') puts a pin on the map above the list.
   talks: [
-    { year: 2026, type: 'Invited talk', title: 'Beyond localization', where: 'SMLMS 2026, 15th Single Molecule Localization Microscopy Symposium', city: 'Stockholm', url: 'https://smlms.org/' },
-    { year: 2026, type: 'Organisation', title: 'Local coordinator', where: 'SMLMS 2026, 15th Single Molecule Localization Microscopy Symposium', city: 'Stockholm', url: 'https://smlms.org/' },
+    { year: 2026, where: 'SMLMS 2026, 15th Single Molecule Localization Microscopy Symposium', city: 'Stockholm', url: 'https://smlms.org/',
+      roles: [{ type: 'Invited talk', title: 'Beyond localization' }, { type: 'Organisation', title: 'Local coordinator' }] },
     { year: 2026, type: 'Organisation', title: 'Local organising team', where: 'Protein Folding Conference', city: 'Stockholm' },
     { year: 2025, type: 'Selected talk', title: 'SMLMFlow: Improving structural resolution in SMLM with flow matching and GNNs', where: 'SMLMS 2025, Single Molecule Localization Microscopy Symposium', city: 'Bonn' },
     { year: 2025, type: 'Poster', title: 'SMLMFlow', where: 'LOGML 2025, London Geometry and Machine Learning Summer School, Imperial College London', city: 'London, United Kingdom' },
-    { year: 2025, type: 'Invited talk', title: 'SMLMFlow', where: 'Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge', city: 'Gothenburg' },
-    { year: 2025, type: 'Award', title: 'Best poster prize', where: 'Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge', city: 'Gothenburg' },
+    { year: 2025, where: 'Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge', city: 'Gothenburg',
+      roles: [{ type: 'Invited talk', title: 'SMLMFlow' }, { type: 'Award', title: 'Best poster prize' }] },
     { year: 2016, type: 'Award', title: '1st place, Hans Riegel-Fachpreis in physics, region Vienna', where: 'For the high-school final thesis on aerodynamics in road cycling', city: 'Vienna' },
   ],
 
@@ -718,18 +719,25 @@ function renderPublications() {
 }
 
 // Talks, posters and awards grouped by year
+const rolesOf = (t) => t.roles || [{ type: t.type, title: t.title }];
+const typeLabel = (type) => `<span class="pub-type ${type === 'Award' ? 'award-type' : ''}">${esc(type)}</span>`;
+
 function renderTalks() {
   const list = SITE.talks;
   if (!list.length) { $('#talks').hidden = true; return; }
   const years = [...new Set(list.map((t) => t.year))].sort((a, b) => b - a);
+  const heading = (text, url) => (url ? `<a class="pub-title" href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : `<span class="pub-title">${esc(text)}</span>`);
   $('#talkList').innerHTML = years.map((y) => `
     <div class="pub-year">
       <h3>${y}</h3>
-      <ol>${list.filter((t) => t.year === y).map((t) => `
-        <li data-t="${list.indexOf(t)}">
-          ${t.url ? `<a class="pub-title" href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.title)}</a>` : `<span class="pub-title">${esc(t.title)}</span>`}
-          <p class="pub-venue"><span class="pub-type ${t.type === 'Award' ? 'award-type' : ''}">${esc(t.type)}</span> ${esc(t.where)}</p>
-        </li>`).join('')}</ol>
+      <ol>${list.filter((t) => t.year === y).map((t) => {
+        const roles = rolesOf(t);
+        const body = roles.length === 1
+          ? `${heading(roles[0].title, t.url)}<p class="pub-venue">${typeLabel(roles[0].type)} ${esc(t.where)}</p>`
+          : `${heading(t.where, t.url)}${roles.map((r) => `<p class="talk-role">${typeLabel(r.type)} ${esc(r.title)}</p>`).join('')}`;
+        return `
+        <li data-t="${list.indexOf(t)}">${body}</li>`;
+      }).join('')}</ol>
     </div>`).join('');
 }
 
@@ -906,7 +914,9 @@ ${esc(w.text)}`;
   education: () => 'Education route:\n' + [...SITE.education].reverse().map((e) =>
     `  ${(e.from + '–' + e.to).padEnd(10)} ${esc(e.title)}\n  ${''.padEnd(10)} <span class="cmd">${esc(e.org)}</span>`).join('\n'),
 
-  talks: () => 'Talks, posters and awards:\n' + SITE.talks.map((t) => `  ${t.year}  ${esc(t.type).padEnd(7)} ${esc(t.title)}\n        <span class="cmd">${esc(t.where)}</span>`).join('\n'),
+  talks: () => 'Talks, posters and awards:\n' + SITE.talks.map((t) => (t.roles
+    ? `  ${t.year}  ${esc(t.where)}\n` + t.roles.map((r) => `        ${esc(r.type)}: ${esc(r.title)}`).join('\n')
+    : `  ${t.year}  ${esc(t.type)}: ${esc(t.title)}\n        <span class="cmd">${esc(t.where)}</span>`)).join('\n'),
 
   papers: () => `Publications (${SITE.publications.length}):\n` + SITE.publications.map((p) =>
     `  ${p.year}  <a href="${esc(linkOf(p))}" target="_blank" rel="noopener">${esc(p.title)}</a>\n        <span class="cmd">${esc(p.type)}, ${esc(venueOf(p))}</span>`).join('\n') +
@@ -1073,4 +1083,7 @@ addEventListener('resize', () => {
 });
 // pause every hero animation while the hero is scrolled out of view
 new IntersectionObserver(([e]) => $('.hero').classList.toggle('off', !e.isIntersecting)).observe($('.hero'));
-addEventListener('scroll', () => $('.nav').classList.toggle('scrolled', scrollY > innerHeight * 0.6), { passive: true });
+const updateNav = () => $('.nav').classList.toggle('scrolled', scrollY > innerHeight * 0.6);
+addEventListener('scroll', updateNav, { passive: true });
+updateNav(); // also right away, for pages opened in the middle (links like #talks, or a reload)
+addEventListener('load', updateNav);

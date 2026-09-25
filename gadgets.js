@@ -562,7 +562,7 @@ async function renderTalkMap() {
     const hits = (b) => blocked.some((q) => b.x0 < q.x1 && b.x1 > q.x0 && b.y0 < q.y1 && b.y1 > q.y0);
     const inside = (b) => b.x0 >= x0 && b.x1 <= x0 + w && b.y0 >= y0 && b.y1 <= y0 + h; // stays within the map
     const pinsSvg = pinsXY.sort((a, b) => b.p.events.length - a.p.events.length || a.xy[0] - b.xy[0]).map(({ p, xy: [x, y], size }) => {
-      const title = p.events.map((e) => `${e.year} · ${e.type}: ${e.title}`).join('\n');
+      const title = p.events.flatMap((e) => rolesOf(e).map((r) => `${e.year} · ${r.type}: ${r.title}`)).join('\n');
       const label = p.name ? `${p.name}${p.events.length > 1 ? ` ×${p.events.length}` : ''}` : '';
       const lw = label.length * fs * 0.56, gap = size * 2.4, hh = fs * 0.62;
       const spots = [

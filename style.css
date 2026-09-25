@@ -41,6 +41,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; } /* hidden sections stay hidden, whatever their layout */
 /* no colour fades while the page loads (they're only for real changes, like sunset) */
 .preload *, .preload *::before, .preload *::after, .preload body { transition: none !important; }
 html { scroll-behavior: smooth; scrollbar-color: var(--line-strong) var(--bg); }
@@ -520,6 +521,8 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 .pub-cite button.copied { color: var(--edu); text-decoration: none; }
 .copied-note { cursor: default; text-decoration: none; color: var(--edu); margin-left: 10px; font-size: 14px; }
 span.pub-title { display: inline; }
+.talk-role { margin: 4px 0 0; font-size: 16px; }
+.talk-role .pub-type { margin-right: 6px; }
 .talk-map { margin: 0 0 28px; }
 .talk-map svg { display: block; width: 100%; height: auto; aspect-ratio: 2.4; border-radius: 8px; background: color-mix(in srgb, var(--edu) 8%, var(--bg)); }
 .talk-map .land { fill: color-mix(in srgb, var(--text) 9%, var(--bg)); stroke: var(--line-strong); stroke-width: .15; stroke-linejoin: round; }
