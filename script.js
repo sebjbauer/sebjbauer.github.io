@@ -39,11 +39,6 @@ const SITE = {
   me: 'S. Bauer',
   cv: [], education: [], publications: [], talks: [], extracurricular: [], skills: {},
   ...window.CV_DATA,
-
-  projects: [
-    { name: 'Project one', text: 'A one-line description of the project.', url: '#', where: 'Vienna' },
-    { name: 'Project two', text: 'A one-line description of the project.', url: '#', where: 'Vienna' },
-  ],
 };
 
 /* ===================================================================== */
@@ -744,7 +739,7 @@ function selectEntry(k) {
 }
 const selectWaypoint = (i) => selectEntry(`job-${i}`); // career stage by number (terminal: waypoint 1…)
 
-/* ---------------- skills, projects, contact ---------------- */
+/* ---------------- skills, contact ---------------- */
 const external = (url) => url.startsWith('http') ? ' target="_blank" rel="noopener"' : '';
 const iconOut = '<svg class="i" aria-hidden="true"><use href="#i-out"/></svg>';
 const iconDown = '<svg class="i" aria-hidden="true"><use href="#i-down"/></svg>';
@@ -769,12 +764,6 @@ function renderContent() {
       <span class="desc">${esc([a.org, a.text].filter(Boolean).join('. '))}</span>
       <span class="where">${esc([a.years, a.place].filter(Boolean).join(' · '))}</span></div></li>`).join('');
   $('#activities').hidden = !SITE.extracurricular.length;
-
-  $('#projectList').innerHTML = SITE.projects.map((p) =>
-    `<li><a href="${esc(p.url)}"${external(p.url)}>
-      <span class="name">${esc(p.name)}${p.url.startsWith('http') ? iconOut : ''}</span>
-      <span class="desc">${esc(p.text)}</span>
-      <span class="where">${esc(p.where)}</span></a></li>`).join('');
 
   $('#contactLinks').innerHTML = [
     [`mailto:${SITE.email}`, 'Email'],
@@ -857,7 +846,6 @@ const COMMANDS = {
   <b class="warn">activities</b>    swimming, triathlon, tutoring
   <b class="warn">waypoint</b> &lt;n&gt;  details of one stage
   <b class="warn">skills</b>        equipment check
-  <b class="warn">projects</b>      marked routes
   <b class="warn">contact</b>       send a signal
   <b class="warn">now</b>           what I'm up to
   <b class="warn">weather</b>       live weather in Vienna
@@ -876,7 +864,7 @@ const COMMANDS = {
   <b class="warn">timelapse</b>     a whole day in 20 seconds (or: timelapse year)
   <b class="warn">triathlon</b>     start a race: swim, bike, run
   <b class="warn">download cv</b>   the official PDF
-  <b class="warn">goto</b> &lt;place&gt;   about | timeline | cv | education | talks | publications | activities | skills | projects | contact
+  <b class="warn">goto</b> &lt;place&gt;   about | timeline | cv | education | talks | publications | activities | skills | contact
   <b class="warn">fika</b>          mandatory break
   <b class="warn">clear</b>, <b class="warn">exit</b>
 Tip: Tab completes, ↑ repeats. Some commands are not listed.`,
@@ -919,7 +907,6 @@ ${esc(w.text)}`;
   activities: () => 'Off the clock:\n' + SITE.extracurricular.map((a) => `  ${a.years.padEnd(10)} ${esc(a.title)}${a.org ? ` <span class="cmd">${esc(a.org)}</span>` : ''}`).join('\n'),
   skills: () => 'Equipment check:\n' + Object.entries(SITE.skills).map(([g, items]) => `  [<span class="ok">✓</span>] ${esc(g)}: ${items.map(esc).join(', ')}`).join('\n'),
 
-  projects: () => 'Marked routes:\n' + SITE.projects.map((p, i) => `  WPT ${String(i + 1).padStart(2, '0')}  <a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>  ${esc(p.text)}`).join('\n'),
 
   contact: () => `Sending signal…
   mail      <a href="mailto:${esc(SITE.email)}">${esc(SITE.email)}</a>
@@ -952,7 +939,7 @@ The sun is ${up ? 'up, so this site is in light mode' : 'down, so this site is i
   },
 
   'download cv': () => { const a = document.createElement('a'); a.href = SITE.cvPdf; a.download = ''; a.click(); return `Downloading <a href="${esc(SITE.cvPdf)}">${esc(SITE.cvPdf)}</a>…`; },
-  goto: (arg) => { if (!['about', 'timeline', 'cv', 'education', 'publications', 'talks', 'activities', 'skills', 'projects', 'contact'].includes(arg)) return 'Usage: goto about | timeline | cv | education | publications | talks | activities | skills | projects | contact'; setTimeout(() => goTo(arg), 300); return `Navigating to ${arg}…`; },
+  goto: (arg) => { if (!['about', 'timeline', 'cv', 'education', 'publications', 'talks', 'activities', 'skills', 'contact'].includes(arg)) return 'Usage: goto about | timeline | cv | education | publications | talks | activities | skills | contact'; setTimeout(() => goTo(arg), 300); return `Navigating to ${arg}…`; },
 
   fika: () => `Starting mandatory fika…
       ( (
@@ -963,7 +950,7 @@ The sun is ${up ? 'up, so this site is in light mode' : 'down, so this site is i
      \`----'
 Break complete. Productivity +20%.`,
 
-  ls: () => 'about.txt  cv.pdf  projects/  trail.gpx  .secret',
+  ls: () => 'about.txt  cv.pdf  trail.gpx  .secret',
   'cat .secret': () => 'The sky obeys you. Try: <b class="warn">sky night</b>, then look north.',
   'cat about.txt': () => document.querySelector('#about .lead').textContent,
   'cat trail.gpx': () => COMMANDS['route cv'](),

@@ -384,7 +384,7 @@ COMMANDS.moon = () => {
   return `${m.name}, ${Math.round(m.illum * 100)}% lit.
 ${m.name === 'Full moon' ? 'Full moon tonight.' : `Next full moon in ${Math.round(m.daysToFull)} days.`}`;
 };
-COMMANDS.ls = () => 'about.txt  cv.pdf  projects/  trail.gpx  riddle.txt  .secret';
+COMMANDS.ls = () => 'about.txt  cv.pdf  trail.gpx  riddle.txt  .secret';
 HIDDEN.push('hint', 'cat riddle.txt', 'norrsken');
 
 document.addEventListener('keydown', (e) => {

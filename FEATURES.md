@@ -323,7 +323,6 @@ Tab completes commands, ↑ repeats the last one.
 | `papers` | All publications with links, plus Google Scholar |
 | `waypoint 1` … | Details of one career stage (also highlights it on the page) |
 | `skills` | Skills as an "equipment check" |
-| `projects` | Projects as "marked routes" |
 | `contact` | Email, LinkedIn, GitHub, Google Scholar, ORCID, Bluesky, X |
 | `now` | The "Now" line |
 | `weather` | Live weather in Vienna |
@@ -341,7 +340,7 @@ Tab completes commands, ↑ repeats the last one.
 | `timelapse` | A whole day in 20 seconds; `timelapse year` for the seasons |
 | `triathlon` | Starts a race: swim, bike, run |
 | `download cv` | Downloads `cv.pdf` |
-| `goto contact` | Scrolls to a section (`about`, `timeline`, `cv`, `education`, `publications`, `talks`, `activities`, `skills`, `projects`, `contact`) |
+| `goto contact` | Scrolls to a section (`about`, `timeline`, `cv`, `education`, `publications`, `talks`, `activities`, `skills`, `contact`) |
 | `fika` | Mandatory Swedish coffee break (ASCII art) |
 | `clear`, `exit` | Clear the screen, close the terminal |
 
@@ -349,7 +348,7 @@ Tab completes commands, ↑ repeats the last one.
 
 | Command | What it does |
 |---|---|
-| `ls` | Lists fake files: `about.txt cv.pdf projects/ trail.gpx riddle.txt .secret` |
+| `ls` | Lists fake files: `about.txt cv.pdf trail.gpx riddle.txt .secret` |
 | `cat about.txt` | Prints the About text |
 | `cat trail.gpx` | Same as `route cv` |
 | `cat riddle.txt` | Same as `riddle` |
@@ -391,7 +390,7 @@ The CV is written in LaTeX in `cv/cv.tex` (the top of the file explains the thre
 
 | What | File |
 |---|---|
-| Your content (career, education, publications, skills, projects, links, Now line, location) | `script.js`, the `SITE` block at the top |
+| Your content (links, location, hero lines; career, education, publications, talks, activities and skills come from cv/cv.tex) | `script.js`, the `SITE` block at the top |
 | Sky, light/dark mode, seasons, snow/leaves/rain, main terminal commands | `script.js` |
 | Moon, weather, holidays, shooting stars, cottage, hiker, deer, riddle | `extras.js` |
 | Microscope stars, penguin, cyclist, skier, birds, ducks, ice skater, badges | `gadgets.js` |
