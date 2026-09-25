@@ -476,7 +476,15 @@ span.pub-title { display: inline; }
 .talk-map svg { display: block; width: 100%; height: auto; aspect-ratio: 2.4; border-radius: 8px; background: color-mix(in srgb, var(--edu) 8%, var(--bg)); }
 .talk-map .land { fill: color-mix(in srgb, var(--text) 9%, var(--bg)); stroke: var(--line-strong); stroke-width: .15; stroke-linejoin: round; }
 .map-pin circle { fill: var(--accent); }
-.map-pin .halo { opacity: .22; }
+.map-pin { cursor: pointer; outline: none; }
+.map-pin .halo { opacity: .22; transition: opacity .2s; }
+.map-pin:hover .halo, .map-pin:focus-visible .halo { opacity: .4; }
+.map-pin.active .halo { opacity: .55; }
+.map-pin.active text { fill: var(--accent); }
+#talkList li { cursor: pointer; transition: background-color .2s; margin-left: -12px; padding: 6px 12px; border-radius: 6px; }
+#talkList li:hover { background: var(--raised); }
+#talkList li.active { background: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+#talkList li.active .pub-title { color: var(--accent); }
 .map-pin text { fill: var(--text); font-family: var(--sans); font-weight: 500; paint-order: stroke; stroke: var(--bg); stroke-width: .35; }
 .pub-type.award-type { border-color: var(--accent); color: var(--accent); }
 

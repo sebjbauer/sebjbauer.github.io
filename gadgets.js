@@ -361,6 +361,7 @@ async function renderTalkMap() {
     // one pin per city, listing everything that happened there
     const pins = {};
     located.forEach(({ t, pos }) => { const k = t.city || `${pos.lat},${pos.lon}`; (pins[k] = pins[k] || { name: (t.city || '').split(',')[0], pos, events: [] }).events.push(t); });
+    const idsOf = (p) => p.events.map((e) => SITE.talks.indexOf(e)).join(' ');
     const list = Object.values(pins);
 
     // an equirectangular view that fits all pins (at least roughly the size of Europe), 2.4:1
@@ -398,7 +399,7 @@ async function renderTalkMap() {
       ];
       const spot = label ? (spots.find((s) => inside(s.box) && !hits(s.box)) || spots.find((s) => inside(s.box)) || spots[0]) : null;
       if (spot) blocked.push(spot.box);
-      return `<g class="map-pin"><title>${esc(p.name ? `${p.name}\n` : '')}${esc(title)}</title>
+      return `<g class="map-pin" data-t="${idsOf(p)}" tabindex="0" role="button" aria-label="${esc(`${p.name}: ${p.events.length} ${p.events.length > 1 ? 'entries' : 'entry'}, highlight in the list`)}"><title>${esc(p.name ? `${p.name}\n` : '')}${esc(title)}</title>
         <circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${(size * 2.2).toFixed(2)}" class="halo"/><circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${size.toFixed(2)}"/>
         ${spot ? `<text x="${spot.x.toFixed(2)}" y="${spot.y.toFixed(2)}" font-size="${fs.toFixed(2)}" text-anchor="${spot.anchor}">${esc(label)}</text>` : ''}</g>`;
     }).join('');
@@ -406,8 +407,25 @@ async function renderTalkMap() {
     svg.setAttribute('viewBox', `${x0.toFixed(2)} ${y0.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`);
     svg.innerHTML = `<path class="land" d="${land}"/>${pinsSvg}`;
     $('#talkMap').hidden = false;
+    svg.querySelectorAll('.map-pin').forEach((pin) => {
+      pin.addEventListener('click', () => selectPlace(pin.dataset.t));
+      pin.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectPlace(pin.dataset.t); } });
+    });
   } catch { /* offline: no map, the list below still works */ }
 }
+
+// Click a pin: highlight everything that happened there in the list (and the other way round)
+function selectPlace(ids) {
+  const set = new Set(String(ids).split(' '));
+  document.querySelectorAll('#talkList li').forEach((li) => li.classList.toggle('active', set.has(li.dataset.t)));
+  document.querySelectorAll('.map-pin').forEach((pin) => pin.classList.toggle('active', pin.dataset.t.split(' ').some((id) => set.has(id))));
+  const first = document.querySelector('#talkList li.active');
+  if (first && (first.getBoundingClientRect().top > innerHeight - 80 || first.getBoundingClientRect().top < 0)) first.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+}
+$('#talkList').addEventListener('click', (e) => {
+  const li = e.target.closest('li[data-t]');
+  if (li && !e.target.closest('a')) selectPlace(li.dataset.t);
+});
 // only load the map data when the Talks section comes near the screen
 new IntersectionObserver(([e], obs) => { if (e.isIntersecting) { obs.disconnect(); renderTalkMap(); } }, { rootMargin: '400px' }).observe($('#talks'));
 

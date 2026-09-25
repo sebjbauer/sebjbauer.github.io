@@ -94,11 +94,11 @@ const SITE = {
   talks: [
     { year: 2026, type: 'Invited talk', title: 'Beyond localization', where: 'SMLMS 2026, 15th Single Molecule Localization Microscopy Symposium', city: 'Stockholm', url: 'https://smlms.org/' },
     { year: 2026, type: 'Organisation', title: 'Local coordinator', where: 'SMLMS 2026, 15th Single Molecule Localization Microscopy Symposium', city: 'Stockholm', url: 'https://smlms.org/' },
-    { year: 2026, type: 'Organisation', title: 'Organising team', where: 'Protein Folding Conference', city: 'Stockholm' },
+    { year: 2026, type: 'Organisation', title: 'Local organising team', where: 'Protein Folding Conference', city: 'Stockholm' },
     { year: 2025, type: 'Selected talk', title: 'SMLMFlow: Improving structural resolution in SMLM with flow matching and GNNs', where: 'SMLMS 2025, Single Molecule Localization Microscopy Symposium', city: 'Bonn' },
     { year: 2025, type: 'Poster', title: 'SMLMFlow', where: 'LOGML 2025, London Geometry and Machine Learning Summer School, Imperial College London', city: 'London, United Kingdom' },
-    { year: 2024, type: 'Invited talk', title: 'SMLMFlow', where: 'Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge', city: 'Gothenburg' },
-    { year: 2024, type: 'Award', title: 'Best poster prize', where: 'Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge', city: 'Gothenburg' },
+    { year: 2025, type: 'Invited talk', title: 'SMLMFlow', where: 'Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge', city: 'Gothenburg' },
+    { year: 2025, type: 'Award', title: 'Best poster prize', where: 'Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge', city: 'Gothenburg' },
     { year: 2016, type: 'Award', title: '1st place, Hans Riegel-Fachpreis in physics, region Vienna', where: 'For the high-school final thesis on aerodynamics in road cycling', city: 'Vienna' },
   ],
 
@@ -726,7 +726,7 @@ function renderTalks() {
     <div class="pub-year">
       <h3>${y}</h3>
       <ol>${list.filter((t) => t.year === y).map((t) => `
-        <li>
+        <li data-t="${list.indexOf(t)}">
           ${t.url ? `<a class="pub-title" href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.title)}</a>` : `<span class="pub-title">${esc(t.title)}</span>`}
           <p class="pub-venue"><span class="pub-type ${t.type === 'Award' ? 'award-type' : ''}">${esc(t.type)}</span> ${esc(t.where)}</p>
         </li>`).join('')}</ol>
