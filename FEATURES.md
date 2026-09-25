@@ -318,6 +318,7 @@ Tab completes commands, ↑ repeats the last one.
 | `whoami` | Name, role and where you're based |
 | `whereami` | Coordinates and local time in Vienna |
 | `route cv` | The career trail drawn as text |
+| `moo` | All cows stop, lift their heads and look at you (hidden command) |
 | `activities` | Swimming, triathlon, tutoring (Beyond the lab) |
 | `education` | Schools and degrees, newest first |
 | `papers` | All publications with links, plus Google Scholar |

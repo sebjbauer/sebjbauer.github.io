@@ -882,7 +882,8 @@ function drawCow(c, t = 0) {
   const swing = c.walking ? Math.sin(t / 160) * 14 : 0;
   c.back.setAttribute('transform', swing ? `rotate(${swing.toFixed(1)} -3.1 -2.6)` : '');
   c.front.setAttribute('transform', swing ? `rotate(${(-swing).toFixed(1)} 3 -2.6)` : '');
-  c.head.setAttribute('transform', c.walking || c.busy ? '' : 'rotate(38 4.2 -6.8)'); // grazing: head down
+  const looking = performance.now() < (c.lookUntil || 0);
+  c.head.setAttribute('transform', looking ? 'rotate(-14 4.2 -6.8)' : c.walking || c.busy ? '' : 'rotate(38 4.2 -6.8)'); // grazing: head down
 }
 herd.forEach((c) => drawCow(c));
 let cowRaf = 0, cowLast = 0, cowDrawn = 0;
@@ -891,7 +892,7 @@ function cowStep(t) {
   const asleep = lastSky.d > 0.82;
   herd.forEach((c) => {
     c.el.classList.toggle('sleep', asleep && !c.busy);
-    if (c.busy || asleep) return;
+    if (c.busy || asleep || t < (c.lookUntil || 0)) return; // (moo: everyone stops and looks up)
     if (!c.walking && t > c.until) { // time to find fresh grass nearby
       c.tx = Math.max(350, Math.min(610, c.x + (Math.random() - 0.5) * 90));
       const [top, bottom] = cowBand(c.tx);
@@ -969,6 +970,15 @@ async function ufoVisit(force = false) {
   ufoOut = false;
 }
 ufo.querySelector('.hit').addEventListener('click', () => earnBadge('ufo'));
+
+// the terminal's "moo": every cow stops, lifts its head and looks at you for a few seconds
+COMMANDS.moo = () => {
+  const until = performance.now() + 4500;
+  herd.forEach((c) => { c.lookUntil = until + Math.random() * 600; c.walking = false; c.until = until + 1500 + Math.random() * 7000; });
+  closeGps(); scrollTo({ top: 0, behavior: 'smooth' });
+  return 'Moo.';
+};
+HIDDEN.push('moo');
 
 /* ---------------- the moose (älg) ---------------- */
 // Now and then a moose steps out of the Swedish forest, stops in the middle of the road to look
