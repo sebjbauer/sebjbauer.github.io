@@ -644,6 +644,12 @@ span.pub-title { display: inline; }
 .note hr { border: 0; border-top: 1px solid var(--line); margin: 36px 0; }
 .note-loading { color: var(--muted); }
 
+/* ---------- screensaver: only the landscape after a minute of no input ---------- */
+.hero-text { transition: opacity .35s ease-out; }
+.nav { transition: background-color .3s, color .3s, opacity .35s ease-out; }
+.screensaver .hero-text, .screensaver .nav { opacity: 0; transition: opacity 3s ease-in; pointer-events: none; }
+.screensaver, .screensaver * { cursor: none !important; }
+
 /* ---------- link-preview card (?card) ---------- */
 .card .nav, .card .hero-time, .card .weather, .card .birds, .card .iss, .card .toast { display: none !important; }
 .card .hero { height: 630px; min-height: 0; }

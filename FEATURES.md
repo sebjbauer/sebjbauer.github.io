@@ -255,6 +255,10 @@ When the link is shared (LinkedIn, WhatsApp, Slack, X, iMessage…), apps show `
 - **If your position changes**, the image has to be re-made: ask Claude to "regenerate the link preview image" (it's a snapshot of the `?card` view).
 - **LinkedIn remembers old previews** for about a week. To refresh it right away, paste the link into LinkedIn's Post Inspector: https://www.linkedin.com/post-inspector/
 
+## Screensaver
+
+After **one minute** without any mouse movement, scrolling, typing or touching, while the top of the page is on screen, the text and the menu slowly fade out (and the mouse pointer hides): only the live landscape remains. Any input brings everything back. It never starts while someone reads further down the page or while the terminal is open. Preview: `?screensaver` starts it after 3 seconds.
+
 ## The microscope stars
 
 Terminal command `smlm` (listed in `help`). **Only on clear nights**: during the day it says the stars aren't out, and when it's cloudy it says there are no stars to image.

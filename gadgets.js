@@ -649,6 +649,23 @@ COMMANDS.timelapse = (arg) => {
   return arg === 'year' ? 'Winter, spring, summer, autumn: here we go.' : 'Midnight to midnight in 20 seconds…';
 };
 
+/* ---------------- screensaver ---------------- */
+// After a minute without any input, while the top of the page is on screen, the text and menu
+// fade away and only the live landscape remains. Any movement brings them back.
+const IDLE_MS = params.has('screensaver') ? 3000 : 60000; // preview: ?screensaver starts after 3 seconds
+let idleTimer = 0;
+function wake() {
+  document.documentElement.classList.remove('screensaver');
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    const atTop = scrollY < innerHeight * 0.3;
+    if (atTop && gps.hidden && !document.hidden) document.documentElement.classList.add('screensaver');
+    else wake(); // try again later
+  }, IDLE_MS);
+}
+['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll'].forEach((ev) => addEventListener(ev, wake, { passive: true }));
+wake();
+
 /* ---------------- schedule ---------------- */
 setTimeout(() => ride(), 6000);
 every(35, 90, () => ride());
