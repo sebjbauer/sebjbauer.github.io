@@ -754,7 +754,6 @@ function renderContent() {
   const linkify = (t) => esc(t).replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => `<a href="${url}" target="_blank" rel="noopener">${label}</a>`);
   $('#heroLines').innerHTML = SITE.headline.map((l) => `<span>${linkify(l)}</span>`).join('');
   $('#heroPlace').textContent = SITE.location;
-  $('#nowText').textContent = SITE.now.text;
   $('#keywords').innerHTML = SITE.keywords.map((k) => `<li>${esc(k)}</li>`).join('');
   // languages from the CV: "German (native)" → "German"
   if (SITE.skills.Languages) $('#speaks').textContent = SITE.skills.Languages.map((l) => l.replace(/\s*\(.*\)/, '')).join(', ');
