@@ -412,11 +412,18 @@ function renderStars() {
 }
 
 const treeSpots = []; // [x, y, height] of every pine, in landscape units
+// Height of the meadow's top edge at x (landscape units), sampled from the top edge only
+// (the full outline also runs down the sides and along the bottom of the picture).
+let groundY = () => 446;
 function renderTrees() {
-  const ground = $('#groundPath'), len = ground.getTotalLength();
-  const yAt = {};
-  for (let s = 0; s <= 600; s++) { const pt = ground.getPointAtLength((s / 600) * len); yAt[Math.round(pt.x)] = pt.y; }
-  const groundY = (x) => { for (let d = 0; d < 20; d++) { if (yAt[x + d] !== undefined) return yAt[x + d]; if (yAt[x - d] !== undefined) return yAt[x - d]; } return 446; };
+  const ground = $('#groundPath');
+  const top = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  top.setAttribute('d', ground.getAttribute('d').replace(/^M0 520 L/, 'M').replace(/ L1440 520 Z$/, ''));
+  ground.parentNode.appendChild(top);
+  const len = top.getTotalLength(), yAt = {};
+  for (let s = 0; s <= 1600; s++) { const pt = top.getPointAtLength((s / 1600) * len); yAt[Math.round(pt.x)] = pt.y; }
+  top.remove();
+  groundY = (x) => { x = Math.round(x); for (let d = 0; d < 20; d++) { if (yAt[x + d] !== undefined) return yAt[x + d]; if (yAt[x - d] !== undefined) return yAt[x - d]; } return 446; };
   const pine = (x, y, h) => {
     const w = h * 0.55;
     return `<path d="M${x} ${y - h} L${x - w * .3} ${y - h * .6} L${x - w * .16} ${y - h * .6} L${x - w * .42} ${y - h * .28} L${x - w * .26} ${y - h * .28} L${x - w * .5} ${y} L${x + w * .5} ${y} L${x + w * .26} ${y - h * .28} L${x + w * .42} ${y - h * .28} L${x + w * .16} ${y - h * .6} L${x + w * .3} ${y - h * .6} Z"/>`;
@@ -460,9 +467,25 @@ function renderTrees() {
 // On phones, squeeze the view slightly so both the Alps and the Swedish lake fit
 function fitLandscape() {
   const narrow = innerWidth < 760;
+  // wide screens: the scene as big as possible (up to 66% of the screen height), as long as the
+  // summit cross (18 units above the peak, at y = 102 in the drawing) stays below the greeting text
+  let height = '', bottom = '';
+  if (!narrow && !document.querySelector('.card')) {
+    const hero = $('.hero').getBoundingClientRect(), textBottom = $('.hero-time').getBoundingClientRect().bottom - hero.top;
+    const room = ((hero.height - textBottom - 20) / (520 - 102)) * 520; // tallest landscape that keeps the cross clear
+    const h = Math.max(hero.height * 0.5, Math.min(hero.height * 0.66, room));
+    // the drawing always spans the full width; if even that is too big, let it sit a little lower
+    // (cutting off at most the front 24 units of meadow)
+    const scale = Math.max(innerWidth / 1440, h / 520), crossY = hero.height - (520 - 102) * scale;
+    const lower = Math.min(24 * scale, Math.max(0, textBottom + 20 - crossY));
+    height = `${Math.round(h)}px`; bottom = `${-Math.round(lower)}px`;
+  }
   document.querySelectorAll('.landscape').forEach((svg) => {
-    svg.setAttribute('viewBox', narrow ? '180 60 1260 460' : '0 0 1440 520');
-    svg.setAttribute('preserveAspectRatio', narrow ? 'none' : 'xMidYMax slice');
+    svg.style.height = height; svg.style.bottom = bottom;
+    // phones: a closer view, from the summit cross to the lake; wide screens: if the drawing has to
+    // be cropped, crop the far left of the Alps and keep the lake and the cottage
+    svg.setAttribute('viewBox', narrow ? '330 70 1110 450' : '0 0 1440 520');
+    svg.setAttribute('preserveAspectRatio', narrow ? 'none' : 'xMaxYMax slice');
   });
 }
 
@@ -1049,11 +1072,15 @@ setInterval(paintSky, 30000);
 // tick the clock exactly on each new second
 setTimeout(() => { tickClock(); setInterval(tickClock, 1000); }, 1000 - (Date.now() % 1000));
 // only react to real width changes (not the phone's address bar sliding in and out)
-let lastWidth = innerWidth, resizeTimer = 0;
+let lastWidth = innerWidth, lastHeight = innerHeight, resizeTimer = 0;
 addEventListener('resize', () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { if (innerWidth !== lastWidth) { lastWidth = innerWidth; fitLandscape(); paintSky(); } }, 150);
+  resizeTimer = setTimeout(() => {
+    const wide = innerWidth >= 760; // on phones the height changes whenever the address bar slides
+    if (innerWidth !== lastWidth || (wide && innerHeight !== lastHeight)) { lastWidth = innerWidth; lastHeight = innerHeight; fitLandscape(); paintSky(); }
+  }, 150);
 });
+document.fonts?.ready.then(fitLandscape); // the text's height is only final once the web font has loaded
 // pause every hero animation while the hero is scrolled out of view
 new IntersectionObserver(([e]) => $('.hero').classList.toggle('off', !e.isIntersecting)).observe($('.hero'));
 const updateNav = () => $('.nav').classList.toggle('scrolled', scrollY > innerHeight * 0.6);

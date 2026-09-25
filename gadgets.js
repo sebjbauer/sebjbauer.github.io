@@ -859,12 +859,7 @@ moose.addEventListener('click', () => { mooseHurry = true; earnBadge('moose'); }
 // to roam, allows it there). The campfire burns from an hour before sunset until 23:30; after
 // dark a headlamp lights up the tent until midnight. The tent is packed up two hours after sunrise.
 const camp = $('#camp');
-(function placeCamp() {
-  const ground = $('#groundPath'), len = ground.getTotalLength(), X = 690;
-  let lo = 0, hi = len;
-  for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; if (ground.getPointAtLength(m).x < X) lo = m; else hi = m; }
-  camp.setAttribute('transform', `translate(${X} ${(ground.getPointAtLength(lo).y + 1).toFixed(1)}) scale(1.3)`);
-})();
+camp.setAttribute('transform', `translate(690 ${(groundY(690) + 1).toFixed(1)}) scale(1.3)`);
 function campState({ h, d, sunT }) {
   const forced = params.has('tent');
   const evening = h >= sunT.set - 1 || h < sunT.rise + 2;
