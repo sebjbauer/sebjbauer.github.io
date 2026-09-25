@@ -40,9 +40,12 @@ jobs:
           source: ./
           destination: ./_site
 
-      - name: Add the CV PDF to the site
+      - name: Add the CV PDF and the CV data to the site
         run: |
           sudo cp cv/cv.pdf _site/cv.pdf
+          # Jekyll skips files listed in .gitignore, so the generated CV data is copied in by hand
+          sudo cp cv-data.js _site/cv-data.js
+          test -s _site/cv-data.js && test -s _site/cv.pdf
           # a new version number for the CV data on every push, so phones don't keep an old copy
           sudo sed -i "s/cv-data.js?v=[A-Za-z0-9]*/cv-data.js?v=${GITHUB_SHA::8}/" _site/index.html
 

@@ -23,6 +23,10 @@ const BADGES = [
   ['triathlon', 'Swim, bike, run', 'cheered on the triathlete', 'summer days by the lake'],
   ['xc', 'Diagonal stride', 'waved at the cross-country skier', 'long skis in winter, tiny wheels the rest of the year'],
   ['bbq', 'Grill master', 'caught the penguin at the barbecue', 'the penguin has a hobby too'],
+  ['ripple', 'Interference', 'made two ripples meet on the lake', 'tap the water, then tap it again'],
+  ['life', 'Conway', 'brought the stars to life', 'a game with no players, on a clear night'],
+  ['descend', 'Momentum', 'helped the hiker find the lowest point', 'the hiker knows some optimisation'],
+  ['fractal', 'Self-similar', 'saw the forest grow as fractals', 'trees made of smaller trees'],
 ];
 let earned = (() => { try { return JSON.parse(store.get('badges') || '[]'); } catch { return []; } })();
 function earnBadge(id) {
@@ -58,24 +62,42 @@ function smlmShow() {
   const o = off.getContext('2d');
   o.font = `600 ${Math.round(size * 0.9)}px ${getComputedStyle(document.body).fontFamily}`;
   o.textAlign = 'center'; o.textBaseline = 'middle'; o.fillText('SB', size, size * 0.55);
-  const px = o.getImageData(0, 0, off.width, off.height).data, pts = [];
-  for (let y = 0; y < off.height; y += 3) for (let x = 0; x < off.width; x += 3) if (px[(y * off.width + x) * 4 + 3] > 128) pts.push([cx - size + x, cy - size / 2 + y]);
+  const px = o.getImageData(0, 0, off.width, off.height).data;
+  // the sample: molecules sit in small nanoclusters along the letters, as many membrane proteins do
+  const k = size / 170, gap = 10 * k, mols = [];
+  for (let y = gap / 2; y < off.height; y += gap) {
+    for (let x = gap / 2; x < off.width; x += gap) {
+      const jx = x + (Math.random() - 0.5) * 3 * k, jy = y + (Math.random() - 0.5) * 3 * k;
+      if (px[(Math.round(jy) * off.width + Math.round(jx)) * 4 + 3] <= 128) continue;
+      for (let m = 3 + Math.floor(Math.random() * 4); m > 0; m--) {
+        const r = 1.8 * k * Math.sqrt(Math.random()), a = Math.random() * 6.283;
+        mols.push([cx - size + jx + r * Math.cos(a), cy - size / 2 + jy + r * Math.sin(a)]);
+      }
+    }
+  }
+  const locs = []; // every localization, for the cluster analysis at the end
+  const sigma = 0.75 * k;
 
   // localizations accumulate on a second canvas
   const acc = document.createElement('canvas'); acc.width = cv.width; acc.height = cv.height;
   const a = acc.getContext('2d'); a.setTransform(r, 0, 0, r, 0, 0); a.fillStyle = 'rgba(159, 242, 200, 0.5)';
   const gauss = () => Math.sqrt(-2 * Math.log(Math.random() || 1e-9)) * Math.cos(2 * Math.PI * Math.random());
-  const ACQUIRE = 9000, HOLD = 3500, FADE = 2500, blinks = [];
-  let t0 = 0, last = 0;
+  const ACQUIRE = 9000, HOLD = 5500, FADE = 2500, blinks = [];
+  let t0 = 0, last = 0, clustered = null;
   hero.classList.add('smlm-on');
 
   function frame(t) {
     if (!t0) t0 = last = t;
     const el = t - t0, dt = Math.min(0.05, (t - last) / 1000); last = t;
-    if (el < ACQUIRE) for (let k = Math.round(dt * 380); k > 0; k--) blinks.push({ p: pts[Math.floor(Math.random() * pts.length)], life: 0.05 + Math.random() * 0.1 });
+    if (el < ACQUIRE) for (let n = Math.round(dt * 380); n > 0; n--) blinks.push({ p: mols[Math.floor(Math.random() * mols.length)], life: 0.05 + Math.random() * 0.1 });
+    // once the acquisition is done, a cluster analysis (DBSCAN) colours each nanocluster
+    if (el >= ACQUIRE && !clustered) clustered = clusterImage(locs, 2.3 * k, 7, cv.width, cv.height, r);
     ctx.clearRect(0, 0, W, H);
-    ctx.globalAlpha = el > ACQUIRE + HOLD ? Math.max(0, 1 - (el - ACQUIRE - HOLD) / FADE) : 1;
+    const fade = el > ACQUIRE + HOLD ? Math.max(0, 1 - (el - ACQUIRE - HOLD) / FADE) : 1;
+    const mixIn = clustered ? Math.min(1, (el - ACQUIRE) / 900) : 0;
+    ctx.globalAlpha = fade * (1 - mixIn);
     ctx.drawImage(acc, 0, 0, W, H);
+    if (clustered) { ctx.globalAlpha = fade * mixIn; ctx.drawImage(clustered, 0, 0, W, H); }
     ctx.globalAlpha = 1;
     // blinking molecules: a soft glow and a bright core; every frame adds a localization
     const glow = new Path2D(), core = new Path2D();
@@ -83,7 +105,10 @@ function smlmShow() {
       const b = blinks[i], [x, y] = b.p;
       glow.moveTo(x + 3.4, y); glow.arc(x, y, 3.4, 0, 6.29);
       core.moveTo(x + 1.2, y); core.arc(x, y, 1.2, 0, 6.29);
-      a.fillRect(x + gauss() * 1.1, y + gauss() * 1.1, 1.1, 1.1);
+      if (el < ACQUIRE) {
+        const lx = x + gauss() * sigma, ly = y + gauss() * sigma;
+        a.fillRect(lx, ly, 1.1, 1.1); locs.push(lx, ly);
+      }
       if ((b.life -= dt) <= 0) blinks.splice(i, 1);
     }
     ctx.fillStyle = 'rgba(200, 255, 225, 0.22)'; ctx.fill(glow);
@@ -92,6 +117,63 @@ function smlmShow() {
     else { ctx.clearRect(0, 0, W, H); hero.classList.remove('smlm-on'); smlmRunning = false; }
   }
   requestAnimationFrame(frame);
+}
+
+// DBSCAN (Ester et al. 1996), the standard cluster analysis for SMLM data: a point with at least
+// minPts neighbours within eps starts a cluster, which grows through its neighbours' neighbours.
+// Points that belong to no cluster are noise. xy = [x0, y0, x1, y1, …]. Returns a label per point (-1 = noise).
+function dbscan(xy, eps, minPts) {
+  const n = xy.length / 2, label = new Int32Array(n).fill(-2), grid = new Map(), e2 = eps * eps;
+  const key = (gx, gy) => gx * 100003 + gy;
+  for (let i = 0; i < n; i++) {
+    const kk = key(Math.floor(xy[2 * i] / eps), Math.floor(xy[2 * i + 1] / eps));
+    if (!grid.has(kk)) grid.set(kk, []);
+    grid.get(kk).push(i);
+  }
+  const near = (i) => {
+    const x = xy[2 * i], y = xy[2 * i + 1], gx = Math.floor(x / eps), gy = Math.floor(y / eps), out = [];
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+      for (const j of grid.get(key(gx + dx, gy + dy)) || []) {
+        const ddx = xy[2 * j] - x, ddy = xy[2 * j + 1] - y;
+        if (ddx * ddx + ddy * ddy <= e2) out.push(j);
+      }
+    }
+    return out;
+  };
+  let c = 0;
+  for (let i = 0; i < n; i++) {
+    if (label[i] !== -2) continue;
+    const nb = near(i);
+    if (nb.length < minPts) { label[i] = -1; continue; }
+    label[i] = c;
+    const queue = nb;
+    for (let q = 0; q < queue.length; q++) {
+      const j = queue[q];
+      if (label[j] === -1) label[j] = c;   // noise at the edge of a cluster joins it
+      if (label[j] !== -2) continue;
+      label[j] = c;
+      const nb2 = near(j);
+      if (nb2.length >= minPts) for (const m of nb2) if (label[m] < 0) queue.push(m);
+    }
+    c++;
+  }
+  return label;
+}
+
+// the localizations again, each cluster in its own colour (hues spaced by the golden angle), noise in grey
+function clusterImage(xy, eps, minPts, w, h, r) {
+  const label = dbscan(xy, eps, minPts), img = document.createElement('canvas');
+  img.width = w; img.height = h;
+  const g = img.getContext('2d');
+  g.setTransform(r, 0, 0, r, 0, 0);
+  const byColour = new Map();
+  for (let i = 0; i < label.length; i++) {
+    const colour = label[i] < 0 ? 'rgba(150, 160, 170, .35)' : `hsla(${(label[i] * 137.5) % 360}, 85%, 68%, .85)`;
+    if (!byColour.has(colour)) byColour.set(colour, new Path2D());
+    byColour.get(colour).rect(xy[2 * i], xy[2 * i + 1], 1.2, 1.2);
+  }
+  for (const [colour, path] of byColour) { g.fillStyle = colour; g.fill(path); }
+  return img;
 }
 
 COMMANDS.smlm = () => {
@@ -447,18 +529,39 @@ async function ski() {
   skier.classList.remove('out');
 }
 
-// migrating birds in spring and autumn, in daylight
-function birds() {
+// Migrating geese in spring and autumn, in daylight: south (towards the Alps, left) in autumn,
+// north (towards Sweden, right) in spring. Leading the V is the hardest work, so now and then
+// the lead goose drops back and one from the front of the other arm takes over.
+const geese = [...document.querySelectorAll('#birds .goose')];
+let vLead = 0, vArms = [[1, 2, 3], [4, 5, 6]], vSide = 0, vTimers = [];
+function formation() {
+  const at = (g, x, y) => { geese[g].style.transform = `translate(${x}px, ${y}px)`; };
+  at(vLead, 6, 35);
+  vArms[0].forEach((g, i) => at(g, 6 + 13 * (i + 1), 35 - 8 * (i + 1)));
+  vArms[1].forEach((g, i) => at(g, 6 + 13 * (i + 1), 35 + 8 * (i + 1)));
+}
+function changeLead() {
+  const other = 1 - vSide;
+  vArms[vSide].push(vLead);        // the leader drops back to the end of one arm …
+  vLead = vArms[other].shift();    // … and the first goose of the other arm moves to the front
+  vSide = other;
+  formation();
+}
+function birds(force = false) {
   const season = currentSeason();
-  if (!['spring', 'autumn'].includes(season) || lastSky.d > 0.6 || !heroVisible() || reduceMotion) return;
+  if (!force && (!['spring', 'autumn'].includes(season) || lastSky.d > 0.6 || !heroVisible() || reduceMotion)) return;
   const b = $('#birds');
+  if (b.classList.contains('fly') && !force) return;
+  vTimers.forEach(clearTimeout);
   b.classList.remove('fly', 'north');
   void b.getBoundingClientRect();
   b.style.top = 8 + Math.random() * 20 + '%';
   b.classList.add('fly');
-  if (season === 'spring') b.classList.add('north'); // heading north in spring, south in autumn
+  if (season === 'spring') b.classList.add('north');
+  vTimers = [setTimeout(changeLead, 8000), setTimeout(changeLead, 17000)];
 }
-$('#birds').addEventListener('animationend', (e) => { if (e.target.id === 'birds') e.target.classList.remove('fly', 'north'); });
+formation();
+$('#birds').addEventListener('animationend', (e) => { if (e.target.id === 'birds') { e.target.classList.remove('fly', 'north'); vTimers.forEach(clearTimeout); } });
 
 // the ice skater spins when clicked
 $('#skater').addEventListener('click', () => {
@@ -734,4 +837,4 @@ if (params.has('iss')) { // preview: a pass from west-south-west to east over 40
   let k = 0; placeIss(240, 12);
   const demo = setInterval(() => { k += 1; placeIss(240 - k * 12, 12 + Math.sin((k / 12) * Math.PI) * 45); if (k >= 12) { clearInterval(demo); setTimeout(() => issDot.classList.remove('show', 'demo'), 4000); } }, 3300);
 }
-if (params.has('birds')) setTimeout(() => { const b = $('#birds'); b.style.top = '14%'; b.classList.add('fly'); }, 800);
+if (params.has('birds')) setTimeout(() => birds(true), 800);

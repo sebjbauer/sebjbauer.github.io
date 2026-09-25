@@ -174,6 +174,9 @@ function paintSky() {
   const left = ((narrow ? 20 : 48) + p * (narrow ? 70 : 46)).toFixed(2) + '%', top = ((narrow ? 63 : 62) - Math.sin(p * Math.PI) * (narrow ? 6 : 44)).toFixed(2) + '%';
   if (sun.style.left !== left) sun.style.left = left;
   if (sun.style.top !== top) sun.style.top = top;
+  // Near the horizon the air bends light from the lower edge more than from the upper edge,
+  // so the sun (and the moon) look squashed into an oval as they rise and set.
+  setVar('--squash', (1 - 0.17 * Math.exp(-Math.sin(p * Math.PI) / 0.09)).toFixed(3));
   skyHooks.forEach((fn) => fn({ h, d, isDay, sunT }));
 }
 
@@ -288,6 +291,7 @@ const weather = (() => {
       p.c = kind === 'leaves' ? palette[Math.floor(Math.random() * palette.length)] : ['#F6C7D6', '#FFFFFF', '#F3B6CA'][Math.floor(Math.random() * 3)];
     } else if (kind === 'fireflies') {
       p.y = H * (0.62 + Math.random() * 0.36); p.vx = (Math.random() - 0.5) * 18; p.vy = (Math.random() - 0.5) * 12;
+      p.clock = Math.random(); p.rate = 1 / (1.7 + Math.random() * 0.4); // each has its own inner clock, one flash every ~2 s
     }
     return p;
   }
@@ -336,11 +340,26 @@ const weather = (() => {
       }
       ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.fill();
     } else if (kind === 'fireflies') {
+      // Synchronous fireflies (pulse-coupled oscillators, Mirollo & Strogatz 1990): each flash
+      // nudges the inner clocks of nearby fireflies forward, so over a minute they fall into step.
+      const flashed = [];
       for (const p of parts) {
         p.x += (p.vx + Math.sin(t / 900 + p.phase) * 12) * dt; p.y += (p.vy + Math.cos(t / 1100 + p.phase) * 9) * dt;
         if (p.x < 0 || p.x > W || p.y < H * 0.55 || p.y > H) spawn(p, true);
-        ctx.globalAlpha = Math.max(0, Math.sin(t / 600 + p.phase)) ** 3;
-        ctx.fillStyle = '#F4E27A'; ctx.beginPath(); ctx.arc(p.x, p.y, 1.8, 0, 6.29); ctx.fill();
+        if ((p.clock += p.rate * dt) >= 1) { p.clock = 0; flashed.push(p); }
+      }
+      for (const f of flashed) {
+        for (const p of parts) {
+          const dx = p.x - f.x, dy = p.y - f.y;
+          if (p.clock > 0 && dx * dx + dy * dy < 200 * 200) p.clock = Math.min(1, p.clock * 1.12);
+        }
+      }
+      ctx.fillStyle = '#F4E27A';
+      for (const p of parts) {
+        const glow = 1 - p.clock / 0.22; // a short flash right after the clock resets
+        if (glow <= 0) continue;
+        ctx.globalAlpha = glow * glow;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 1.8, 0, 6.29); ctx.fill();
       }
       ctx.globalAlpha = 1;
     } else {
@@ -392,6 +411,7 @@ function renderStars() {
     `<svg class="${i ? `tw tw${i}` : ''}" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMin slice">${c}</svg>`).join('');
 }
 
+const treeSpots = []; // [x, y, height] of every pine, in landscape units
 function renderTrees() {
   const ground = $('#groundPath'), len = ground.getTotalLength();
   const yAt = {};
@@ -403,13 +423,14 @@ function renderTrees() {
   };
   let seed = 3, out = '';
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  treeSpots.length = 0;
   // sparse spruce on the Alpine side, dense Swedish forest on the right
   for (let x = 20; x < 1440; x += 0) {
     const swedish = x > 620;
     if (x > 1150 && x < 1240) { x += 12; continue; } // clearing for the stuga
     const h = swedish ? 26 + rnd() * 30 : 18 + rnd() * 20;
     const baseY = x > 930 ? 447 : groundY(Math.round(x));
-    if (swedish || rnd() < 0.35) out += pine(Math.round(x), baseY + 2, Math.round(h));
+    if (swedish || rnd() < 0.35) { out += pine(Math.round(x), baseY + 2, Math.round(h)); treeSpots.push([Math.round(x), baseY + 2, Math.round(h)]); }
     x += swedish ? 9 + rnd() * 14 : 16 + rnd() * 30;
   }
   $('#trees').innerHTML = out;
@@ -428,9 +449,9 @@ function renderTrees() {
   let flowers = '';
   for (let i = 0; i < 90; i++) {
     const x = Math.round(10 + rnd() * 900), gy = groundY(x), y = gy + 8 + rnd() * (512 - gy - 8), c = 1 + Math.floor(rnd() * 4), r = 1.3 + rnd() * 1.1;
-    flowers += `<g class="f${c}" transform="translate(${x} ${y.toFixed(1)})">` +
+    flowers += `<g class="f${c}" transform="translate(${x} ${y.toFixed(1)})"><g class="petals">` +
       [0, 72, 144, 216, 288].map((a) => `<circle cx="${(Math.cos(a * Math.PI / 180) * r * 1.3).toFixed(2)}" cy="${(Math.sin(a * Math.PI / 180) * r * 1.3).toFixed(2)}" r="${r.toFixed(2)}"/>`).join('') +
-      `<circle class="c" r="${(r * 0.8).toFixed(2)}"/></g>`;
+      `</g><circle class="c" r="${(r * 0.8).toFixed(2)}"/></g>`;
   }
   $('#flowers').innerHTML = flowers;
 }
@@ -496,6 +517,7 @@ function renderProfile() {
     ...SITE.education.map((w, i) => ({ w, k: `edu-${i}`, type: 'edu', a: yearValue(w.from), b: yearValue(w.to) })),
     ...SITE.cv.map((w, i) => ({ w, k: `job-${i}`, type: 'job', a: yearValue(w.from), b: yearValue(w.to) })),
   ];
+  if (!entries.length) { console.warn('No CV data: run python3 cv/tex2web.py'); return; }
   const y0 = Math.min(...entries.map((r) => r.a)) - 0.7, y1 = yearValue('now') + 0.6;
   const X = (y) => pad + ((y - y0) / (y1 - y0)) * (W - 2 * pad);
   const nowX = X(yearValue('now'));
@@ -821,6 +843,9 @@ const COMMANDS = {
   <b class="warn">holiday</b> &lt;name&gt; christmas | easter | midsommar | live
   <b class="warn">riddle</b>        for the curious
   <b class="warn">smlm</b>          point the microscope at the stars (clear nights only)
+  <b class="warn">life</b>          Conway's Game of Life in the stars (clear nights only)
+  <b class="warn">descend</b>       the hiker tries gradient descent
+  <b class="warn">fractal</b>       grow the forest as fractals (again to undo)
   <b class="warn">badges</b>        what you've discovered so far
   <b class="warn">iss</b>           where the space station is right now
   <b class="warn">timelapse</b>     a whole day in 20 seconds (or: timelapse year)

@@ -202,10 +202,12 @@ def parse(tex):
     for k in ('cv', 'education'):
         for w in data[k]:
             w.pop('years', None)
+        data[k].sort(key=order)
+    # activities newest first (by when they ended), like in the PDF
+    data['extracurricular'].sort(key=lambda w: order({'from': w['to'], 'to': w['from']}), reverse=True)
     for w in data['extracurricular']:
         w.pop('from', None)
         w.pop('to', None)
-        data[k].sort(key=order)
     data['publications'].sort(key=lambda p: -p['year'])
     for k in ('cv', 'education', 'extracurricular'):
         for w in data[k]:

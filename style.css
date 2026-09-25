@@ -125,7 +125,7 @@ kbd {
 .hero.off *, .hero.off *::before { animation-play-state: paused !important; }
 .sun {
   position: absolute; width: 52px; height: 52px; border-radius: 50%;
-  background: var(--sun); transform: translate(-50%, -50%);
+  background: var(--sun); transform: translate(-50%, -50%) scaleY(var(--squash, 1));
   transition: left 1.5s, top 1.5s, background-color 1.5s;
 }
 .sun.moon { width: 40px; height: 40px; background: none; }
@@ -146,6 +146,10 @@ kbd {
 #flowers .f1 circle { fill: #F4D35E; } #flowers .f2 circle { fill: #FFFFFF; }
 #flowers .f3 circle { fill: #E58FB1; } #flowers .f4 circle { fill: #A99BEA; }
 #flowers .c { fill: #E9B233 !important; }
+/* flowers close for the night (nyctinasty) and open again in the morning */
+#flowers .petals { transform-box: fill-box; transform-origin: center; }
+[data-daylight="no"] #flowers .petals { transform: scale(.4); }
+[data-daylight="no"] #flowers .c { display: none; }
 .weather { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 /* soft edge where a coloured meadow meets the page */
 .hero::after { content: ''; position: absolute; inset: auto 0 0 0; height: 3%; background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none; }
@@ -159,6 +163,7 @@ kbd {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 #trees path { fill: var(--tree); }
+#trees.fractal path { fill: none; stroke: var(--tree); stroke-width: .8; stroke-linecap: round; }
 .l-snow { fill: var(--snow); transition: fill 1.5s; }
 .l-cross { stroke: var(--snow); stroke-width: 2; fill: none; }
 .l-lake { fill: var(--lake); transition: fill 1.5s; }
@@ -197,16 +202,21 @@ kbd {
 [data-rainbow="yes"][data-daylight="yes"] .rainbow { opacity: .38; }
 .smlm { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .hero.smlm-on .starfield { opacity: calc(var(--stars) * .35); }
-.birds { position: absolute; left: 0; top: 15%; width: 110px; height: 46px; opacity: 0; pointer-events: none; will-change: transform; }
-.birds .b { fill: none; stroke: var(--hero-ink); stroke-width: 1.4; stroke-linecap: round; opacity: .7; transform-box: fill-box; transform-origin: center; animation: flap .45s ease-in-out infinite alternate; }
-.birds .b:nth-child(2n) { animation-delay: -.2s; }
+.birds { position: absolute; left: 0; top: 15%; width: 66px; height: 64px; opacity: 0; pointer-events: none; will-change: transform; }
+.birds .goose { transition: transform 3s ease-in-out; }
+.birds .b, .birds .neck { fill: none; stroke: var(--hero-ink); stroke-width: 1.4; stroke-linecap: round; opacity: .7; }
+.birds .b { transform-box: fill-box; transform-origin: center; animation: flap .45s ease-in-out infinite alternate; }
+.birds .goose:nth-child(2n) .b { animation-delay: -.2s; }
+.flock { position: absolute; left: 0; top: 0; width: 100%; height: 55%; pointer-events: none; }
+.ripples { position: absolute; pointer-events: none; }
+.hero.life-on .starfield { opacity: calc(var(--stars) * .2); }
 @keyframes flap { to { transform: scaleY(.35); } }
 .birds.fly { opacity: 1; animation: fly-south 26s linear forwards; }
 .birds.fly.north { animation-name: fly-north; }
 @keyframes fly-south { from { transform: translateX(105vw); } to { transform: translateX(-130px); } }
 @keyframes fly-north { from { transform: translateX(-130px) scaleX(-1); } to { transform: translateX(105vw) scaleX(-1); } }
 .road { fill: none; stroke: color-mix(in srgb, var(--ground, var(--bg)) 78%, #7A7A7A); stroke-width: 5; stroke-linecap: round; transition: stroke 1.5s; }
-.ice-cracks { display: none; fill: none; stroke: #FFFFFF; stroke-width: 1; opacity: .55; }
+.ice-cracks { display: none; fill: none; stroke: #FFFFFF; stroke-width: .8; stroke-linejoin: round; opacity: .5; }
 [data-frozen="yes"] .ice-cracks { display: inline; }
 [data-frozen="yes"] .l-shimmer { display: none; }
 
@@ -231,12 +241,11 @@ kbd {
 
 .ducks { display: none; }
 [data-season="summer"][data-frozen="no"][data-daylight="yes"] .ducks { display: inline; }
-.dk-swim { animation: paddle 70s ease-in-out infinite; }
-.dk-flip { transform-box: fill-box; transform-origin: center; animation: paddle-flip 70s steps(1) infinite; }
-@keyframes paddle { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(300px); } }
-@keyframes paddle-flip { 0% { transform: scaleX(1); } 50% { transform: scaleX(-1); } }
 .dk-body { fill: #7A5B3A; } .dk-head { fill: #2F6B3C; } .dk-head2 { fill: #8A6A48; } .dk-beak { fill: #E0A030; }
 
+.fish { display: none; }
+.fish.show { display: inline; }
+.fish path { fill: var(--figure); }
 .cyclist, .skier, .penguin { display: none; }
 .cyclist.out, .skier.out, .penguin.out { display: inline; }
 .cyclist .tucked { display: none; }
@@ -457,6 +466,11 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 #eduList li.active .tl-years { color: var(--edu); }
 .timeline li::after { border-color: var(--edu); }
 #profile .hiker { pointer-events: none; }
+#profile .gd { pointer-events: none; transition: opacity .8s; }
+#profile .gd.gone { opacity: 0; }
+#profile .gd-status { fill: var(--muted); font: 13px var(--sans); }
+#profile .gd-plain { fill: var(--muted); opacity: .7; }
+#profile .gd-momentum { fill: var(--accent); }
 #profile .hiker line { stroke: var(--text); stroke-width: 1.6; stroke-linecap: round; }
 #profile .hiker circle { fill: var(--text); }
 #profile .hiker .pack { fill: var(--accent); }
@@ -466,6 +480,11 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 #profile .hiker .lamp { fill: #FFF3B0; }
 #profile .hiker .beam { fill: #FFF3B0; opacity: .22; stroke: none; }
 #profile .hiker .cup, #profile .hiker .sit-legs { display: none; }
+#profile .hiker .umbrella-packed, #profile .hiker .umbrella-open { display: none; }
+#profile .hiker.rain-soon .umbrella-packed, #profile .hiker.rain .umbrella-open { display: inline; }
+#profile .hiker .umbrella-packed line, #profile .hiker .umbrella-open line { stroke-width: 1; }
+#profile .hiker .umbrella-packed path { fill: none; stroke: var(--text); stroke-width: 1; stroke-linecap: round; }
+#profile .hiker .canopy { fill: var(--accent); }
 #profile .hiker .sit-legs { fill: none; stroke: var(--text); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 #profile .hiker.sitting .walk-legs { display: none; }
 #profile .hiker.sitting .cup, #profile .hiker.sitting .sit-legs { display: inline; }

@@ -85,6 +85,7 @@ const WEATHER_PRESETS = {
   drizzle: { code: 53, cloud: 95, temp: 10 }, snow: { code: 73, cloud: 100, temp: -3 }, storm: { code: 95, cloud: 100, temp: 18 },
   fog: { code: 45, cloud: 60, temp: 4 }, frost: { code: 0, cloud: 10, temp: -6 },
   rainbow: { code: 1, cloud: 35, temp: 16, recentRain: true },
+  forecast: { code: 3, cloud: 80, temp: 12, rainSoon: true }, // dry now, rain expected soon
 };
 let weatherNow = null, simulated = null, stormTimer = 0;
 
@@ -120,10 +121,12 @@ async function fetchWeather() {
   if (simulated) return;
   const p = base();
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m,weather_code,cloud_cover,wind_speed_10m&hourly=precipitation&past_hours=3&forecast_hours=1&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m,weather_code,cloud_cover,wind_speed_10m&hourly=precipitation,precipitation_probability&past_hours=3&forecast_hours=6&timezone=auto`;
     const { current, hourly } = await (await fetch(url)).json();
-    const pastRain = (hourly?.precipitation || []).slice(0, -1).reduce((sum, mm) => sum + (mm || 0), 0);
-    weatherNow = { code: current.weather_code, cloud: current.cloud_cover, temp: current.temperature_2m, wind: current.wind_speed_10m, recentRain: pastRain >= 0.2 };
+    // the hourly lists hold the 3 past hours, then the next 6
+    const pastRain = (hourly?.precipitation || []).slice(0, 3).reduce((sum, mm) => sum + (mm || 0), 0);
+    const chance = Math.max(0, ...(hourly?.precipitation_probability || []).slice(3).map((v) => v || 0));
+    weatherNow = { code: current.weather_code, cloud: current.cloud_cover, temp: current.temperature_2m, wind: current.wind_speed_10m, recentRain: pastRain >= 0.2, rainSoon: chance >= 60 };
     applyWeather(weatherNow);
   } catch { /* offline: keep the clear default */ }
 }
@@ -140,7 +143,7 @@ COMMANDS.weather = async (arg) => {
   const w = weatherNow;
   return `Live weather in ${esc(base().city)}:
   ${Math.round(w.temp)}°C, ${WEATHER_NAMES[w.code] || 'unknown'}
-  clouds ${w.cloud}%, wind ${Math.round(w.wind)} km/h
+  clouds ${w.cloud}%, wind ${Math.round(w.wind)} km/h${w.rainSoon ? '\n  rain likely in the next hours' : ''}
 The sky on this page shows the same.`;
 };
 
@@ -261,6 +264,7 @@ skyHooks.push(({ d }) => {
 /* ---------------- the hiker on the career trail ---------------- */
 // Fika: from 15:00 to 15:15 Vienna time the hiker sits down with a coffee (preview: ?fika)
 const fikaTime = () => params.has('fika') || (localHour() >= 15 && localHour() < 15.25);
+const hiker = { busy: false }; // filled in by setupHiker()
 function setupHiker() {
   const svg = $('#profile'), trail = svg.querySelector('.trail');
   const total = trail.getTotalLength();
@@ -269,6 +273,7 @@ function setupHiker() {
   const stops = {};
   svg.querySelectorAll('.wp').forEach((el) => { stops[el.dataset.k] = lengthAtX(+el.dataset.x); });
   const start = svg.querySelector('.wp.active') || svg.querySelector('.wp');
+  if (!start) return; // no career data (cv-data.js missing): no hiker
 
   svg.insertAdjacentHTML('beforeend', `<g class="hiker" aria-hidden="true"><g class="hk">
     <g class="hk-upper">
@@ -277,13 +282,21 @@ function setupHiker() {
       <path class="beam" d="M3 -20.6 L16 -25 L16 -15 Z"/><circle class="lamp" cx="2.7" cy="-20.6" r=".9"/>
       <line x1="0" y1="-17" x2="0" y2="-9"/>
       <g class="cup"><rect x="2.4" y="-14" width="2.6" height="3" rx=".6"/><path class="steam" d="M3.2 -15.5 q-1 -1.5 0 -3 M4.4 -15.5 q1 -1.5 0 -3"/><line x1="0" y1="-14" x2="2.6" y2="-12.6"/></g>
+      <g class="umbrella-packed"><line x1="-6.5" y1="-8" x2="-1.5" y2="-21"/><path d="M-1.5 -21 q1 -1.2 2 -.4"/></g>
+      <g class="umbrella-open"><line x1="0" y1="-15" x2="1.5" y2="-29"/><path class="canopy" d="M-7 -26.5 Q1.5 -35.5 10 -28.5 Q7.5 -27.8 5.5 -28 Q3.5 -28.6 1.5 -27.8 Q-0.5 -27.2 -2.5 -27.3 Q-4.8 -27.2 -7 -26.5 Z"/></g>
     </g>
     <g class="walk-legs"><line class="leg a" x1="0" y1="-9" x2="-2" y2="0"/><line class="leg b" x1="0" y1="-9" x2="2" y2="0"/><line class="pole" x1="1" y1="-14" x2="5" y2="0"/></g>
     <path class="sit-legs" d="M0 -5 L4 -7.5 L6 0"/>
   </g></g>`);
   const g = svg.querySelector('.hiker'), hk = g.querySelector('.hk'), legA = g.querySelector('.leg.a'), legB = g.querySelector('.leg.b');
+  // an umbrella: open while it rains, packed on the rucksack when the forecast says rain is coming
+  skyHooks.push(() => {
+    const raining = live.particle === 'rain' || live.particle === 'drizzle';
+    g.classList.toggle('rain', raining);
+    g.classList.toggle('rain-soon', !raining && !!(simulated || weatherNow)?.rainSoon);
+  });
 
-  let pos = 0, target = stops[start.dataset.k], visible = false, raf = 0, last = 0;
+  let pos = 0, target = stops[start.dataset.k], visible = false, raf = 0, last = 0, walkSpeed = 0.09;
   const place = (t) => {
     const pt = trail.getPointAtLength(pos);
     g.setAttribute('transform', `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
@@ -296,16 +309,31 @@ function setupHiker() {
   const step = (t) => {
     const dt = Math.min(50, t - (last || t)); last = t;
     const dir = Math.sign(target - pos);
-    pos = dir > 0 ? Math.min(target, pos + dt * 0.09) : Math.max(target, pos - dt * 0.09);
+    pos = dir > 0 ? Math.min(target, pos + dt * walkSpeed) : Math.max(target, pos - dt * walkSpeed);
     place(t);
     raf = pos !== target && visible ? requestAnimationFrame(step) : 0;
     if (!raf) { last = 0; place(0); }
   };
   const go = () => { if (!raf && visible && !reduceMotion) raf = requestAnimationFrame(step); if (reduceMotion) { pos = target; place(0); } };
 
-  waypointHooks.push((k) => { target = stops[k]; go(); });
-  svg.querySelectorAll('.wp').forEach((el) => el.addEventListener('mouseenter', () => { target = stops[el.dataset.k]; go(); }));
-  svg.addEventListener('mouseleave', () => { const a = svg.querySelector('.wp.active'); if (a) { target = stops[a.dataset.k]; go(); } });
+  // hiker.busy: science.js is steering (gradient descent), so ignore the waypoints meanwhile
+  const home = () => { const a = svg.querySelector('.wp.active'); if (a) { target = stops[a.dataset.k]; go(); } };
+  waypointHooks.push((k) => { if (!hiker.busy) { target = stops[k]; go(); } });
+  svg.querySelectorAll('.wp').forEach((el) => el.addEventListener('mouseenter', () => { if (!hiker.busy) { target = stops[el.dataset.k]; go(); } }));
+  svg.addEventListener('mouseleave', () => { if (!hiker.busy) home(); });
+  Object.assign(hiker, {
+    trail, total,
+    where: () => pos, // current distance along the trail
+    walkTo(len, speed = 0.09) { // resolves when the hiker arrives
+      return new Promise((done) => {
+        target = Math.max(0, Math.min(total, len)); walkSpeed = speed;
+        if (!visible || reduceMotion) { pos = target; place(0); done(); return; }
+        const wait = () => (pos === target || !visible ? done() : setTimeout(wait, 40));
+        go(); wait();
+      });
+    },
+    home() { walkSpeed = 0.09; home(); },
+  });
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; go(); }, { threshold: 0.4 }).observe(svg);
   place(0);
   setInterval(() => { if (!raf) place(0); }, 30000); // sit down for fika at 15:00, get up at 15:15

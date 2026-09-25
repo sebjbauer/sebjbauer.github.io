@@ -406,3 +406,24 @@ The CV is written in LaTeX in `cv/cv.tex` (the top of the file explains the thre
 | Colours, fonts, layout, animations | `style.css` |
 
 Visitors who turned on "reduce motion" on their device don't get the moving effects (falling particles, shooting stars, walking hiker).
+
+## Science easter eggs (science.js)
+
+Physics, maths, machine learning and biology hidden in the landscape. Nothing pops up; things just behave correctly.
+
+| What | Where / when | Preview |
+|---|---|---|
+| **Ripples and interference** | Tap the lake: circular waves spread out. Tap a second spot while the first waves are still going and the two sets add up into an interference pattern (badge *Interference*). Not when the lake is frozen. | `?ripples` |
+| **The sun and moon flatten near the horizon** | Atmospheric refraction bends light from the lower edge more, so both look slightly oval as they rise and set. | `?sky=dawn` |
+| **Voronoi ice** | When the lake freezes, the cracks are a Voronoi diagram (every crack is equally far from two points in the ice). New pattern every day. | `?weather=frost` |
+| **Fractal forest** | Now and then (3% of visits) every pine is drawn as a fractal: branches made of smaller copies of the tree. Terminal: `fractal` (again to undo). Badge *Self-similar*. | `?fractal` |
+| **Game of Life** | Terminal `life` on a clear night: the stars become cells of Conway's Game of Life for ~40 seconds. Badge *Conway*. | `?life&sky=night` |
+| **Gradient descent** | Terminal `descend`: the hiker starts at today on the career trail and walks downhill in steps proportional to the slope. It gets stuck in the dip around 2020 (a local minimum), then tries again with momentum and rolls to the lowest point. Badge *Momentum*. | `?descend` |
+| **Umbrella from the forecast** | The hiker carries a packed umbrella when the real forecast says ≥60% chance of rain in the next 6 hours, and opens it while it rains. | `?weather=forecast`, `?weather=rain` |
+| **SMLM cluster analysis** | The `smlm` microscope show now images molecules in small nanoclusters; after acquisition, DBSCAN (the standard SMLM cluster analysis) colours each cluster, noise stays grey. | `?smlm&sky=night` |
+| **Ducklings on a pursuit curve** | Summer days: the mother duck wanders, each duckling always swims straight at the one in front. | `?season=summer&sky=day` |
+| **Boids** | Now and then by day a small flock of songbirds crosses the sky, flocking by Reynolds' three rules (separation, alignment, cohesion). | `?flock` |
+| **Geese take turns leading** | The spring/autumn V is now geese (south = left in autumn, north = right in spring); twice per flight the lead goose drops back and another takes over. | `?birds&season=autumn` |
+| **Flowers sleep** | Spring flowers close at night and open in the morning (nyctinasty). | `?season=spring&sky=night` |
+| **Jumping fish** | Summer dawn and dusk: a fish jumps now and then, with ripples where it leaves and re-enters the water. | `?fish` (every 4 s) |
+| **Synchronous fireflies** | Summer nights: every flash nudges nearby fireflies' inner clocks forward (Mirollo–Strogatz), so within a minute they blink in sync. | `?season=summer&sky=night` |
