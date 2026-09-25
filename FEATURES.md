@@ -434,6 +434,7 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 | What | Where / when | Preview |
 |---|---|---|
 | **Moose (älg)** | Now and then (not at night) a moose walks out of the Swedish forest, stops in the middle of the road, and walks on; a Swedish "Älgvarning" sign appears while it's there. Click it and it hurries off (badge *Älgvarning*). | `?moose` |
+| **Veranda and path lights** | The cottage has a wooden veranda with a white railing, and a gravel path runs along a strip of shore to the jetty. Five small lamps line the path; after dark they glow and their light is reflected in the lake. | `?sky=night` |
 | **Tent in the forest** | Summer only, in a clearing on the Swedish side (allemansrätten allows wild camping there). The tent is up from an hour before sunset until two hours after sunrise; the campfire burns until 23:30 (not in rain); after dark a headlamp lights the tent until midnight. Tap the fire for a burst of sparks (badge *Allemansrätten*). | `?tent&season=summer&sky=dusk` or `&sky=night` |
 | **Snowman** | Winter days at ≤ 2 °C: a snowman by the forest edge gets built after sunrise (base, middle, head, face, then hat, scarf and arms, about one step every 1.2 h). Between 2 and 8 °C it slumps and melts; warmer, it's gone. Click it: the hat hops (badge *Snow day*). | `?snowman`, `?snowman=melt` (add `&season=winter`) |
 
