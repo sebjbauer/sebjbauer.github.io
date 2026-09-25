@@ -29,6 +29,7 @@ const BADGES = [
   ['fractal', 'Self-similar', 'saw the forest grow as fractals', 'trees made of smaller trees'],
   ['moose', 'Älgvarning', 'met the moose on the road', 'a rare visitor on the Swedish side'],
   ['snowman', 'Snow day', "knocked the snowman's hat off", 'cold winter days by the lake'],
+  ['camp', 'Allemansrätten', 'poked the campfire', 'summer evenings in the Swedish forest'],
 ];
 let earned = (() => { try { return JSON.parse(store.get('badges') || '[]'); } catch { return []; } })();
 function earnBadge(id) {
@@ -852,6 +853,34 @@ function mooseCrossing(force = false) {
   });
 }
 moose.addEventListener('click', () => { mooseHurry = true; earnBadge('moose'); });
+
+/* ---------------- a tent in the forest ---------------- */
+// Summer evenings: someone camps in the clearing on the Swedish side (allemansrätten, the right
+// to roam, allows it there). The campfire burns from an hour before sunset until 23:30; after
+// dark a headlamp lights up the tent until midnight. The tent is packed up two hours after sunrise.
+const camp = $('#camp');
+(function placeCamp() {
+  const ground = $('#groundPath'), len = ground.getTotalLength(), X = 690;
+  let lo = 0, hi = len;
+  for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; if (ground.getPointAtLength(m).x < X) lo = m; else hi = m; }
+  camp.setAttribute('transform', `translate(${X} ${(ground.getPointAtLength(lo).y + 1).toFixed(1)}) scale(1.3)`);
+})();
+function campState({ h, d, sunT }) {
+  const forced = params.has('tent');
+  const evening = h >= sunT.set - 1 || h < sunT.rise + 2;
+  const show = forced || (currentSeason() === 'summer' && evening && !live.frozen);
+  const wet = live.particle === 'rain' || live.particle === 'drizzle';
+  camp.classList.toggle('show', show);
+  camp.classList.toggle('fire', show && !wet && (forced || (h >= sunT.set - 1 && h < 23.5)));
+  camp.classList.toggle('lit', show && d > 0.5 && h >= 12);
+}
+skyHooks.push(campState);
+if (lastSky.sunT) campState(lastSky);
+camp.querySelector('.fire .hit').addEventListener('click', () => {
+  camp.classList.remove('poke'); void camp.getBoundingClientRect(); camp.classList.add('poke');
+  setTimeout(() => camp.classList.remove('poke'), 2000);
+  earnBadge('camp');
+});
 
 /* ---------------- the snowman ---------------- */
 // On cold winter days a snowman gets built bit by bit after sunrise: base, middle, head, face,

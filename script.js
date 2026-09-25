@@ -428,6 +428,7 @@ function renderTrees() {
   for (let x = 20; x < 1440; x += 0) {
     const swedish = x > 620;
     if (x > 1150 && x < 1240) { x += 12; continue; } // clearing for the stuga
+    if (x > 676 && x < 718) { x += 12; continue; }   // clearing for the tent (gadgets.js)
     const h = swedish ? 26 + rnd() * 30 : 18 + rnd() * 20;
     const baseY = x > 930 ? 447 : groundY(Math.round(x));
     if (swedish || rnd() < 0.35) { out += pine(Math.round(x), baseY + 2, Math.round(h)); treeSpots.push([Math.round(x), baseY + 2, Math.round(h)]); }
@@ -437,7 +438,7 @@ function renderTrees() {
 
   // deciduous trees: green in spring and summer, orange in autumn, hidden in winter
   let leafy = '';
-  [60, 150, 205, 330, 470, 540, 690, 760, 840, 1000, 1070, 1300, 1390].forEach((x, i) => {
+  [60, 150, 205, 330, 470, 540, 738, 760, 840, 1000, 1070, 1300, 1390].forEach((x, i) => {
     const y = (x > 930 ? 447 : groundY(x)) + 2, h = 24 + rnd() * 18, r = h * 0.34;
     leafy += `<rect class="trunk" x="${x - 1.5}" y="${y - h * 0.45}" width="3" height="${h * 0.45}"/>` +
       `<circle class="l${(i % 3) + 1}" cx="${x}" cy="${y - h * 0.62}" r="${r.toFixed(1)}"/>` +
