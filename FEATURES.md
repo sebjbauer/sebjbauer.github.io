@@ -414,6 +414,7 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 | What | Where / when | Preview |
 |---|---|---|
 | **Ripples and interference** | Tap the lake: circular waves spread out. Tap a second spot while the first waves are still going and the two sets add up into an interference pattern (badge *Interference*). Not when the lake is frozen. | `?ripples` |
+| **Glints and moonlight on the lake** | A column of glints on the water straight below the sun, only when the sun stands above the lake (afternoon and evening); at night a moonlight path when the moon is at least half full. None when it's cloudy, foggy, raining or frozen. | `?sky=day`, `?sky=night` (needs a bright moon) |
 | **The sun and moon flatten near the horizon** | Atmospheric refraction bends light from the lower edge more, so both look slightly oval as they rise and set. | `?sky=dawn` |
 | **Voronoi ice** | When the lake freezes, the cracks are a Voronoi diagram (every crack is equally far from two points in the ice). New pattern every day. | `?weather=frost` |
 | **Fractal forest** | Now and then (3% of visits) every pine is drawn as a fractal: branches made of smaller copies of the tree. Terminal: `fractal` (again to undo). Badge *Self-similar*. | `?fractal` |

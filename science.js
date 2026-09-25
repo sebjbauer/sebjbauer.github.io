@@ -94,13 +94,48 @@ const ripples = (() => {
   // landscape units of a point on the screen
   const toLand = (cx, cy) => new DOMPoint(cx, cy).matrixTransform(sciLand.getScreenCTM().inverse());
   sciLand.addEventListener('pointerdown', (e) => {
-    if (!e.target.closest('.l-lake, .l-shimmer')) return;
+    if (!e.target.closest('.l-lake')) return;
     const p = toLand(e.clientX, e.clientY);
     add(p.x, p.y);
   });
   addEventListener('resize', () => { if (raf) layout(); });
   cv.hidden = true;
   return { add, toLand };
+})();
+
+/* ---------------- physics: glints under the sun, a moonlight path at night ---------------- */
+// Light reflected by a rippled lake reaches you only from the part of the water between you and
+// the sun (or moon): a column of glints straight below it, wider close to the shore in front.
+// No glints on a grey or foggy day, in rain, on ice, or under a moon less than half full.
+(function glints() {
+  const g = $('#glints'), sun = $('#sun');
+  let key = '';
+  function draw({ isDay }) {
+    const moon = moonPhase(), clearSky = 1 - live.overcast;
+    const strength = live.frozen || live.fog || live.particle ? 0
+      : isDay ? clearSky : clearSky * Math.max(0, (moon.illum - 0.45) / 0.55);
+    // where the sun or moon stands, in landscape units
+    const hb = sciHero.getBoundingClientRect(), m = sciLand.getScreenCTM();
+    const left = parseFloat(sun.style.left);
+    let x = null;
+    if (m && strength > 0.3 && !isNaN(left)) x = new DOMPoint(hb.left + (left / 100) * hb.width, 0).matrixTransform(m.inverse()).x;
+    const onLake = x !== null && x > 945 && x < 1430;
+    const next = onLake ? `${Math.round(x)}|${isDay}|${strength.toFixed(2)}` : 'none';
+    if (next === key) return;
+    key = next;
+    if (!onLake) { g.innerHTML = ''; return; }
+    const colour = isDay ? '#FFFFFF' : '#F3EFD8', rows = [453, 458, 463, 468, 474, 480, 486];
+    g.innerHTML = rows.map((y, i) => {
+      const k = (y - 453) / 33;                       // 0 at the far shore, 1 in front
+      const half = (isDay ? 5 : 3.5) + k * (isDay ? 14 : 8), dx = Math.sin(i * 2.4) * (2 + k * 6);
+      if (y < 476 && x + dx + half > 1291 && x + dx - half < 1313) return ''; // not on the jetty
+      const o = (0.25 + 0.45 * strength) * (isDay ? 1 : 0.85);
+      return `<path d="M${(x + dx - half).toFixed(1)} ${y} H${(x + dx + half).toFixed(1)}" stroke="${colour}" stroke-width="${(0.8 + k * 0.7).toFixed(2)}" style="--o: ${o.toFixed(2)}; animation-delay: ${(-i * 0.45).toFixed(2)}s"/>`;
+    }).join('');
+  }
+  skyHooks.push(draw);
+  addEventListener('resize', () => { key = ''; setTimeout(() => draw(lastSky), 400); });
+  draw(lastSky);
 })();
 
 /* ---------------- maths: Voronoi cracks in the ice ---------------- */
