@@ -318,6 +318,7 @@ Tab completes commands, ↑ repeats the last one.
 | `whoami` | Name, role and where you're based |
 | `whereami` | Coordinates and local time in Vienna |
 | `route cv` | The career trail drawn as text |
+| `activities` | Swimming, triathlon, tutoring (Beyond the lab) |
 | `education` | Schools and degrees, newest first |
 | `papers` | All publications with links, plus Google Scholar |
 | `waypoint 1` … | Details of one career stage (also highlights it on the page) |
@@ -340,7 +341,7 @@ Tab completes commands, ↑ repeats the last one.
 | `timelapse` | A whole day in 20 seconds; `timelapse year` for the seasons |
 | `triathlon` | Starts a race: swim, bike, run |
 | `download cv` | Downloads `cv.pdf` |
-| `goto contact` | Scrolls to a section (`about`, `timeline`, `cv`, `education`, `publications`, `skills`, `projects`, `contact`) |
+| `goto contact` | Scrolls to a section (`about`, `timeline`, `cv`, `education`, `publications`, `talks`, `activities`, `skills`, `projects`, `contact`) |
 | `fika` | Mandatory Swedish coffee break (ASCII art) |
 | `clear`, `exit` | Clear the screen, close the terminal |
 
@@ -367,7 +368,17 @@ Tab completes commands, ↑ repeats the last one.
 - **Size:** about 115 KB for a first visit (page, styles, scripts, fonts); the photo only loads when scrolling to About.
 - **Tested:** all links and DOIs work; the HTML passes the W3C validator; no script errors in Safari's engine (iPhone size) or Chrome.
 
-## CV (PDF)
+## CV: one LaTeX file for the PDF and the website
+
+`cv/cv.tex` is the single source. On every push, GitHub compiles it into the PDF **and** reads it into the website (`cv/tex2web.py` → `cv-data.js`): Career, Education, Publications, Talks (and the map), Beyond the lab and Skills all come from it. `script.js` only keeps the hero lines, About, Now, keywords, links and Projects.
+
+- Which section goes where: *Education* → Education; *Research Experience* → Career; *Publications* → Publications (J = journal article, P = preprint, C = conference abstract); *Talks, Posters & Awards* and `\organised` in *Service* → Talks; *Extracurricular Activities* → Beyond the lab; the *Skills & Interests* table → Skills.
+- A talk and an award (or organising) with the same year and the same Event text become one entry with several roles (SMLMS 2026, AnDi).
+- Website-only extras go right after an entry and print nothing in the PDF: `\weblink{Label}{URL}`, `\web{city}{London, United Kingdom}`, `\web{url}{…}`, `\web{text}{…}` (a different text on the website), `\web{type}{Review}`, `\web{award}{…}`, `\web{section}{career}` (civilian service), and `\webonly{…}` for whole entries (Matura, "PhD Researcher" in Career, the Master's thesis in Publications).
+- **Local preview:** `python3 cv/tex2web.py` regenerates `cv-data.js` (the local preview server runs it on start). It prints a warning for any LaTeX command it doesn't understand.
+- If `tex2web.py` fails, the build stops and the site stays at the previous version, just like a LaTeX error.
+
+### The PDF
 
 The CV is written in LaTeX in `cv/cv.tex` (the top of the file explains the three entry commands). **You never upload a PDF yourself:** on every push, GitHub compiles `cv/cv.tex` and publishes the result as https://sebjbauer.github.io/cv.pdf, together with the website (see `.github/workflows/pages.yml`). The "Last updated" date in the CV is the build date.
 
@@ -390,6 +401,7 @@ The CV is written in LaTeX in `cv/cv.tex` (the top of the file explains the thre
 | Link-preview image | `og-image.jpg` |
 | For search engines | `robots.txt`, `sitemap.xml` |
 | CV source / build script | `cv/cv.tex` / `.github/workflows/pages.yml` |
+| CV → website data | `cv/tex2web.py` → `cv-data.js` (generated, not committed) |
 | Landscape drawing (mountains, trees, cottage, deer, decorations) | `index.html`, inside the hero section |
 | Colours, fonts, layout, animations | `style.css` |
 

@@ -3,10 +3,23 @@
 %  Compile with:  latexmk -pdf cv.tex     (or: pdflatex cv.tex)
 %
 %  Editing guide
-%   * Every entry uses one of three commands:
-%       \entry{Title}{Dates}{Place / organisation}{Location}   + optional text below
-%       \pub{Authors}{Title}{Venue}{DOI}
-%       \item[Year] ...                                           (talks, awards, service)
+%   * The website (sebjbauer.github.io) is built from this file: edit the CV here,
+%     push, and both the PDF and the website update (cv/tex2web.py reads it).
+%   * Entries use these commands:
+%       \entry{Title}{Dates}{Organisation}{Location}  + optional \details{text}
+%       \pub{Authors}{Title}{Venue}{DOI}      venue like: Nano Letters 26(4), 1321--1326, 2026
+%       \talk{Year}{Type}{Title}{Event}{City}          (Type: Invited talk, Poster, ...)
+%       \award{Year}{Award}{Event or reason}{City}
+%       \organised{Year}{Role}{Event}{City}
+%       \activity{Years}{Role}{Organisation}{City}{Details}
+%     A talk and an award (or organising) at the same event, with the same Event
+%     text, become one entry on the website.
+%   * Website-only extras, written right after an entry (they print nothing here):
+%       \weblink{Label}{URL}      a link under the entry
+%       \web{field}{value}        e.g. \web{city}{London, United Kingdom} for the map,
+%                                 \web{url}{...}, \web{text}{...}, \web{type}{Review},
+%                                 \web{section}{career} to show it under Career
+%       \webonly{...}             a whole entry that is only on the website
 %   * Your own name in author lists: write \me (prints S.~Bauer in bold).
 % =====================================================================
 \documentclass[10pt,a4paper]{article}
@@ -64,6 +77,17 @@
 \setlist[publist]{leftmargin=2.6em, labelsep=0.6em, itemsep=2pt, topsep=1pt,
   before={\interlinepenalty=10000}}  % never split a publication across pages
 
+% talks, awards, service and activities (use inside a dated list)
+\newcommand{\talk}[5]{\item[#1] #2, \emph{#3}. #4, #5.}
+\newcommand{\award}[4]{\item[#1] \textbf{#2}, #3.}
+\newcommand{\organised}[4]{\item[#1] #2, #3, #4.}
+\newcommand{\activity}[5]{\item[#1] #2\ifx&#3&\else, #3\fi\ifx&#4&\else, #4\fi.\ifx&#5&\else\ #5\fi}
+
+% website-only annotations: they print nothing in the PDF
+\newcommand{\weblink}[2]{\ignorespaces}
+\newcommand{\web}[2]{\ignorespaces}
+\newcommand{\webonly}[1]{\ignorespaces}
+
 \begin{document}
 
 % ======================================================================
@@ -96,12 +120,15 @@ networks) for single-molecule localization microscopy.\par}
 \details{Advisor: Prof.\ Juliette Griffi\'e. Inductive biases from geometry, structure and physics
 for machine-learning-based analysis of light microscopy; generative models for single-molecule
 localization microscopy (SMLM).}
+\weblink{Griffié Lab}{https://www.scilifelab.se/researchers/juliette-griffie/}
 
 \entry{MSc in Engineering Physics, specialisation Biomedical Physics}{Aug 2021 -- Jun 2023}
       {KTH Royal Institute of Technology}{Stockholm, Sweden}
 \details{Thesis: \href{https://kth.diva-portal.org/smash/record.jsf?pid=diva2:1768469}{\emph{Co-evolutional analysis
 of the Na$^+$,K$^+$-ATPase's $\beta$-subunit dimerization}}. Advisors: Prof.\ Lucie Delemotte,
 Prof.\ Hjalmar Brismar.}
+\weblink{Thesis}{https://kth.diva-portal.org/smash/record.jsf?pid=diva2:1768469}
+\weblink{Delemotte Lab}{https://www.scilifelab.se/researchers/lucie-delemotte/}
 
 \entry{Erasmus exchange year}{Aug 2020 -- Jun 2021}
       {KTH Royal Institute of Technology}{Stockholm, Sweden}
@@ -111,6 +138,13 @@ Prof.\ Hjalmar Brismar.}
       {TU Wien}{Vienna, Austria}
 \details{Thesis in quantum optics: \emph{The difference in maximum power between pulsed and cw LED
 operation}. Advisor: Prof.\ Philipp Haslinger, Institute of Atomic and Subatomic Physics.}
+\weblink{Haslinger Lab}{https://www.haslingerlab.com}
+
+\webonly{
+\entry{High school diploma (Matura)}{2008 -- 2016}{Kollegium Kalksburg}{Vienna, Austria}
+\details{Final thesis on aerodynamics in road cycling.}
+\web{award}{1st place, Hans Riegel-Fachpreis in physics, region Vienna}
+}
 
 % ======================================================================
 \section{Research Experience}
@@ -118,6 +152,15 @@ operation}. Advisor: Prof.\ Philipp Haslinger, Institute of Atomic and Subatomic
 \entry{Guest Researcher}{Sep 2026 -- present}
       {AITHYRA, Tong Group}{Vienna, Austria}
 \details{Improving generative models for single-molecule localization microscopy.}
+\weblink{Tong Group}{https://tonggroup.org}
+
+\webonly{
+\entry{PhD Researcher}{Nov 2023 -- present}{Griffié Lab, Stockholm University \& SciLifeLab}{Stockholm, Sweden}
+\details{Doctoral research on generative models for super-resolution microscopy (see Education).
+First-author preprint: SMLMFlow (2026).}
+\weblink{Griffié Lab}{https://www.scilifelab.se/researchers/juliette-griffie/}
+\weblink{SMLMFlow preprint}{https://doi.org/10.64898/2026.06.11.731424}
+}
 
 \entry{Research Assistant}{Aug 2021 -- Jun 2023}
       {SciLifeLab \& KTH, Brismar Lab}{Stockholm, Sweden}
@@ -125,6 +168,8 @@ operation}. Advisor: Prof.\ Philipp Haslinger, Institute of Atomic and Subatomic
 STED microscopy and click chemistry, alongside work on cell synchronization and mitochondrial
 dynamics. Cell culture, sample preparation and labelling, confocal, light-sheet and STED
 microscopy.}
+\weblink{Brismar Lab}{https://www.scilifelab.se/researchers/hjalmar-brismar/}
+\weblink{Publications}{#publications}
 
 \entry{Summer Intern}{Jul 2019}
       {Nuclear Engineering Seibersdorf}{Seibersdorf, Austria}
@@ -147,6 +192,7 @@ microscopy.}
   \item \pub{I.~Cunha, E.~Latron, \me, D.~Sage, J.~Griffi\'e}
     {Machine learning in microscopy -- insights, opportunities and challenges}
     {Journal of Cell Science 137(20), jcs262095, 2024}{10.1242/jcs.262095}
+    \web{type}{Review}
 \end{publist}
 
 \vspace{4pt}
@@ -175,34 +221,53 @@ microscopy.}
     {Click chemistry, FRET-FCS, and expansion microscopy reveal that Na,K-ATPase forms complexes
     in the plasma membrane}
     {Physiology 38(S1), 5732603, 2023}{10.1152/physiol.2023.38.S1.5732603}
+  \webonly{\item \pub{\me}{Co-evolutional analysis of the Na$^+$,K$^+$-ATPase's $\beta$-subunit dimerization}
+    {Master's thesis, KTH Royal Institute of Technology, 2023}{}
+    \web{type}{Master's thesis} \web{school}{KTH Royal Institute of Technology}
+    \web{url}{https://kth.diva-portal.org/smash/record.jsf?pid=diva2:1768469}}
 \end{publist}
 
 % ======================================================================
 \section{Talks, Posters \& Awards}
 % ======================================================================
 \begin{dated}
-  \item[2026] Invited talk, \emph{Beyond localization}.
-    SMLMS 2026, 15th Single Molecule Localization Microscopy Symposium, Stockholm.
-  \item[2025] Selected talk, \emph{SMLMFlow: Improving structural resolution in SMLM with flow matching and GNNs}.
-    SMLMS 2025, Single Molecule Localization Microscopy Symposium, Bonn.
-  \item[2025] Invited talk, \emph{SMLMFlow}, and \textbf{Best Poster Prize}.
-    Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge, Gothenburg.
-  \item[2025] Poster, \emph{SMLMFlow}.
-    LOGML 2025, London Geometry and Machine Learning Summer School, Imperial College London.
-  \item[2016] \textbf{1st place, Hans Riegel-Fachpreis} in physics, region Vienna,
-    for the high-school thesis on aerodynamics in road cycling.
+  \talk{2026}{Invited talk}{Beyond localization}
+    {SMLMS 2026, 15th Single Molecule Localization Microscopy Symposium}{Stockholm}
+    \web{url}{https://smlms.org/}
+  \talk{2025}{Selected talk}{SMLMFlow: Improving structural resolution in SMLM with flow matching and GNNs}
+    {SMLMS 2025, Single Molecule Localization Microscopy Symposium}{Bonn}
+  \talk{2025}{Invited talk}{SMLMFlow}
+    {Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge}{Gothenburg}
+  \award{2025}{Best Poster Prize}
+    {Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge}{Gothenburg}
+  \talk{2025}{Poster}{SMLMFlow}
+    {LOGML 2025, London Geometry and Machine Learning Summer School, Imperial College London}{London}
+    \web{city}{London, United Kingdom}
+  \award{2016}{1st place, Hans Riegel-Fachpreis in physics, region Vienna}
+    {for the high-school thesis on aerodynamics in road cycling}{Vienna}
 \end{dated}
 
 % ======================================================================
-\section{Service \& Teaching}
+\section{Service}
 % ======================================================================
 \begin{dated}
-  \item[2026] Local coordinator, SMLMS 2026, Stockholm.
-  \item[2026] Local organising team, Protein Folding Conference, Stockholm.
-  \item[2021--23] Swim coach and board member, KTH Simf\"orening, Stockholm; organised the club's weekly training.
-  \item[2017--20] Mathematics tutor for high-school students, Vienna.
-  \item[2016--17] Civilian service: teaching assistant, Karl Schubert Schule (school for children
-    with special needs), Vienna.
+  \organised{2026}{Local coordinator}
+    {SMLMS 2026, 15th Single Molecule Localization Microscopy Symposium}{Stockholm}
+  \organised{2026}{Local organising team}{Protein Folding Conference}{Stockholm}
+  \activity{2016--17}{Civilian service: teaching assistant}
+    {Karl Schubert Schule (school for children with special needs)}{Vienna}{}
+    \web{section}{career} \web{org}{Karl Schubert Schule} \web{place}{Vienna, AT}
+    \web{text}{Assisted in the classroom at a school for children with special needs.}
+\end{dated}
+
+% ======================================================================
+\section{Extracurricular Activities}
+% ======================================================================
+\begin{dated}
+  \activity{10+ yrs}{Competitive triathlete}{}{}{National and international races.}
+  \activity{2021--23}{Swim coach and board member}{KTH Simf\"orening}{Stockholm}
+    {Coached the club's swimmers and organised its weekly training.}
+  \activity{2017--20}{Mathematics tutor}{}{Vienna}{Private tutoring for high-school students.}
 \end{dated}
 
 % ======================================================================
@@ -213,7 +278,7 @@ microscopy.}
   \textbf{Computing}    & Python, machine learning \\[1pt]
   \textbf{Laboratory}   & Fluorescence microscopy (confocal, light-sheet, STED, expansion microscopy), cell culture, sample preparation and labelling \\[1pt]
   \textbf{Languages}    & German (native), English (fluent), Swedish (intermediate) \\[1pt]
-  \textbf{Interests}    & Competitive triathlete for more than ten years (national and international level); cycling, cross-country skiing, travelling \\
+  \textbf{Interests}    & Triathlon, cycling, cross-country skiing, travelling \\
 \end{tabularx}
 
 \vspace{8pt}

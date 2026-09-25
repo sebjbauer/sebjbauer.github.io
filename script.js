@@ -33,81 +33,13 @@ const SITE = {
   orcid: 'https://orcid.org/0009-0009-7265-1527',
   repo: 'sebjbauer/sebjbauer.github.io', // for "Last updated" in the footer
 
-  // CAREER: jobs and research positions. Oldest first; each entry is a waypoint on the career trail.
-  cv: [
-    { from: '2016', to: '2017', title: 'Civilian service: teaching assistant', org: 'Karl Schubert Schule', place: 'Vienna, AT',
-      text: 'Assisted in the classroom at a school for children with special needs.' },
-    { from: '2021', to: '2023', title: 'Research assistant', org: 'Brismar Lab, KTH and SciLifeLab', place: 'Stockholm, SE',
-      text: 'Developed microscopy methods for imaging the Na⁺,K⁺-ATPase and contributed to the resulting publications.',
-      links: [['Brismar Lab', 'https://www.scilifelab.se/researchers/hjalmar-brismar/'], ['Publications', '#publications']] },
-    { from: '2023', to: 'now', title: 'PhD researcher', org: 'Griffié Lab, Stockholm University and SciLifeLab', place: 'Stockholm, SE',
-      text: 'Doctoral research on generative models for super-resolution microscopy (see Education). First-author preprint: SMLMFlow (2026).',
-      links: [['Griffié Lab', 'https://www.scilifelab.se/researchers/juliette-griffie/'], ['SMLMFlow preprint', 'https://doi.org/10.64898/2026.06.11.731424']] },
-    { from: '2026', to: 'now', title: 'Guest researcher', org: 'Tong Group, AITHYRA', place: 'Vienna, AT',
-      text: 'Further improving generative models for single-molecule localization microscopy.',
-      links: [['Tong Group', 'https://tonggroup.org']] },
-  ],
-
-  // EDUCATION: schools and degrees. Oldest first.
-  education: [
-    { from: '2008', to: '2016', title: 'High school diploma (Matura)', org: 'Kollegium Kalksburg', place: 'Vienna, AT',
-      text: 'Final thesis on aerodynamics in road cycling.', award: '1st place, Hans Riegel-Fachpreis in physics, region Vienna' },
-    { from: '2017', to: '2020', title: 'BSc Technical Physics', org: 'TU Wien', place: 'Vienna, AT',
-      text: "Bachelor's thesis in quantum optics: “The difference in maximum power between pulsed and cw LED operation”, in the lab of Philipp Haslinger.",
-      links: [['Haslinger Lab', 'https://www.haslingerlab.com']] },
-    { from: '2020', to: '2021', title: 'Erasmus exchange year', org: 'KTH Royal Institute of Technology', place: 'Stockholm, SE',
-      text: '' },
-    { from: '2021', to: '2023', title: 'MSc Engineering Physics, specialisation in Biomedical Physics', org: 'KTH Royal Institute of Technology', place: 'Stockholm, SE',
-      text: "Master's thesis on the co-evolution of the Na⁺,K⁺-ATPase's β-subunit dimerization, in the lab of Lucie Delemotte (KTH and SciLifeLab).",
-      links: [['Thesis', 'https://kth.diva-portal.org/smash/record.jsf?pid=diva2:1768469'], ['Delemotte Lab', 'https://www.scilifelab.se/researchers/lucie-delemotte/']] },
-    { from: '2023', to: 'now', title: 'PhD in Bioinformatics', org: 'Stockholm University and SciLifeLab', place: 'Stockholm, SE',
-      text: 'Generative models for single-molecule localization microscopy (SMLM), in the lab of Juliette Griffié.',
-      links: [['Griffié Lab', 'https://www.scilifelab.se/researchers/juliette-griffie/']] },
-  ],
-
-  // PUBLICATIONS: newest year first. Put your own name exactly as in `me` so it is shown in bold.
-  // journal / volume / issue / pages / doi are used for "Copy citation" and "BibTeX".
+  // CAREER, EDUCATION, PUBLICATIONS, TALKS, ACTIVITIES AND SKILLS come from the LaTeX CV:
+  // edit cv/cv.tex, and cv/tex2web.py turns it into cv-data.js (the GitHub Action does this
+  // on every push). Your own name in author lists is shown in bold:
   me: 'S. Bauer',
-  publications: [
-    { year: 2026, type: 'Preprint', title: 'SMLMFlow: Improving Structural Resolution in Single Molecule Localization Microscopy with Flow Matching',
-      authors: 'S. Bauer, L. Panconi, I. Cunha, E. Latron, D. Sage, R. Peters, J. Griffié', journal: 'bioRxiv', doi: '10.64898/2026.06.11.731424' },
-    { year: 2026, type: 'Journal article', title: 'Dual-Color Expansion Microscopy of Membrane Proteins Using Bioorthogonal Labeling',
-      authors: 'S. Edwards, B. Meineke, S. Bauer, H. Blom, S. Elsässer, H. Brismar', journal: 'Nano Letters', volume: 26, issue: 4, pages: '1321–1326', doi: '10.1021/acs.nanolett.5c05301' },
-    { year: 2025, type: 'Preprint', title: 'AI4CellFate: Interpretable Early Cell Fate Prediction with Generative AI',
-      authors: 'I. Cunha, L. Panconi, S. Bauer, M. Gestin, E. Latron, E. Sahai, A. Le Marois, J. Griffié', journal: 'bioRxiv', doi: '10.1101/2025.05.12.653464' },
-    { year: 2025, type: 'Preprint', title: '6S RNA facilitates bacterial virulence and adaptation at the epithelial barrier',
-      authors: 'O. Sarigöz, V. D. Valeriano, U. Avican, H. Wang, K. Nilsson, N. Hasanzade, F. Mahmood, A. Fahlgren, S. Bauer, J. Griffié, M. Fällman, K. Avican', journal: 'bioRxiv', doi: '10.1101/2025.10.07.681022' },
-    { year: 2024, type: 'Review', title: 'Machine learning in microscopy – insights, opportunities and challenges',
-      authors: 'I. Cunha, E. Latron, S. Bauer, D. Sage, J. Griffié', journal: 'Journal of Cell Science', volume: 137, issue: 20, pages: 'jcs262095', doi: '10.1242/jcs.262095' },
-    { year: 2023, type: 'Conference abstract', title: 'Expansion microscopy and bioorthogonal labeling with non-canonical amino acids enables cluster analysis of Na,K-ATPase in the plasma membrane',
-      authors: 'S. Edwards, S. Bauer, P. Graef, B. Meineke, S. Elsässer, H. Brismar', journal: 'Physiology', volume: 38, issue: 'S1', pages: '5732753', doi: '10.1152/physiol.2023.38.S1.5732753' },
-    { year: 2023, type: 'Conference abstract', title: 'Click chemistry, FRET-FCS, and expansion microscopy reveal that Na,K-ATPase forms complexes in the plasma membrane',
-      authors: 'H. Brismar, S. Edwards, S. Bauer, B. Meineke, S. Elsässer, S. Wennmalm', journal: 'Physiology', volume: 38, issue: 'S1', pages: '5732603', doi: '10.1152/physiol.2023.38.S1.5732603' },
-    { year: 2023, type: "Master's thesis", title: "Co-evolutional analysis of the Na⁺,K⁺-ATPase's β-subunit dimerization",
-      authors: 'S. Bauer', school: 'KTH Royal Institute of Technology', url: 'https://kth.diva-portal.org/smash/record.jsf?pid=diva2:1768469' },
-  ],
+  cv: [], education: [], publications: [], talks: [], extracurricular: [], skills: {},
+  ...window.CV_DATA,
 
-  // TALKS, POSTERS, AWARDS AND ORGANISING: newest year first. type: e.g. 'Invited talk', 'Selected talk',
-  // 'Poster', 'Award' or 'Organisation'. Several things at the same event go into one entry with
-  // `roles: [{ type, title }, …]` instead of `type` and `title`.
-  // `where` is the event or institution; `url` (slides, poster, announcement) is optional.
-  // `city` (e.g. 'Lisbon' or 'Cambridge, United Kingdom') puts a pin on the map above the list.
-  talks: [
-    { year: 2026, where: 'SMLMS 2026, 15th Single Molecule Localization Microscopy Symposium', city: 'Stockholm', url: 'https://smlms.org/',
-      roles: [{ type: 'Invited talk', title: 'Beyond localization' }, { type: 'Organisation', title: 'Local coordinator' }] },
-    { year: 2026, type: 'Organisation', title: 'Local organising team', where: 'Protein Folding Conference', city: 'Stockholm' },
-    { year: 2025, type: 'Selected talk', title: 'SMLMFlow: Improving structural resolution in SMLM with flow matching and GNNs', where: 'SMLMS 2025, Single Molecule Localization Microscopy Symposium', city: 'Bonn' },
-    { year: 2025, type: 'Poster', title: 'SMLMFlow', where: 'LOGML 2025, London Geometry and Machine Learning Summer School, Imperial College London', city: 'London, United Kingdom' },
-    { year: 2025, where: 'Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge', city: 'Gothenburg',
-      roles: [{ type: 'Invited talk', title: 'SMLMFlow' }, { type: 'Award', title: 'Best poster prize' }] },
-    { year: 2016, type: 'Award', title: '1st place, Hans Riegel-Fachpreis in physics, region Vienna', where: 'For the high-school final thesis on aerodynamics in road cycling', city: 'Vienna' },
-  ],
-
-  skills: {
-    'Professional': ['Skill one', 'Skill two', 'Skill three', 'Skill four'],
-    'Tools': ['Tool one', 'Tool two', 'Tool three'],
-    'Off the trail': ['Hiking', 'Skiing', 'Coffee', 'Hobby'],
-  },
   projects: [
     { name: 'Project one', text: 'A one-line description of the project.', url: '#', where: 'Vienna' },
     { name: 'Project two', text: 'A one-line description of the project.', url: '#', where: 'Vienna' },
@@ -554,6 +486,8 @@ function yearValue(y) {
   return d.getFullYear() + (d - new Date(d.getFullYear(), 0, 1)) / 3.156e10;
 }
 
+const yearSpan = (w) => (w.from === w.to ? w.from : `${w.from}–${w.to}`);
+
 function renderProfile() {
   const svg = $('#profile');
   const W = 1000, H = 300, low = 232, high = 78, pad = 24;
@@ -613,7 +547,7 @@ function renderProfile() {
   const jobStarts = new Set(SITE.cv.map((w) => w.from));
   entries.forEach((r) => {
     const x = X(r.a), y = yAt(x), job = r.type === 'job';
-    const label = `${r.w.from} to ${r.w.to}: ${r.w.title}`;
+    const label = `${r.w.from === r.w.to ? r.w.from : `${r.w.from} to ${r.w.to}`}: ${r.w.title}`;
     g += `<g class="wp ${r.type}" data-k="${r.k}" data-x="${x.toFixed(1)}" tabindex="0" role="button" aria-label="${esc(label)}">
       ${job && r.a === latest ? `<path class="summit" d="M${x} ${y - 40} l7 12 h-14 Z"/>` : ''}
       ${job ? `<circle class="ring" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7"/><circle class="core" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5"/>`
@@ -643,7 +577,7 @@ function linkRow(links) {
 function renderEducation() {
   $('#eduList').innerHTML = SITE.education.map((e, i) => ({ e, i })).reverse().map(({ e, i }) => `
     <li data-k="edu-${i}">
-      <span class="tl-years">${esc(e.from)}–${esc(e.to)}</span>
+      <span class="tl-years">${esc(yearSpan(e))}</span>
       <div class="tl-body">
         <h3>${esc(e.title)}</h3>
         <p class="tl-org">${esc(e.org)} <span class="tl-place">${esc(e.place)}</span></p>
@@ -746,7 +680,7 @@ function renderCvTable() {
   const rows = SITE.cv.map((w, i) => ({ w, i })).reverse();
   $('#cvTable tbody').innerHTML = rows.map(({ w, i }) => `
     <tr data-k="job-${i}">
-      <td class="years">${esc(w.from)}–${esc(w.to)}</td>
+      <td class="years">${esc(yearSpan(w))}</td>
       <td><span class="role">${esc(w.title)}</span><span class="org">${esc(w.org)}</span><span class="note">${esc(w.text)}</span>${linkRow(w.links)}</td>
       <td class="where">${esc(w.place)}</td>
     </tr>`).join('');
@@ -781,6 +715,13 @@ function renderContent() {
 
   $('#skillList').innerHTML = Object.entries(SITE.skills).map(([group, items]) =>
     `<dt>${esc(group)}</dt><dd>${items.map(esc).join(', ')}</dd>`).join('');
+
+  $('#activityList').innerHTML = SITE.extracurricular.map((a) =>
+    `<li><div>
+      <span class="name">${esc(a.title)}</span>
+      <span class="desc">${esc([a.org, a.text].filter(Boolean).join('. '))}</span>
+      <span class="where">${esc([a.years, a.place].filter(Boolean).join(' · '))}</span></div></li>`).join('');
+  $('#activities').hidden = !SITE.extracurricular.length;
 
   $('#projectList').innerHTML = SITE.projects.map((p) =>
     `<li><a href="${esc(p.url)}"${external(p.url)}>
@@ -866,6 +807,7 @@ const COMMANDS = {
   <b class="warn">education</b>     schools and degrees
   <b class="warn">papers</b>        publications
   <b class="warn">talks</b>         talks, posters and awards
+  <b class="warn">activities</b>    swimming, triathlon, tutoring
   <b class="warn">waypoint</b> &lt;n&gt;  details of one stage
   <b class="warn">skills</b>        equipment check
   <b class="warn">projects</b>      marked routes
@@ -884,7 +826,7 @@ const COMMANDS = {
   <b class="warn">timelapse</b>     a whole day in 20 seconds (or: timelapse year)
   <b class="warn">triathlon</b>     start a race: swim, bike, run
   <b class="warn">download cv</b>   the official PDF
-  <b class="warn">goto</b> &lt;place&gt;   about | timeline | cv | education | talks | publications | skills | projects | contact
+  <b class="warn">goto</b> &lt;place&gt;   about | timeline | cv | education | talks | publications | activities | skills | projects | contact
   <b class="warn">fika</b>          mandatory break
   <b class="warn">clear</b>, <b class="warn">exit</b>
 Tip: Tab completes, ↑ repeats. Some commands are not listed.`,
@@ -900,7 +842,7 @@ Local time: ${$('#clock').textContent}`,
   now: () => `${esc(SITE.now.text)}\n<span class="cmd">${esc($('#nowDate').textContent)}</span>`,
 
   'route cv': () => {
-    const rows = SITE.cv.map((w, i) => `  ${i === SITE.cv.length - 1 ? '<span class="warn">▲</span>' : '●'} ${(w.from + '–' + w.to).padEnd(10)} ${esc(w.title)}`).reverse();
+    const rows = SITE.cv.map((w, i) => `  ${i === SITE.cv.length - 1 ? '<span class="warn">▲</span>' : '●'} ${yearSpan(w).padEnd(10)} ${esc(w.title)}`).reverse();
     return `Career trail (summit on top):\n${rows.join('\n  │\n')}\n\nType <b class="warn">waypoint 1</b>…<b class="warn">waypoint ${SITE.cv.length}</b> for details.`;
   },
 
@@ -914,7 +856,7 @@ ${esc(w.text)}`;
   },
 
   education: () => 'Education route:\n' + [...SITE.education].reverse().map((e) =>
-    `  ${(e.from + '–' + e.to).padEnd(10)} ${esc(e.title)}\n  ${''.padEnd(10)} <span class="cmd">${esc(e.org)}</span>`).join('\n'),
+    `  ${yearSpan(e).padEnd(10)} ${esc(e.title)}\n  ${''.padEnd(10)} <span class="cmd">${esc(e.org)}</span>`).join('\n'),
 
   talks: () => 'Talks, posters and awards:\n' + SITE.talks.map((t) => (t.roles
     ? `  ${t.year}  ${esc(t.where)}\n` + t.roles.map((r) => `        ${esc(r.type)}: ${esc(r.title)}`).join('\n')
@@ -924,6 +866,7 @@ ${esc(w.text)}`;
     `  ${p.year}  <a href="${esc(linkOf(p))}" target="_blank" rel="noopener">${esc(p.title)}</a>\n        <span class="cmd">${esc(p.type)}, ${esc(venueOf(p))}</span>`).join('\n') +
     `\nAll on <a href="${esc(SITE.scholar)}" target="_blank" rel="noopener">Google Scholar</a> and <a href="${esc(SITE.orcid)}" target="_blank" rel="noopener">ORCID</a>.`,
 
+  activities: () => 'Off the clock:\n' + SITE.extracurricular.map((a) => `  ${a.years.padEnd(10)} ${esc(a.title)}${a.org ? ` <span class="cmd">${esc(a.org)}</span>` : ''}`).join('\n'),
   skills: () => 'Equipment check:\n' + Object.entries(SITE.skills).map(([g, items]) => `  [<span class="ok">✓</span>] ${esc(g)}: ${items.map(esc).join(', ')}`).join('\n'),
 
   projects: () => 'Marked routes:\n' + SITE.projects.map((p, i) => `  WPT ${String(i + 1).padStart(2, '0')}  <a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>  ${esc(p.text)}`).join('\n'),
@@ -959,7 +902,7 @@ The sun is ${up ? 'up, so this site is in light mode' : 'down, so this site is i
   },
 
   'download cv': () => { const a = document.createElement('a'); a.href = SITE.cvPdf; a.download = ''; a.click(); return `Downloading <a href="${esc(SITE.cvPdf)}">${esc(SITE.cvPdf)}</a>…`; },
-  goto: (arg) => { if (!['about', 'timeline', 'cv', 'education', 'publications', 'talks', 'skills', 'projects', 'contact'].includes(arg)) return 'Usage: goto about | timeline | cv | education | publications | talks | skills | projects | contact'; setTimeout(() => goTo(arg), 300); return `Navigating to ${arg}…`; },
+  goto: (arg) => { if (!['about', 'timeline', 'cv', 'education', 'publications', 'talks', 'activities', 'skills', 'projects', 'contact'].includes(arg)) return 'Usage: goto about | timeline | cv | education | publications | talks | activities | skills | projects | contact'; setTimeout(() => goTo(arg), 300); return `Navigating to ${arg}…`; },
 
   fika: () => `Starting mandatory fika…
       ( (

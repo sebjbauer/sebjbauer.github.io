@@ -563,13 +563,13 @@ span.pub-title { display: inline; }
 /* projects */
 .projects { list-style: none; padding: 0; }
 .projects li { border-bottom: 1px solid var(--line); }
-.projects li:first-child a { padding-top: 0; }
-.projects a {
+.projects li:first-child > * { padding-top: 0; }
+.projects a, .projects li > div {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 24px; align-items: baseline;
   padding: 18px 0; text-decoration: none;
 }
 .projects .name { font-size: 22px; font-weight: 500; letter-spacing: -0.01em; display: inline-flex; align-items: center; gap: 8px; }
-.projects .desc { grid-column: 1; color: var(--muted); }
+.projects .desc { grid-column: 1 / -1; color: var(--muted); }
 .projects .where { grid-row: 1; grid-column: 2; color: var(--muted); font-size: 15px; }
 .projects a:hover .name { color: var(--accent); }
 
