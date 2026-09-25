@@ -367,17 +367,22 @@ function cyclistGear() {
 const cyclist = $('#cyclist'), road = $('#road');
 let riding = false;
 let roadBusy = false;
-function alongRoad(el, { reverse = false, speed = 70, onStep } = {}) {
+// Move a figure along the valley road. The road ends at the lake, so by default a figure comes in
+// from the left edge, turns around at the end of the road and leaves the way it came (out of the
+// frame). reverse: start at the lake end and head left, without coming back.
+function alongRoad(el, { reverse = false, back = !reverse, speed = 70, onStep } = {}) {
   const len = road.getTotalLength();
-  let pos = 0, last = 0;
+  let pos = 0, last = 0, leg = 0;
   return new Promise((done) => {
     const step = (t) => {
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
       pos += dt * (typeof speed === 'function' ? speed() : speed);
-      const at = reverse ? len - Math.min(len, pos) : Math.min(len, pos);
+      if (pos >= len && back && leg === 0) { leg = 1; pos -= len; } // turn around at the end of the road
+      const towardsLake = reverse ? leg === 1 : leg === 0;
+      const d = Math.min(len, pos), at = towardsLake ? d : len - d;
       const p = road.getPointAtLength(at), q = road.getPointAtLength(Math.min(len, at + 2));
       const angle = Math.atan2(q.y - p.y, q.x - p.x) * 180 / Math.PI;
-      el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${angle.toFixed(1)})${reverse ? ' scale(-1 1)' : ''}`);
+      el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${angle.toFixed(1)})${towardsLake ? '' : ' scale(-1 1)'}`);
       if (onStep) onStep(t);
       if (pos < len) requestAnimationFrame(step); else done();
     };
@@ -521,7 +526,7 @@ async function xcSki(force = false) {
   const snow = currentSeason() === 'winter' || live.particle === 'snow' || live.frozen;
   xc.classList.toggle('snow', snow);
   xc.classList.add('out');
-  await alongRoad(xc, { reverse: Math.random() < 0.5, speed: snow ? 48 : 60, onStep: (t) => skiPose(xc, t) });
+  await alongRoad(xc, { speed: snow ? 48 : 60, onStep: (t) => skiPose(xc, t) });
   xc.classList.remove('out');
   roadBusy = false;
 }
