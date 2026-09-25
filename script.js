@@ -14,7 +14,7 @@ const SITE = {
   // Research keywords, shown in About (and given to Google)
   keywords: ['Single-Molecule Localization Microscopy', 'Flow Matching', 'Graph Neural Networks'],
   // One line about what you're doing right now, and when you last updated it (YYYY-MM).
-  now: { text: "Placeholder: what you're working on, reading or training for right now.", updated: '2026-09' },
+  now: { text: 'Guest researcher at AITHYRA in Vienna, working on generative models that sharpen super-resolution microscopy images.', updated: '2026-09' },
   email: 'sebastian.bauer@scilifelab.se',
   linkedin: 'https://www.linkedin.com/in/sebjbauer/',
   github: 'https://github.com/sebjbauer',

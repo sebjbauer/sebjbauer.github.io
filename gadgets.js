@@ -344,14 +344,20 @@ const penguinFish = () => penguinRoute([
   { to: [1195, 447], ms: 1200, pose: 'walk' },
 ]);
 
-// hot summer days: a run down the jetty, a jump into the lake, and a swim back
+// hot summer days: across the veranda, along the lit path, down the jetty, a jump into the lake,
+// a swim to the rocky beach left of the cottage, and back in through the door
 const penguinSwim = () => penguinRoute([
-  { to: [1300, 449], ms: 3800, pose: 'walk', fast: true },  // along the shore to the jetty
-  { to: [1302, 470], ms: 1300, pose: 'walk', fast: true },  // down the jetty
+  { to: [1199, 449], ms: 700, pose: 'walk', fast: true },   // out onto the veranda
+  { to: [1216, 449.3], ms: 1100, pose: 'walk', fast: true }, // across it
+  { to: [1220, 450.2], ms: 350, pose: 'jump' },              // down the step
+  { to: [1297, 449.6], ms: 3600, pose: 'walk', fast: true }, // along the path to the jetty
+  { to: [1302, 471], ms: 1300, pose: 'walk', fast: true },   // down the jetty
   { to: [1307, 481], ms: 650, pose: 'jump' },                // and in!
-  { to: [1212, 466], ms: 8000, pose: 'swim' },               // swim back
-  { to: [1204, 452], ms: 1800, pose: 'swim' },
-  { to: [1195, 447], ms: 900, pose: 'walk' },
+  { to: [1190, 466], ms: 7500, pose: 'swim' },               // swim to the rocks
+  { to: [1168, 455], ms: 2200, pose: 'swim' },
+  { to: [1164, 450.5], ms: 700, pose: 'jump' },              // climb out onto the rocks
+  { to: [1176, 449.4], ms: 900, pose: 'walk' },              // over to the veranda
+  { to: [1195, 447], ms: 1100, pose: 'walk' },               // and inside
 ]);
 
 // rain poncho, woolly hat and scarf, or sunglasses, from the real weather in Vienna

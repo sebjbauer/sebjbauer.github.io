@@ -90,7 +90,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260925200525">
+  <link rel="stylesheet" href="style.css?v=20260925202129">
 </head>
 <body>
 <a class="skip-link" href="#about">Skip to content</a>
@@ -201,6 +201,15 @@
 
     <!-- a strip of shore in front of the cottage, with a gravel path to the jetty -->
     <path class="l-near shore" d="M1158 445.4 L1307 445.4 Q1304 448.6 1297 449.9 Q1236 451.9 1171 450.5 Q1162 449 1158 445.4 Z"/>
+    <!-- a small rocky beach left of the cottage, where the penguin climbs out after a swim -->
+    <g class="rocks">
+      <path d="M1143 451.2 Q1144 446.6 1149 447.2 Q1152.5 448.2 1151.5 451.4 Z"/>
+      <path class="dark" d="M1149.5 451.6 Q1151 448 1155 448.6 Q1157.6 449.6 1156.8 451.8 Z"/>
+      <path d="M1155.5 451.9 Q1157.5 446.2 1162.6 447 Q1166 448.4 1164.8 452 Z"/>
+      <path class="dark" d="M1163.6 452 Q1165 449.2 1168.4 449.6 Q1170.4 450.6 1169.6 452.2 Z"/>
+      <path d="M1147 452.6 Q1148 451 1150.5 451.3 Q1151.8 452 1151 453 Z"/>
+      <path d="M1160 452.9 Q1161 451.3 1163.4 451.6 Q1164.6 452.3 1164 453.2 Z"/>
+    </g>
     <path class="gravel" d="M1216 449.7 C1240 450.3 1272 450.2 1297 449.4"/>
     <g class="stuga">
       <rect x="1203" y="416" width="4" height="9" fill="#2A1A18"/>
@@ -431,8 +440,10 @@
       <div class="photo"><img src="photo.jpg" alt="Portrait of Sebastian Bauer" width="640" height="640" loading="lazy" decoding="async"></div>
       <div>
         <p class="now"><strong>Now</strong> <span id="nowText"></span> <span class="now-date" id="nowDate"></span></p>
-        <p class="lead">A short, personal intro goes here: who you are, what you do, and what you care about. Two or three sentences are plenty.</p>
-        <p>A second paragraph can add something more human, like why you split your life between the Alps and Sweden, or what you do when you're not working.</p>
+        <p class="lead">I'm a PhD student in <a href="https://www.scilifelab.se/researchers/juliette-griffie/" target="_blank" rel="noopener">Juliette Griffié's lab</a> at Stockholm University and SciLifeLab. I develop machine-learning methods that turn microscopy images into biological discoveries, with a focus on single-molecule localization microscopy (SMLM).</p>
+        <p>With a background in physics, I've worked in both the wet lab and the dry lab: from preparing and imaging samples to building computational methods.</p>
+        <p>I'm always open to collaborations on machine learning in biology, microscopy, or anything in between. <a href="#contact">Get in touch</a>.</p>
+        <p>Outside the lab I like to stay active outdoors, cook new dishes, and discover places around the globe.</p>
         <dl class="facts">
           <div><dt>Based in</dt><dd>Vienna, Austria</dd></div>
           <div><dt>Speaks</dt><dd id="speaks">German, English, Swedish</dd></div>
@@ -545,11 +556,11 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="notes.js?v=20260925200525"></script>
+<script src="notes.js?v=20260925202129"></script>
 <script src="cv-data.js?v=local"></script>
-<script src="script.js?v=20260925200525"></script>
-<script src="extras.js?v=20260925200525"></script>
-<script src="gadgets.js?v=20260925200525"></script>
-<script src="science.js?v=20260925200525"></script>
+<script src="script.js?v=20260925202129"></script>
+<script src="extras.js?v=20260925202129"></script>
+<script src="gadgets.js?v=20260925202129"></script>
+<script src="science.js?v=20260925202129"></script>
 </body>
 </html>

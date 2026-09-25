@@ -242,6 +242,11 @@ kbd {
 .dk-body { fill: #7A5B3A; } .dk-head { fill: #2F6B3C; } .dk-head2 { fill: #8A6A48; } .dk-beak { fill: #E0A030; }
 
 /* shore path, veranda and path lights by the cottage */
+.rocks path { fill: #979EA3; }
+.rocks .dark { fill: #767D82; }
+[data-daylight="no"] .rocks path { fill: #3C4146; }
+[data-daylight="no"] .rocks .dark { fill: #2E3236; }
+[data-season="winter"] .rocks path { fill: #DCE2E7; }
 .gravel { fill: none; stroke: #CDBF9E; stroke-width: 1.3; stroke-linecap: round; opacity: .75; }
 [data-daylight="no"] .gravel { stroke: #4A443A; }
 [data-season="winter"] .gravel { stroke: #E4E8EC; }
