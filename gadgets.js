@@ -150,12 +150,54 @@ async function penguinWalk() {
   penguinOut = false;
 }
 
+// when the lake is frozen, the penguin sometimes comes out by itself and slides across the ice
+async function penguinSlide() {
+  if (!live.frozen || penguinOut || !heroVisible() || reduceMotion) return;
+  penguinOut = true;
+  const pg = $('#penguin'), flip = pg.querySelector('.pg-flip'), waddle = pg.querySelector('.pg-waddle');
+  waddle.removeAttribute('clip-path'); pg.querySelector('.pg-ripple').style.opacity = 0;
+  pg.classList.add('out');
+  const at = (x, y, dir, pose) => {
+    pg.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(1 + (y - 447) * 0.014).toFixed(3)})`);
+    flip.setAttribute('transform', dir < 0 ? 'scale(-1 1)' : '');
+    waddle.setAttribute('transform', pose);
+  };
+  const leg = (from, to, ms, pose) => new Promise((done) => {
+    let t0 = 0;
+    const step = (t) => {
+      if (!t0) t0 = t;
+      const k = Math.min(1, (t - t0) / ms), e = pose === 'slide' ? 1 - (1 - k) ** 2 : k; // slides slow down
+      const x = from[0] + (to[0] - from[0]) * e, y = from[1] + (to[1] - from[1]) * e;
+      at(x, y, to[0] - from[0], pose === 'slide' ? 'translate(0 -1.5) rotate(78)' : `rotate(${(Math.sin(t / 90) * 9).toFixed(1)})`);
+      if (k < 1) requestAnimationFrame(step); else done();
+    };
+    requestAnimationFrame(step);
+  });
+  await leg([1195, 447], [1203, 458], 1400, 'walk');   // out of the door, onto the ice
+  await leg([1203, 458], [1335, 462], 2400, 'slide');  // belly slide
+  await leg([1335, 462], [1203, 458], 6500, 'walk');   // waddle back
+  await leg([1203, 458], [1195, 447], 1200, 'walk');
+  pg.classList.remove('out');
+  earnBadge('penguin');
+  penguinOut = false;
+}
+
+// rain poncho, woolly hat and scarf, or sunglasses, from the real weather in Vienna
+function cyclistGear() {
+  const temp = weatherNow?.temp;
+  if (live.particle === 'rain' || live.particle === 'drizzle') return 'rain';
+  if (live.particle === 'snow' || (temp != null && temp < 5)) return 'cold';
+  if (temp != null && temp >= 24 && live.overcast < 0.4 && lastSky.d < 0.5) return 'sun';
+  return 'none';
+}
+
 // the cyclist rides through the valley now and then; click to make them tuck
 const cyclist = $('#cyclist'), road = $('#road');
 let riding = false;
 async function ride() {
   if (riding || !heroVisible() || reduceMotion) return;
   riding = true;
+  cyclist.dataset.gear = cyclistGear(); // dress for the real weather in Vienna
   cyclist.classList.remove('tuck');
   cyclist.classList.add('out');
   let speed = 1, pos = 0, last = 0;
@@ -423,10 +465,11 @@ every(20, 50, ski);
 setTimeout(birds, 8000);
 every(45, 110, birds);
 setTimeout(checkIss, 3000);
+every(45, 100, penguinSlide);
 
 // preview helpers for FEATURES.md: ?ride, ?penguin, ?smlm
 if (params.has('ride')) setTimeout(ride, 800);
-if (params.has('penguin')) setTimeout(penguinWalk, 800);
+if (params.has('penguin')) setTimeout(live.frozen ? penguinSlide : penguinWalk, 800);
 if (params.has('smlm')) setTimeout(() => (lastSky.d >= 0.75 ? smlmShow() : toast('The microscope only works at night.')), 900);
 if (params.has('timelapse')) setTimeout(() => timelapse(params.get('timelapse') === 'year' ? 'year' : ''), 900);
 if (params.has('iss')) { // preview: a pass from west-south-west to east over 40 seconds

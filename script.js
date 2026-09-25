@@ -11,6 +11,8 @@ const SITE = {
   ],
   location: 'Vienna, Austria',
   role: 'PhD student in Bioinformatics, guest researcher at AITHYRA',
+  // Research keywords, shown in About (and given to Google)
+  keywords: ['Single-Molecule Localization Microscopy', 'Flow Matching', 'Graph Neural Networks'],
   // One line about what you're doing right now, and when you last updated it (YYYY-MM).
   now: { text: "Placeholder: what you're working on, reading or training for right now.", updated: '2026-09' },
   email: 'sebastian.bauer@scilifelab.se',
@@ -85,11 +87,19 @@ const SITE = {
       authors: 'S. Bauer', school: 'KTH Royal Institute of Technology', url: 'https://kth.diva-portal.org/smash/record.jsf?pid=diva2:1768469' },
   ],
 
-  // TALKS, POSTERS AND AWARDS: newest year first. type: 'Talk', 'Poster' or 'Award'.
+  // TALKS, POSTERS, AWARDS AND ORGANISING: newest year first. type: e.g. 'Invited talk', 'Selected talk',
+  // 'Poster', 'Award' or 'Organisation'.
   // `where` is the event or institution; `url` (slides, poster, announcement) is optional.
   // `city` (e.g. 'Lisbon' or 'Cambridge, United Kingdom') puts a pin on the map above the list.
   talks: [
-    { year: 2016, type: 'Award', title: '1st place, Hans Riegel-Fachpreis in physics, region Vienna', where: 'For the high-school final thesis on aerodynamics in road cycling' },
+    { year: 2026, type: 'Invited talk', title: 'Beyond localization', where: 'SMLMS 2026, 15th Single Molecule Localization Microscopy Symposium', city: 'Stockholm', url: 'https://smlms.org/' },
+    { year: 2026, type: 'Organisation', title: 'Local coordinator', where: 'SMLMS 2026, 15th Single Molecule Localization Microscopy Symposium', city: 'Stockholm', url: 'https://smlms.org/' },
+    { year: 2026, type: 'Organisation', title: 'Organising team', where: 'Protein Folding Conference', city: 'Stockholm' },
+    { year: 2025, type: 'Selected talk', title: 'SMLMFlow: Improving structural resolution in SMLM with flow matching and GNNs', where: 'SMLMS 2025, Single Molecule Localization Microscopy Symposium', city: 'Bonn' },
+    { year: 2025, type: 'Poster', title: 'SMLMFlow', where: 'LOGML 2025, London Geometry and Machine Learning Summer School, Imperial College London', city: 'London, United Kingdom' },
+    { year: 2024, type: 'Invited talk', title: 'SMLMFlow', where: 'Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge', city: 'Gothenburg' },
+    { year: 2024, type: 'Award', title: 'Best poster prize', where: 'Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge', city: 'Gothenburg' },
+    { year: 2016, type: 'Award', title: '1st place, Hans Riegel-Fachpreis in physics, region Vienna', where: 'For the high-school final thesis on aerodynamics in road cycling', city: 'Vienna' },
   ],
 
   skills: {
@@ -757,6 +767,7 @@ function renderContent() {
   $('#heroLines').innerHTML = SITE.headline.map((l) => `<span>${linkify(l)}</span>`).join('');
   $('#heroPlace').textContent = SITE.location;
   $('#nowText').textContent = SITE.now.text;
+  $('#keywords').innerHTML = SITE.keywords.map((k) => `<li>${esc(k)}</li>`).join('');
   const [ny, nm] = SITE.now.updated.split('-').map(Number);
   $('#nowDate').textContent = `Updated ${new Date(ny, nm - 1).toLocaleString('en-GB', { month: 'long', year: 'numeric' })}`;
 

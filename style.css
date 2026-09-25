@@ -242,6 +242,13 @@ kbd {
 .cyclist.tuck .tucked { display: inline; }
 .cyclist.tuck .upright { display: none; }
 .cyclist .headlight { fill: #F4E27A; stroke: none; opacity: var(--window); }
+/* weather gear, chosen from the real weather in Vienna when the ride starts */
+.cyclist .gear { display: none; }
+.cyclist[data-gear="rain"] .gear-rain, .cyclist[data-gear="cold"] .gear-cold, .cyclist[data-gear="sun"] .gear-sun { display: inline; }
+.cyclist .gear-rain { fill: #F2C94C; stroke: #B8920F; stroke-width: .5; }
+.cyclist .gear-cold .hat { fill: #D9483B; stroke: none; }
+.cyclist .gear-cold .scarf { stroke: #D9483B; stroke-width: 1.2; }
+.cyclist .gear-sun { stroke: #111111; stroke-width: 1; }
 
 .pg-black { fill: #15181B; } .pg-white { fill: #F4F4F2; } .pg-orange { fill: #EE9A2E; }
 .pg-ripple { fill: none; stroke: rgba(255, 255, 255, .7); stroke-width: .8; opacity: 0; }
@@ -353,6 +360,9 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 .facts { display: flex; flex-wrap: wrap; gap: 8px 40px; margin: 24px 0 0; font-size: 16px; }
 .facts dt { color: var(--muted); }
 .facts dd { margin: 0; }
+.facts-wide { flex-basis: 100%; }
+.keywords { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; }
+.keywords li:not(:last-child)::after { content: '·'; margin: 0 10px; color: var(--muted); }
 
 /* career: profile + table */
 .topo {

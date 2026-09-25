@@ -143,11 +143,12 @@ Based on the date in Vienna.
 
 | What | When |
 |---|---|
-| **Cyclist** on the valley road | Every 35 to 90 seconds, any season; with a headlight after dark. Click them to make them tuck ("Aero tuck: about 15% less drag."), and they speed up. A nod to the road-cycling aerodynamics thesis. |
+| **Cyclist** on the valley road | Every 35 to 90 seconds, any season; with a headlight after dark. Dressed for the real weather in Vienna: yellow rain poncho in rain or drizzle, red woolly hat and scarf below 5 °C or in snow, sunglasses on sunny days from 24 °C. Click them to make them tuck ("Aero tuck: about 15% less drag."), and they speed up. A nod to the road-cycling aerodynamics thesis. |
 | **Ice skater** | Only when the lake is frozen. Click to make them spin. |
 | **Ducks** | Summer, daytime, lake not frozen |
 | **Migrating birds** (V formation) | Spring (flying north) and autumn (flying south), daytime, every 45 to 110 seconds |
 | **Skier** down the Alpine slope | Winter, daytime, every 20 to 50 seconds |
+| **Penguin on the ice** | When the lake is frozen, every 45 to 100 seconds it comes out by itself, slides across the ice on its belly and waddles back. |
 | **Penguin** | Every 5th click on the cottage: it walks out, does a loop (swimming if the lake isn't frozen) and goes back in. No message, just the penguin. |
 
 Everything pauses when the top of the page is scrolled out of view.
@@ -232,6 +233,10 @@ The site sends a cookie-free page count to GoatCounter; no personal data, no con
 ## Google: who this page is about
 
 Invisible structured data in `index.html` (the `application/ld+json` block) tells Google the name, positions, affiliations (Stockholm University, SciLifeLab, AITHYRA), alumni of (KTH, TU Wien), Vienna, and the profiles (Google Scholar, LinkedIn, GitHub, Bluesky, X). Update it if positions change. You can test it at https://search.google.com/test/rich-results.
+
+## Research keywords
+
+In About, under "Research": Single-Molecule Localization Microscopy · Flow Matching · Graph Neural Networks. Also given to Google in the structured data. Edit them in `keywords` in `script.js`.
 
 ## Link preview
 
