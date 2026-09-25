@@ -168,6 +168,16 @@ function holidayToday() {
 const HOLIDAY_GREETING = { christmas: 'Merry Christmas · Frohe Weihnachten · God jul.', easter: 'Happy Easter · Frohe Ostern · Glad påsk.', midsommar: 'Happy Midsummer · Glad midsommar!' };
 specialGreeting = () => HOLIDAY_GREETING[holidayToday()] || null;
 
+// Flag by the cottage: Swedish National Day (6 June), Austrian National Day (26 October), pennant
+// otherwise. National flags are only up between sunrise and sunset, as is Swedish custom.
+function flagToday(isDay) {
+  if (params.get('flag')) return params.get('flag'); // preview: ?flag=se, ?flag=at or ?flag=vimpel
+  const [, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date()).split('-').map(Number);
+  const national = m === 6 && d === 6 ? 'se' : m === 10 && d === 26 ? 'at' : null;
+  return national && isDay ? national : 'vimpel';
+}
+skyHooks.push(({ isDay }) => { const f = $('#flagpole'); const flag = flagToday(isDay); if (f.dataset.flag !== flag) f.dataset.flag = flag; });
+
 function applyHoliday() {
   document.documentElement.dataset.holiday = holidayToday() || 'none';
   tickClock();

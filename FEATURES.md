@@ -158,6 +158,7 @@ Based on the date in Vienna.
 | **Triathlon** | On summer days (or from 18 °C in other seasons), dry and not frozen, every 3 to 6 minutes: a swimmer in an orange cap crosses the lake, then the cyclist rides back through the valley, then a runner with a race bib runs along the road. Click an athlete: "Triathlon: 1.5 km swim, 40 km bike, 10 km run." Terminal: `triathlon` starts a race. |
 | **Cross-country skier** | Daytime, every 60 to 140 seconds, along the valley road: on long skis across the snow in winter, on roller skis (little wheels) in the other seasons. Click for a line about cross-country skiing. |
 | **Barbecue** | A kettle grill next to the cottage (hidden at Christmas, when the tree stands there). **Every third time the penguin comes out**, it walks to the grill, opens the lid and grills for a while (smoke, flipping with a spatula), then goes back in. |
+| **Flagpole** by the cottage | The Swedish flag on 6 June (Sweden's National Day), the Austrian flag on 26 October (Austria's National Day), the long Swedish pennant (vimpel) every other day. National flags only fly between sunrise and sunset (Swedish custom); at night the pennant is up. Hidden at Christmas (the tree stands there). Preview: `?flag=se`, `?flag=at`. |
 | **Penguin on the ice** | When the lake is frozen, every 45 to 100 seconds it comes out by itself, slides across the ice on its belly and waddles back. |
 | **Penguin** | Every 5th click on the cottage: it walks out, does a loop (swimming if the lake isn't frozen) and goes back in. No message, just the penguin. |
 

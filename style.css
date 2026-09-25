@@ -288,6 +288,12 @@ kbd {
 .bbq-smoke circle:nth-child(2) { animation-delay: 1s; }
 .bbq-smoke circle:nth-child(3) { animation-delay: 2s; }
 [data-holiday="christmas"] .bbq { display: none; } /* the Christmas tree stands there */
+.flagpole .pole { stroke: #F3EEE6; stroke-width: .8; }
+.flagpole .knob { fill: #D9B44A; }
+.flagpole .flag { display: none; transform-box: fill-box; transform-origin: 0% 50%; animation: flag-wave 3.2s ease-in-out infinite; }
+.flagpole[data-flag="se"] .flag-se, .flagpole[data-flag="at"] .flag-at, .flagpole[data-flag="vimpel"] .flag-vimpel { display: inline; }
+@keyframes flag-wave { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(3deg) scaleX(.94); } }
+[data-holiday="christmas"] .flagpole { display: none; } /* the Christmas tree stands there */
 .pg-spatula { display: none; }
 .penguin.grill .pg-spatula { display: inline; }
 .pg-handle { stroke: #6B6B6B; stroke-width: .7; }
