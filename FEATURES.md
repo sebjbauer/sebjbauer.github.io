@@ -474,7 +474,7 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 
 In `cv/cv.tex`, add `\web{image}{images/pubs/smlmflow.jpg}` right after a `\pub{…}` and put the file in `images/pubs/`. The website then shows a small picture (in its own shape, at most 170px tall, on white) to the left of that publication; the PDF is unchanged. Publications without a picture look as before. Add `\web{imagecredit}{Figure 1, Journal (CC BY 4.0)}` to name the source; it shows when hovering the picture.
 
-Current pictures: Nano Letters (part of Fig. 1, ribosome), JCS review (Fig. 3), SMLMFlow (animated GIF of the localisations sharpening), AI4CellFate (Fig. 2c), 6S RNA (tissue section from Fig. 5), master's thesis (cover). The two conference abstracts have none.
+Current pictures: Nano Letters (ribosome to dye, from Fig. 1A), JCS review (Fig. 3), SMLMFlow (animated GIF of the localisations sharpening), AI4CellFate (Fig. 2c), 6S RNA (tissue section from Fig. 5), master's thesis (the protein from the cover). The two conference abstracts have none.
 
 ## Printing
 
