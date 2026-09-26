@@ -438,10 +438,21 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 | **Night fishing** | On mild nights (not winter, no rain or fog) a rowing boat with a lantern and someone fishing drifts slowly on the lake; the lantern is reflected in the water. | `?sky=night&season=summer` |
 | **Ice hockey** | On frozen days, now and then two players (red and blue) play on the lake with small nets at each end; the penguin comes out to referee. A goal makes the scorer jump and the puck goes back to the middle. | `?hockey&weather=frost&season=winter&sky=day` |
 | **Penguin under the footer** | Scroll to the very bottom: a penguin pops up behind the footer and waves (at most every 30 seconds). Click it: badge *Peekaboo*. | scroll down |
+| **Cow on the road** | Now and then a cow wanders onto the valley road and stands there. When the cyclist comes, they stop, ring the bell, and the cow ambles back to the meadow. | `?cowroad` |
+| **Owl** | At night two yellow eyes blink in the Swedish forest. Tap them: the owl flies off (back after two minutes). | `?sky=night` |
+| **Mountain hut** | A small hut below the Alpine summit; its window is lit at night, and its roof is white in winter. | always |
+| **Chairlift** | In winter a chairlift runs up the Alpine slope (chairs up one cable, down the other). The skier rides it up before skiing down. | `?season=winter&sky=day` |
+| **Penguin: snow angel** | On the frozen lake the penguin sometimes lies down and makes a snow angel, admires it, and goes back in; the angel fades after a minute. | `?angel&weather=frost&season=winter` |
+| **Penguin: stargazing** | On clear nights the penguin sets up a telescope on the veranda; when the ISS really passes over Vienna, it points the telescope at it. | `?stargaze&sky=night` |
+| **Penguin: rain dance** | On warm rainy days (from 10 °C) a puddle forms on the path and the penguin runs out to jump in it. | `?raindance&weather=rain` |
 | **Moose (älg)** | Now and then (not at night) a moose walks out of the Swedish forest, stops in the middle of the road, and walks on; a Swedish "Älgvarning" sign appears while it's there. Click it and it hurries off (badge *Älgvarning*). | `?moose` |
 | **Veranda and path lights** | The cottage has a wooden veranda with a white railing, and a gravel path runs along a strip of shore to the jetty. Five small lamps line the path; after dark they glow and their light is reflected in the lake. | `?sky=night` |
 | **Tent in the forest** | Summer only, in a clearing on the Swedish side (allemansrätten allows wild camping there). The tent is up from an hour before sunset until two hours after sunrise; the campfire burns until 23:30 (not in rain); after dark a headlamp lights the tent until midnight. Tap the fire for a burst of sparks (badge *Allemansrätten*). | `?tent&season=summer&sky=dusk` or `&sky=night` |
 | **Snowman** | Winter days at ≤ 2 °C: a snowman by the forest edge gets built after sunrise (base, middle, head, face, then hat, scarf and arms, about one step every 1.2 h). Between 2 and 8 °C it slumps and melts; warmer, it's gone. Click it: the hat hops (badge *Snow day*). | `?snowman`, `?snowman=melt` (add `&season=winter`) |
+
+## Pictures next to publications
+
+In `cv/cv.tex`, add `\web{image}{images/pubs/smlmflow.jpg}` right after a `\pub{…}` and put the file in `images/pubs/`. The website then shows a small picture (4:3, cropped to fit) to the left of that publication; the PDF is unchanged. Publications without a picture look as before.
 
 ## Printing
 

@@ -442,6 +442,40 @@ kbd {
 .pg-flash { fill: #FFFFFF; opacity: 0; }
 .penguin.flash .pg-flash { animation: pg-flash .35s ease-out; }
 @keyframes pg-flash { 20% { opacity: .95; } 100% { opacity: 0; } }
+/* the cyclist rings the bell (a cow on the road) */
+.cyclist .ring-lines { display: none; }
+.cyclist.ring .ring-lines { display: inline; animation: ufo-blink .3s steps(1) infinite; }
+/* mountain hut and chairlift */
+.hut-wall { fill: #7A5436; } .hut-roof { fill: #3B2A20; } .hut-base { fill: var(--far); transition: fill 1.5s; }
+.hut-window { fill: #F4C95D; opacity: var(--window); }
+[data-season="winter"] .hut-roof { fill: #EEF2F5; }
+.lift { display: none; }
+[data-season="winter"] .lift { display: inline; }
+.lift-cable { fill: none; stroke: #2E3338; stroke-width: .35; }
+.lift-pylon { stroke: #3A4046; stroke-width: .8; }
+.lift-station { fill: #4A5057; }
+.lift-chair { fill: none; stroke: #2E3338; stroke-width: .45; stroke-linecap: round; }
+/* owl */
+.owl { display: none; }
+[data-daylight="no"] .owl { display: inline; }
+.owl-eyes circle { fill: #F2D45C; animation: owl-blink 6s steps(1) infinite; }
+.owl-eyes circle + circle { animation-delay: 0s; }
+@keyframes owl-blink { 0%, 93%, 97%, 100% { opacity: 1; } 94%, 96% { opacity: 0; } }
+.owl-bird { display: none; }
+.owl.flying .owl-bird { display: inline; }
+.owl.flying .owl-eyes, .owl.gone .owl-eyes { display: none; }
+.owl-body, .owl-wing { fill: #9C8468; } .owl-eye { fill: #F2D45C; }
+/* puddle and snow angel */
+.puddle { fill: #8FA9BC; opacity: 0; transition: opacity 3s; }
+.puddle.wet { opacity: .7; }
+.snow-angel { opacity: 0; transition: opacity 6s; }
+.snow-angel.show { opacity: 1; transition: opacity 1.2s; }
+.snow-angel path, .snow-angel ellipse, .snow-angel circle { fill: #C9D6E0; stroke: #A9B9C6; stroke-width: .3; }
+/* the penguin's telescope */
+.pg-scope { display: none; }
+.penguin.stargaze .pg-scope { display: inline; }
+.pg-tripod { fill: none; stroke: #8A8F94; stroke-width: .5; }
+.pg-tube rect { fill: #C9CED3; }
 /* night fishing */
 .rowboat { display: none; }
 .rowboat.show { display: inline; }
@@ -755,6 +789,13 @@ span.pub-title { display: inline; }
   display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   font-size: 15px; color: var(--muted);
 }
+
+/* publications with a small picture (\web{image}{…} in cv/cv.tex) */
+.pub-list li.has-img { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 0 20px; align-items: start; }
+.pub-img { display: block; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); background: var(--raised); margin-top: 4px; }
+.pub-img img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; transition: transform .4s ease; }
+.pub-img:hover img { transform: scale(1.04); }
+@media (max-width: 760px) { .pub-list li.has-img { grid-template-columns: 76px minmax(0, 1fr); gap: 0 14px; } }
 
 /* ---------- GPS terminal ---------- */
 .gps {

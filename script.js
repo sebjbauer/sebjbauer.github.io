@@ -677,11 +677,14 @@ function renderPublications() {
     <div class="pub-year">
       <h3>${y}</h3>
       <ol>${SITE.publications.filter((p) => p.year === y).map((p) => `
-        <li>
+        <li${p.image ? ' class="has-img"' : ''}>
+          ${p.image ? `<a class="pub-img" href="${esc(linkOf(p))}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="${esc(p.image)}" alt="" loading="lazy" decoding="async"></a>` : ''}
+          <div class="pub-text">
           <a class="pub-title" href="${esc(linkOf(p))}" target="_blank" rel="noopener">${esc(p.title)}</a>
           <p class="pub-authors">${bold(p.authors)}</p>
           <p class="pub-venue"><span class="pub-type">${esc(p.type)}</span> ${esc(venueOf(p))}</p>
           <p class="pub-cite"><button type="button" data-cite="text" data-i="${SITE.publications.indexOf(p)}">Copy citation</button><button type="button" data-cite="bib" data-i="${SITE.publications.indexOf(p)}">BibTeX</button></p>
+          </div>
         </li>`).join('')}</ol>
     </div>`).join('');
   $('#scholarLink').href = SITE.scholar;

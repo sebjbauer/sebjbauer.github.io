@@ -227,7 +227,7 @@ async function penguinOuting(kind) {
   penguinOut = true;
   penguinTrips += 1;
   if (penguinTrips % 3 === 0) await penguinGrill();
-  else await ({ slide: penguinSlide, fish: penguinFish, swim: penguinSwim }[kind] || penguinWalk)();
+  else await ({ slide: penguinSlide, fish: penguinFish, swim: penguinSwim, angel: penguinAngel }[kind] || penguinWalk)();
   penguinOut = false;
 }
 const hotDay = () => !live.frozen && !live.particle && lastSky.d < 0.4 && (weatherNow?.temp ?? 0) >= 25;
@@ -311,6 +311,7 @@ async function penguinRoute(steps) {
         if (s.pose === 'walk') pose = `rotate(${(Math.sin(t / (s.fast ? 55 : 90)) * 9).toFixed(1)})`;
         if (s.pose === 'slide') pose = 'translate(0 -1.5) rotate(78)';
         if (s.pose === 'jump') { y -= Math.sin(Math.PI * k) * 9; pose = `rotate(${(20 + 70 * k).toFixed(0)})`; }
+        if (s.pose === 'hop') y -= Math.sin(Math.PI * k) * 4;
         const swimming = s.pose === 'swim';
         pg.setAttribute('transform', `translate(${x.toFixed(1)} ${(y + (swimming ? 2.5 : 0)).toFixed(1)}) scale(${(1 + (y - 447) * 0.014).toFixed(3)})`);
         flip.setAttribute('transform', dir < 0 ? 'scale(-1 1)' : '');
@@ -381,6 +382,65 @@ const penguinSelfie = () => { let flashes = 0; return penguinRoute([
   { to: [1199, 449], ms: 1200, pose: 'walk' },
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]); };
+// frozen lake: a snow angel on the ice, then a moment to admire it
+const snowAngel = $('#snowAngel');
+const penguinAngel = () => penguinRoute([
+  { to: [1203, 458], ms: 1400, pose: 'walk' },
+  { to: [1216, 462], ms: 1500, pose: 'walk' },
+  { to: [1216, 462], ms: 2600, pose: 'slide', tick: (k) => { if (k > 0.3) snowAngel.classList.add('show'); } },
+  { to: [1225, 462.5], ms: 900, pose: 'walk' },
+  { ms: 1500, pose: 'wait' },
+  { to: [1203, 458], ms: 2000, pose: 'walk' },
+  { to: [1195, 447], ms: 1200, pose: 'walk' },
+]).then(() => setTimeout(() => snowAngel.classList.remove('show'), 60000));
+
+// clear nights: a telescope on the veranda, pointed at the space station when it's passing
+let scopeAimed = 0;
+function aimScope(pg) {
+  const now = performance.now();
+  if (now - scopeAimed < 400) return;
+  scopeAimed = now;
+  let angle = 55;
+  if (issDot.classList.contains('show')) {
+    const a = pg.getBoundingClientRect(), b = issDot.getBoundingClientRect();
+    angle = Math.max(15, Math.min(165, Math.atan2(a.top - (b.top + b.height / 2), (b.left + b.width / 2) - (a.left + a.width / 2)) * 180 / Math.PI));
+  }
+  pg.querySelector('.pg-tube').setAttribute('transform', `rotate(${(-angle).toFixed(0)} 7.6 -5)`);
+}
+const penguinStargaze = () => penguinRoute([
+  { to: [1199, 449], ms: 800, pose: 'walk' },
+  { to: [1205, 449.2], ms: 700, pose: 'walk' },
+  { ms: 22000, pose: 'wait', tick: (k, pg) => { pg.classList.add('stargaze'); aimScope(pg); } },
+  { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.remove('stargaze') },
+  { to: [1199, 449], ms: 700, pose: 'walk' },
+  { to: [1195, 447], ms: 700, pose: 'walk' },
+]);
+
+// warm rain: out to the puddle on the path for some jumping
+const splashAt = (x) => (k) => {
+  if (k < 1) return;
+  splash.setAttribute('transform', `translate(${x} 451)`);
+  splash.classList.remove('go'); void splash.getBoundingClientRect(); splash.classList.add('go');
+};
+const penguinRainDance = () => penguinRoute([
+  { to: [1199, 449], ms: 700, pose: 'walk', fast: true },
+  { to: [1216, 449.3], ms: 900, pose: 'walk', fast: true },
+  { to: [1220, 450.2], ms: 300, pose: 'jump' },
+  { to: [1241, 450.6], ms: 1200, pose: 'walk', fast: true },
+  ...Array.from({ length: 8 }, (_, i) => ({ to: [i % 2 ? 1241 : 1245, 450.6], ms: 430, pose: 'hop', tick: splashAt(i % 2 ? 1241 : 1245) })),
+  { to: [1220, 450.2], ms: 1300, pose: 'walk', fast: true },
+  { to: [1216, 449.3], ms: 300, pose: 'jump' },
+  { to: [1199, 449], ms: 900, pose: 'walk', fast: true },
+  { to: [1195, 447], ms: 500, pose: 'walk' },
+]);
+const rainy = () => live.particle === 'rain' || live.particle === 'drizzle';
+async function penguinSolo(route, force = false) {
+  if (penguinOut || reduceMotion || (!force && !heroVisible())) return;
+  penguinOut = true;
+  await route();
+  penguinOut = false;
+}
+
 const auroraVisible = () => document.documentElement.classList.contains('aurora-storm') || (lastSky.d > 0.8 && live.overcast < 0.5 && !live.particle);
 async function selfieOuting(force = false) {
   if (penguinOut || reduceMotion || !heroVisible() || (!force && !auroraVisible())) return;
@@ -418,7 +478,7 @@ function alongRoad(el, { reverse = false, back = !reverse, speed = 70, onStep } 
       const p = road.getPointAtLength(at), q = road.getPointAtLength(Math.min(len, at + 2));
       const angle = Math.atan2(q.y - p.y, q.x - p.x) * 180 / Math.PI;
       el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${angle.toFixed(1)})${towardsLake ? '' : ' scale(-1 1)'}`);
-      if (onStep) onStep(t);
+      if (onStep) onStep(t, p);
       if (pos < len) requestAnimationFrame(step); else done();
     };
     requestAnimationFrame(step);
@@ -431,8 +491,27 @@ async function ride({ reverse = false, force = false } = {}) {
   cyclist.dataset.gear = cyclistGear(); // dress for the real weather in Vienna
   cyclist.classList.remove('tuck');
   cyclist.classList.add('out');
-  await alongRoad(cyclist, { reverse, speed: () => 70 * (cyclist.classList.contains('tuck') ? 1.5 : 1) });
-  cyclist.classList.remove('out', 'tuck');
+  let at = null, prevX = null, waitingSince = 0;
+  const blocked = () => { // a cow standing on the road just ahead?
+    const cow = typeof herd !== 'undefined' && herd.find((c) => c.road === 'on' || (c.road === 'leaving' && c.y > roadAt(c.x) - 4));
+    if (!cow || !at || prevX === null) return false;
+    const ahead = (at.x - prevX >= 0 ? 1 : -1) * (cow.x - at.x);
+    return ahead > 5 && ahead < 24;
+  };
+  await alongRoad(cyclist, {
+    reverse,
+    speed: () => {
+      if (blocked()) { // stop, ring the bell, and after a moment the cow ambles off
+        if (!waitingSince) { waitingSince = performance.now(); cyclist.classList.add('ring'); }
+        if (performance.now() - waitingSince > 1600) herd.forEach((c) => { if (c.road === 'on') c.leave = true; });
+        return 0;
+      }
+      if (waitingSince) { waitingSince = 0; cyclist.classList.remove('ring'); }
+      return 70 * (cyclist.classList.contains('tuck') ? 1.5 : 1);
+    },
+    onStep: (t, p) => { prevX = at ? at.x : p.x; at = p; },
+  });
+  cyclist.classList.remove('out', 'tuck', 'ring');
   riding = false;
 }
 cyclist.addEventListener('click', () => {
@@ -591,6 +670,8 @@ const skier = $('#skier');
 async function ski() {
   if (currentSeason() !== 'winter' || lastSky.d > 0.55 || !heroVisible() || reduceMotion) return;
   skier.classList.add('out');
+  // up the chairlift first
+  await animate(9000, (k) => { const [x, y] = liftAt(LIFT.up, k); skier.setAttribute('transform', `translate(${x.toFixed(1)} ${(y + 3.4).toFixed(1)})`); });
   await travel(skier, $('#skiRun'), 7000, {
     onStep: (p, q) => {
       // skis follow the slope; mirror the skier when the zigzag turns left
@@ -677,7 +758,9 @@ async function checkIss() {
       const sat = await (await fetch(ISS_URL)).json();
       const { elevation, azimuth } = lookAngles(base(), sat);
       const visible = elevation > 10 && sat.visibility === 'daylight';
+      const wasVisible = issDot.classList.contains('show');
       issDot.classList.toggle('show', visible);
+      if (visible && !wasVisible) setTimeout(() => penguinSolo(penguinStargaze), 1500); // quick, the telescope!
       if (visible) { placeIss(azimuth, elevation); next = 5; }
     } else issDot.classList.remove('show');
   } catch { /* offline: try again later */ }
@@ -921,7 +1004,13 @@ function cowStep(t) {
   herd.forEach((c) => {
     c.el.classList.toggle('sleep', asleep && !c.busy);
     if (c.busy || asleep || t < (c.lookUntil || 0)) return; // (moo: everyone stops and looks up)
-    if (!c.walking && t > c.until) { // time to find fresh grass nearby
+    if (c.road === 'on' && (c.leave || t - c.roadSince > 30000)) { // back to the meadow
+      c.tx = Math.max(350, Math.min(610, c.x + (Math.random() - 0.5) * 40));
+      const [top, bottom] = cowBand(c.tx);
+      c.ty = top + Math.random() * Math.max(0, bottom - top - 4);
+      c.road = 'leaving'; c.leave = false; c.walking = true; c.dir = c.tx >= c.x ? 1 : -1;
+    }
+    if (!c.walking && t > c.until && !c.road) { // time to find fresh grass nearby
       c.tx = Math.max(350, Math.min(610, c.x + (Math.random() - 0.5) * 90));
       const [top, bottom] = cowBand(c.tx);
       c.ty = top + Math.random() * Math.max(0, bottom - top);
@@ -929,7 +1018,11 @@ function cowStep(t) {
     }
     if (c.walking) {
       const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy), v = 2.6 * dt;
-      if (d <= v) { c.x = c.tx; c.y = c.ty; c.walking = false; c.until = t + 5000 + Math.random() * 9000; }
+      if (d <= v) {
+        c.x = c.tx; c.y = c.ty; c.walking = false; c.until = t + 5000 + Math.random() * 9000;
+        if (c.road === 'going') { c.road = 'on'; c.roadSince = t; setTimeout(() => ride(), 1500); } // here comes a cyclist…
+        else if (c.road === 'leaving') c.road = null;
+      }
       else { c.x += (dx / d) * v; c.y += (dy / d) * v; }
     }
   });
@@ -949,6 +1042,17 @@ setInterval(() => {
 const cowWeather = () => cowsEl.classList.toggle('cold', currentSeason() === 'winter' || live.frozen || ((simulated || weatherNow)?.temp ?? 10) < 3);
 skyHooks.push(cowWeather);
 cowWeather();
+
+// now and then a cow wanders onto the road and stays there, until a cyclist rings the bell
+function cowOnRoad(force = false) {
+  if (!heroVisible() || reduceMotion || lastSky.d > 0.7 || herd.some((c) => c.road)) return;
+  if (!force && Math.random() > 0.35) return;
+  const free = herd.filter((c) => !c.busy);
+  const c = free[Math.floor(Math.random() * free.length)];
+  if (!c) return;
+  c.tx = Math.max(390, Math.min(590, c.x + (Math.random() - 0.5) * 30)); c.ty = roadAt(c.tx) + 0.8;
+  c.road = 'going'; c.walking = true; c.dir = c.tx >= c.x ? 1 : -1;
+}
 
 // animate(ms, k => …): calls back with k from 0 to 1, resolves when done
 const animate = (ms, fn) => new Promise((done) => {
@@ -1008,12 +1112,61 @@ COMMANDS.moo = () => {
 };
 HIDDEN.push('moo');
 
+/* ---------------- the chairlift (winter) ---------------- */
+// Chairs go up one cable and down the other; the skier rides up before skiing down.
+const LIFT = { up: [[500, 228], [440, 134]], down: [[442.4, 133.4], [502.4, 227.4]] };
+const liftAt = ([[x0, y0], [x1, y1]], k) => [x0 + (x1 - x0) * k, y0 + (y1 - y0) * k];
+const liftChairs = [];
+Object.values(LIFT).forEach((line) => {
+  for (let i = 0; i < 6; i++) {
+    $('#liftChairs').insertAdjacentHTML('beforeend', '<path class="lift-chair" d="M0 0 V3.2 M-1.3 3.2 H1.3 M1.3 3.2 V1.9"/>');
+    liftChairs.push({ el: $('#liftChairs').lastElementChild, line, k: i / 6 });
+  }
+});
+let liftRaf = 0, liftLast = 0, liftDrawn = 0;
+function liftStep(t) {
+  const dt = Math.min(0.1, (t - (liftLast || t)) / 1000); liftLast = t;
+  liftChairs.forEach((c) => { c.k = (c.k + dt / 24) % 1; });
+  if (t - liftDrawn > 60) {
+    liftDrawn = t;
+    liftChairs.forEach((c) => { const [x, y] = liftAt(c.line, c.k); c.el.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`); });
+  }
+  liftRaf = requestAnimationFrame(liftStep);
+}
+liftDrawn = -1e9; liftStep(0); cancelAnimationFrame(liftRaf); liftRaf = 0; liftLast = 0;
+setInterval(() => {
+  const on = currentSeason() === 'winter' && heroVisible() && !reduceMotion;
+  if (on && !liftRaf) { liftLast = 0; liftRaf = requestAnimationFrame(liftStep); }
+  if (!on && liftRaf) { cancelAnimationFrame(liftRaf); liftRaf = 0; }
+}, 1000);
+
+/* ---------------- the owl ---------------- */
+// At night two eyes blink in the Swedish forest. Tap them and the owl flies off (back in 2 minutes).
+const owl = $('#owl');
+owl.querySelector('.hit').addEventListener('click', async () => {
+  if (owl.classList.contains('flying') || owl.classList.contains('gone') || reduceMotion) return;
+  owl.classList.add('flying');
+  const bird = owl.querySelector('.owl-bird'), wings = owl.querySelectorAll('.owl-wing');
+  await animate(2400, (k, t) => {
+    bird.setAttribute('transform', `translate(${(-130 * k).toFixed(1)} ${(-50 * k - Math.sin(k * Math.PI) * 12).toFixed(1)}) scale(${(1 - 0.3 * k).toFixed(2)})`);
+    const flap = Math.sin(t / 70) > 0 ? 1 : -0.5;
+    wings.forEach((w) => w.setAttribute('transform', `translate(0 1.5) scale(1 ${flap}) translate(0 -1.5)`));
+  });
+  owl.classList.remove('flying'); owl.classList.add('gone');
+  bird.removeAttribute('transform');
+  setTimeout(() => owl.classList.remove('gone'), 120000);
+});
+
 /* ---------------- night fishing ---------------- */
 // On mild nights (not in winter, not in rain or fog) a rowing boat with a lantern drifts on the lake.
 const rowboat = $('#rowboat');
 const boatState = () => rowboat.classList.toggle('show', params.has('boat') ||
   (lastSky.d > 0.7 && currentSeason() !== 'winter' && !live.frozen && !live.particle && !live.fog));
 skyHooks.push(boatState);
+const puddle = $('.puddle');
+const puddleState = () => puddle.classList.toggle('wet', rainy() && !live.frozen);
+skyHooks.push(puddleState);
+puddleState();
 boatState();
 
 /* ---------------- ice hockey on the frozen lake ---------------- */
@@ -1199,10 +1352,13 @@ setTimeout(birds, 8000);
 every(45, 110, birds);
 every(90, 240, () => mooseCrossing());
 every(240, 600, () => ufoVisit());
+every(80, 200, () => cowOnRoad());
+every(120, 300, () => { if (lastSky.d > 0.8 && live.overcast < 0.5 && !live.particle && Math.random() < 0.45) penguinSolo(penguinStargaze); });
+every(60, 150, () => { if (rainy() && !live.frozen && lastSky.d < 0.6 && ((simulated || weatherNow)?.temp ?? 10) >= 10 && Math.random() < 0.5) penguinSolo(penguinRainDance); });
 every(100, 260, () => { if (Math.random() < 0.5 && !live.frozen) selfieOuting(); });
 every(120, 300, () => iceHockey());
 setTimeout(checkIss, 3000);
-every(45, 100, () => { if (live.frozen && !penguinOut && heroVisible() && !reduceMotion) penguinOuting(Math.random() < 0.5 ? 'slide' : 'fish'); });
+every(45, 100, () => { if (live.frozen && !penguinOut && heroVisible() && !reduceMotion) penguinOuting(['slide', 'fish', 'angel'][Math.floor(Math.random() * 3)]); });
 every(60, 130, () => { if (hotDay() && !penguinOut && heroVisible() && !reduceMotion) penguinOuting('swim'); });
 
 // preview helpers for FEATURES.md: ?ride, ?penguin, ?smlm
@@ -1225,6 +1381,10 @@ if (params.has('iss')) { // preview: a pass from west-south-west to east over 40
 if (params.has('birds')) setTimeout(() => birds(true), 800);
 if (params.has('moose')) setTimeout(() => mooseCrossing(true), 800);
 if (params.has('ufo')) setTimeout(() => ufoVisit(true), 1500);
+if (params.has('cowroad')) setTimeout(() => cowOnRoad(true), 1500);
+if (params.has('stargaze')) setTimeout(() => penguinSolo(penguinStargaze, true), 1200);
+if (params.has('raindance')) setTimeout(() => penguinSolo(penguinRainDance, true), 1200);
+if (params.has('angel')) setTimeout(() => penguinSolo(penguinAngel, true), 1200);
 if (params.has('selfie')) setTimeout(() => selfieOuting(true), 1200);
 if (params.has('hockey')) setTimeout(() => iceHockey(true), 1200);
 if (params.has('snowman')) { // preview: builds up stage by stage, then melts (?snowman) or starts melted (?snowman=melt)
