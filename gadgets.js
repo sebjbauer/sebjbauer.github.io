@@ -31,6 +31,7 @@ const BADGES = [
   ['snowman', 'Snow day', "knocked the snowman's hat off", 'cold winter days by the lake'],
   ['camp', 'Allemansrätten', 'poked the campfire', 'summer evenings in the Swedish forest'],
   ['ufo', 'Close encounter', 'clicked the UFO', 'keep an eye on the cows after dark'],
+  ['peek', 'Peekaboo', 'caught the penguin under the footer', 'go all the way down'],
 ];
 let earned = (() => { try { return JSON.parse(store.get('badges') || '[]'); } catch { return []; } })();
 function earnBadge(id) {
@@ -46,7 +47,7 @@ new MutationObserver(() => { if (!gps.hidden) earnBadge('terminal'); }).observe(
 $('.hero').addEventListener('click', (e) => { if (e.target.closest('.shooting-star')) earnBadge('star'); });
 $('#deer').addEventListener('click', () => earnBadge('deer'));
 const originalNorthernLights = northernLights;
-northernLights = function () { earnBadge('riddle'); return originalNorthernLights(); };
+northernLights = function () { earnBadge('riddle'); setTimeout(() => selfieOuting(true), 2500); return originalNorthernLights(); };
 
 /* ---------------- the microscope sky (SMLM) ---------------- */
 // In single-molecule localization microscopy, molecules blink one at a time; each blink is
@@ -323,7 +324,7 @@ async function penguinRoute(steps) {
     });
     pos = to;
   }
-  pg.classList.remove('out', 'fishing', 'caught');
+  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'flash');
   earnBadge('penguin');
 }
 
@@ -360,6 +361,33 @@ const penguinSwim = () => penguinRoute([
   { to: [1176, 449.4], ms: 900, pose: 'walk' },              // over to the veranda
   { to: [1195, 447], ms: 1100, pose: 'walk' },               // and inside
 ]);
+
+// under the northern lights: out to the end of the jetty for a selfie (two flashes), and back
+const selfieFlash = (pg) => { pg.classList.remove('flash'); void pg.getBoundingClientRect(); pg.classList.add('flash'); };
+const penguinSelfie = () => { let flashes = 0; return penguinRoute([
+  { to: [1199, 449], ms: 800, pose: 'walk' },
+  { to: [1216, 449.3], ms: 1200, pose: 'walk' },
+  { to: [1220, 450.2], ms: 350, pose: 'jump' },
+  { to: [1297, 449.6], ms: 4200, pose: 'walk' },
+  { to: [1302, 471], ms: 1800, pose: 'walk' },
+  { ms: 5200, pose: 'wait', tick: (k, pg) => { // phone up, snap, snap
+    pg.classList.add('selfie');
+    if ((k > 0.35 && flashes === 0) || (k > 0.72 && flashes === 1)) { flashes += 1; selfieFlash(pg); }
+  } },
+  { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.remove('selfie', 'flash') },
+  { to: [1297, 449.6], ms: 1800, pose: 'walk' },
+  { to: [1220, 450.2], ms: 4200, pose: 'walk' },
+  { to: [1216, 449.3], ms: 350, pose: 'jump' },
+  { to: [1199, 449], ms: 1200, pose: 'walk' },
+  { to: [1195, 447], ms: 700, pose: 'walk' },
+]); };
+const auroraVisible = () => document.documentElement.classList.contains('aurora-storm') || (lastSky.d > 0.8 && live.overcast < 0.5 && !live.particle);
+async function selfieOuting(force = false) {
+  if (penguinOut || reduceMotion || !heroVisible() || (!force && !auroraVisible())) return;
+  penguinOut = true;
+  await penguinSelfie();
+  penguinOut = false;
+}
 
 // rain poncho, woolly hat and scarf, or sunglasses, from the real weather in Vienna
 function cyclistGear() {
@@ -980,6 +1008,91 @@ COMMANDS.moo = () => {
 };
 HIDDEN.push('moo');
 
+/* ---------------- night fishing ---------------- */
+// On mild nights (not in winter, not in rain or fog) a rowing boat with a lantern drifts on the lake.
+const rowboat = $('#rowboat');
+const boatState = () => rowboat.classList.toggle('show', params.has('boat') ||
+  (lastSky.d > 0.7 && currentSeason() !== 'winter' && !live.frozen && !live.particle && !live.fog));
+skyHooks.push(boatState);
+boatState();
+
+/* ---------------- ice hockey on the frozen lake ---------------- */
+// Now and then on a frozen day, two players (red and blue) play on the lake, each trying to get
+// the puck into the other's net, and the penguin comes out to referee.
+const hockey = $('#hockey'), hockeyPlayers = [...hockey.querySelectorAll('.player')], puckEl = hockey.querySelector('.puck');
+let hockeyOn = false;
+async function iceHockey(force = false) {
+  if (hockeyOn || penguinOut || reduceMotion || !heroVisible()) return;
+  if (!force && (!live.frozen || lastSky.d > 0.5)) return;
+  hockeyOn = true; penguinOut = true;
+  $('#skater').classList.add('away');
+  hockey.classList.add('on');
+  const R = { x0: 1008, x1: 1264, y0: 464, y1: 482 }, mouth = [465.5, 474];
+  const P = [{ x: 1085, y: 471, aim: 1264, speed: 24 }, { x: 1188, y: 474, aim: 1008, speed: 22 }].map((p) => ({ ...p, cool: 0, dir: Math.sign(p.aim - 1136), hop: 0 }));
+  const puck = { x: 1136, y: 472, vx: 0, vy: 0 };
+  // the referee skates (well, waddles) out to the far side of the rink
+  const referee = penguinRoute([
+    { to: [1203, 458], ms: 1400, pose: 'walk' }, { to: [1138, 463], ms: 3500, pose: 'walk' },
+    { ms: 34000, pose: 'wait' },
+    { to: [1203, 458], ms: 3500, pose: 'walk' }, { to: [1195, 447], ms: 1200, pose: 'walk' },
+  ]);
+  await new Promise((done) => {
+    let t0 = 0, last = 0;
+    const step = (t) => {
+      if (!t0) t0 = last = t;
+      const dt = Math.min(0.05, (t - last) / 1000); last = t;
+      // the puck slides and slows down, and bounces off the edges of the rink
+      puck.x += puck.vx * dt; puck.y += puck.vy * dt;
+      const f = Math.exp(-0.8 * dt); puck.vx *= f; puck.vy *= f;
+      if (puck.y < R.y0 || puck.y > R.y1) { puck.vy *= -1; puck.y = Math.max(R.y0, Math.min(R.y1, puck.y)); }
+      if (puck.x < R.x0 || puck.x > R.x1) {
+        const inNet = puck.y > mouth[0] && puck.y < mouth[1];
+        if (inNet) { // goal! the scorer jumps, the puck goes back to the middle
+          const scorer = P.find((p) => Math.abs(p.aim - puck.x) < 30);
+          if (scorer) scorer.hop = t;
+          Object.assign(puck, { x: 1136, y: 472, vx: 0, vy: 0 });
+          P.forEach((p) => { p.cool = 1.2; });
+        } else { puck.vx *= -1; puck.x = Math.max(R.x0, Math.min(R.x1, puck.x)); }
+      }
+      // each player gets behind the puck and shoots it towards the other net
+      P.forEach((p) => {
+        p.cool -= dt;
+        const tx = puck.x - Math.sign(p.aim - 1136) * 3, ty = puck.y + Math.sin(t / 700 + p.speed) * 1.5;
+        const dx = tx - p.x, dy = (ty - p.y) * 2.5, d = Math.hypot(dx, dy) || 1, v = Math.min(d, p.speed * dt);
+        p.x += (dx / d) * v; p.y += (dy / d) * v / 2.5;
+        if (Math.abs(dx) > 0.5) p.dir = Math.sign(dx);
+        if (p.cool <= 0 && Math.hypot(puck.x - p.x - 4 * p.dir, (puck.y - p.y) * 2) < 4) {
+          const gx = p.aim, gy = 468 + Math.random() * 8, gd = Math.hypot(gx - puck.x, (gy - puck.y) * 2);
+          puck.vx = (gx - puck.x) / gd * 90; puck.vy = (gy - puck.y) / gd * 45;
+          p.cool = 0.8;
+        }
+      });
+      P.forEach((p, i) => {
+        const jump = p.hop && t - p.hop < 500 ? Math.sin((t - p.hop) / 500 * Math.PI) * 3 : 0;
+        hockeyPlayers[i].setAttribute('transform', `translate(${p.x.toFixed(1)} ${(p.y - jump).toFixed(1)}) scale(${p.dir} 1)`);
+      });
+      puckEl.setAttribute('transform', `translate(${puck.x.toFixed(1)} ${puck.y.toFixed(1)})`);
+      if (t - t0 < 38000) requestAnimationFrame(step); else done();
+    };
+    requestAnimationFrame(step);
+  });
+  hockey.classList.remove('on');
+  $('#skater').classList.remove('away');
+  await referee;
+  penguinOut = false; hockeyOn = false;
+}
+
+/* ---------------- the penguin under the footer ---------------- */
+// When you reach the very bottom of the page, a penguin pops up behind the footer and waves.
+const peek = $('#footerPeek');
+let peekNext = 0;
+new IntersectionObserver(([e]) => {
+  if (!e.isIntersecting || reduceMotion || performance.now() < peekNext) return;
+  peekNext = performance.now() + 30000;
+  setTimeout(() => { peek.classList.add('peek'); setTimeout(() => peek.classList.remove('peek'), 3400); }, 600);
+}, { threshold: 0.98 }).observe($('.footer'));
+peek.addEventListener('click', () => { earnBadge('peek'); peek.classList.remove('peek'); });
+
 /* ---------------- the moose (älg) ---------------- */
 // Now and then a moose steps out of the Swedish forest, stops in the middle of the road to look
 // around, and walks on. A warning sign appears while it's there. Clicking it makes it hurry.
@@ -1086,6 +1199,8 @@ setTimeout(birds, 8000);
 every(45, 110, birds);
 every(90, 240, () => mooseCrossing());
 every(240, 600, () => ufoVisit());
+every(100, 260, () => { if (Math.random() < 0.5 && !live.frozen) selfieOuting(); });
+every(120, 300, () => iceHockey());
 setTimeout(checkIss, 3000);
 every(45, 100, () => { if (live.frozen && !penguinOut && heroVisible() && !reduceMotion) penguinOuting(Math.random() < 0.5 ? 'slide' : 'fish'); });
 every(60, 130, () => { if (hotDay() && !penguinOut && heroVisible() && !reduceMotion) penguinOuting('swim'); });
@@ -1110,6 +1225,8 @@ if (params.has('iss')) { // preview: a pass from west-south-west to east over 40
 if (params.has('birds')) setTimeout(() => birds(true), 800);
 if (params.has('moose')) setTimeout(() => mooseCrossing(true), 800);
 if (params.has('ufo')) setTimeout(() => ufoVisit(true), 1500);
+if (params.has('selfie')) setTimeout(() => selfieOuting(true), 1200);
+if (params.has('hockey')) setTimeout(() => iceHockey(true), 1200);
 if (params.has('snowman')) { // preview: builds up stage by stage, then melts (?snowman) or starts melted (?snowman=melt)
   let k = 0;
   const tick = () => { k++; snowPreview = { stage: Math.min(5, k), melting: params.get('snowman') === 'melt' || k > 7 }; paintSky(); if (k < 9) setTimeout(tick, 1500); };

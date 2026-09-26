@@ -435,6 +435,43 @@ kbd {
 .pg-handle { stroke: #6B6B6B; stroke-width: .7; }
 .pg-blade { fill: #9A9A9A; }
 .pg-black { fill: #15181B; } .pg-white { fill: #F4F4F2; } .pg-orange { fill: #EE9A2E; }
+.pg-phone { display: none; }
+.penguin.selfie .pg-phone { display: inline; }
+.pg-phone rect { fill: #2A2F35; }
+.pg-arm { fill: none; stroke: #15181B; stroke-width: 1.2; stroke-linecap: round; }
+.pg-flash { fill: #FFFFFF; opacity: 0; }
+.penguin.flash .pg-flash { animation: pg-flash .35s ease-out; }
+@keyframes pg-flash { 20% { opacity: .95; } 100% { opacity: 0; } }
+/* night fishing */
+.rowboat { display: none; }
+.rowboat.show { display: inline; }
+.rb-drift { animation: rb-drift 110s ease-in-out infinite alternate; }
+@keyframes rb-drift { from { transform: translate(-40px, 0); } 50% { transform: translate(20px, 1.5px); } to { transform: translate(90px, -1px); } }
+.rb-hull { fill: #4A3526; }
+.rb-rod { fill: none; stroke: #6B4A2B; stroke-width: .6; }
+.rb-line { fill: none; stroke: rgba(255, 255, 255, .55); stroke-width: .25; }
+.rb-post { stroke: #3A3A3A; stroke-width: .5; }
+.rb-lamp { fill: #FFE3A3; }
+.rb-halo { fill: #FFC96B; opacity: .22; }
+.rb-refl { stroke: #FFC96B; stroke-width: .9; stroke-linecap: round; opacity: .35; }
+/* ice hockey */
+.hockey { display: none; }
+.hockey.on { display: inline; }
+.hockey .net { fill: none; stroke: #F4F4F2; stroke-width: .5; opacity: .85; }
+.hockey .puck { fill: #15181B; }
+.hockey .stick { stroke: #7A5B3A !important; }
+.hockey .red .jersey { stroke: #C8102E !important; stroke-width: 2.2 !important; }
+.hockey .blue .jersey { stroke: #2B6CA3 !important; stroke-width: 2.2 !important; }
+.hockey .red circle { fill: #C8102E !important; } .hockey .blue circle { fill: #2B6CA3 !important; }
+.skater.away { display: none !important; }
+/* the penguin under the footer */
+.footer { position: relative; overflow: hidden; }
+.footer-peek { position: absolute; right: clamp(24px, 12vw, 180px); bottom: 0; width: 44px; height: 55px; padding: 0; border: 0; background: none; cursor: pointer;
+  transform: translateY(105%); transition: transform .6s cubic-bezier(.34, 1.3, .64, 1); }
+.footer-peek svg { display: block; width: 100%; height: 100%; }
+.footer-peek.peek { transform: translateY(38%); }
+.footer-peek.peek .wave { animation: pg-wave .5s ease-in-out 3 alternate .5s; transform-box: fill-box; transform-origin: 0% 100%; }
+@keyframes pg-wave { to { transform: rotate(-35deg); } }
 .pg-ripple { fill: none; stroke: rgba(255, 255, 255, .7); stroke-width: .8; opacity: 0; }
 
 /* ---------- live weather ---------- */
