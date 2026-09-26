@@ -836,6 +836,23 @@ span.pub-title { display: inline; }
 .pub-img:hover img { transform: scale(1.04); }
 @media (max-width: 760px) { .pub-list li.has-img { grid-template-columns: 76px minmax(0, 1fr); gap: 0 14px; } }
 
+/* ---------- performance: no animations on things that aren't on screen ----------
+   Hidden or transparent elements would otherwise keep being animated every frame (battery). */
+.birds:not(.fly) .b,
+.ufo:not(.out) .light,
+.camp:not(.fire) .flame, .camp:not(.fire) .spark,
+.sauna-smoke:not(.on) circle,
+.penguin:not(.steamy) .pg-steam circle,
+.rowboat:not(.show) .rb-drift, .rowboat:not(.show) .rb-rock,
+.deer:not(.show) .deer-head,
+#profile .hiker:not(.sitting) .steam,
+html:not(.grilling) .bbq-smoke circle,
+html:not([data-smoke="on"]):not([data-cottage="on"]) .smoke circle, [data-cottage="off"] .smoke circle,
+html:not([data-frozen="yes"]) .sk-glide, html:not([data-frozen="yes"]) .sk-flip,
+html:not([data-daylight="no"]) .owl-eyes circle,
+html:not([data-holiday="christmas"]) .xmas-lights circle,
+.flagpole:not([data-flag="se"]) .flag-se, .flagpole:not([data-flag="at"]) .flag-at, .flag-vimpel { animation: none; }
+
 /* ---------- GPS terminal ---------- */
 .gps {
   --line: #262626; --line-strong: #3A3A3A; --text: #EDEDED; --muted: #A3A3A0; --accent: var(--accent-night, #F2A15A);

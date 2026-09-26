@@ -324,6 +324,8 @@ const weather = (() => {
   }
 
   function frame(t) {
+    // at most 60 frames a second (phones with 120 Hz screens would otherwise do twice the work)
+    if (last && t - last < 15) { raf = requestAnimationFrame(frame); return; }
     const dt = Math.min(0.05, (t - (last || t)) / 1000); last = t;
     ctx.clearRect(0, 0, W, H);
     if (kind === 'rain' || kind === 'drizzle') drawRain(dt, t);

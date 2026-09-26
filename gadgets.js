@@ -1086,12 +1086,16 @@ function cowStep(t) {
     // the cow closest to us is drawn in front
     herd.slice().sort((a, b) => a.y - b.y).forEach((c) => cowsEl.appendChild(c.el));
   }
-  cowRaf = requestAnimationFrame(cowStep);
+  // every frame while someone moves; while they all just graze, a look twice a second is enough
+  const moving = herd.some((c) => c.walking || c.busy);
+  if (moving) cowRaf = requestAnimationFrame(cowStep);
+  else cowRaf = setTimeout(() => { cowLast = 0; if (cowRaf) cowRaf = requestAnimationFrame(cowStep); }, 500);
 }
+const stopCows = () => { cancelAnimationFrame(cowRaf); clearTimeout(cowRaf); cowRaf = 0; };
 setInterval(() => {
   const on = heroVisible() && !reduceMotion;
   if (on && !cowRaf) { cowLast = 0; cowRaf = requestAnimationFrame(cowStep); }
-  if (!on && cowRaf) { cancelAnimationFrame(cowRaf); cowRaf = 0; }
+  if (!on && cowRaf) stopCows();
 }, 1000);
 const cowWeather = () => cowsEl.classList.toggle('cold', currentSeason() === 'winter' || live.frozen || ((simulated || weatherNow)?.temp ?? 10) < 3);
 skyHooks.push(cowWeather);
@@ -1161,13 +1165,14 @@ ufo.querySelector('.hit').addEventListener('click', () => earnBadge('ufo'));
 // click a cow: it stops and looks at you
 herd.forEach((c) => c.el.querySelector('.hit').addEventListener('click', () => {
   c.lookUntil = performance.now() + 3500; c.walking = false; c.until = c.lookUntil + 2000;
+  drawCow(c); setTimeout(() => drawCow(c), 3600);
   earnBadge('moo');
 }));
 
 // the terminal's "moo": every cow stops, lifts its head and looks at you for a few seconds
 COMMANDS.moo = () => {
   const until = performance.now() + 4500;
-  herd.forEach((c) => { c.lookUntil = until + Math.random() * 600; c.walking = false; c.until = until + 1500 + Math.random() * 7000; });
+  herd.forEach((c) => { c.lookUntil = until + Math.random() * 600; c.walking = false; c.until = until + 1500 + Math.random() * 7000; drawCow(c); setTimeout(() => drawCow(c), 5200); });
   closeGps(); scrollTo({ top: 0, behavior: 'smooth' });
   earnBadge('moo');
   return 'Moo.';
