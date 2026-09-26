@@ -325,7 +325,7 @@ async function penguinRoute(steps) {
     });
     pos = to;
   }
-  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze');
+  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze', 'inside', 'steamy');
   earnBadge('penguin');
 }
 
@@ -434,6 +434,46 @@ const penguinRainDance = () => penguinRoute([
   { to: [1195, 447], ms: 500, pose: 'walk' },
 ]);
 const rainy = () => live.particle === 'rain' || live.particle === 'drizzle';
+
+// cold winter evenings: along the path to the sauna by the jetty, a good sweat, a plunge into the
+// hole in the ice (vak), back into the heat, and home again, steaming
+const sauna = $('#sauna'), saunaSmoke = $('.sauna-smoke');
+let saunaSession = false;
+const saunaState = () => {
+  const cold = currentSeason() === 'winter' || live.frozen || ((simulated || weatherNow)?.temp ?? 10) < 3;
+  const on = saunaSession || (cold && lastSky.d > 0.4);
+  sauna.classList.toggle('on', on); saunaSmoke.classList.toggle('on', on);
+};
+skyHooks.push(saunaState);
+saunaState();
+const hide = (on) => (k, pg) => pg.classList.toggle('inside', on);
+const penguinSauna = () => {
+  saunaSession = true; saunaState();
+  return penguinRoute([
+    { to: [1199, 449], ms: 700, pose: 'walk' },
+    { to: [1216, 449.3], ms: 900, pose: 'walk' },
+    { to: [1220, 450.2], ms: 350, pose: 'hop' },
+    { to: [1297, 449.6], ms: 3800, pose: 'walk' },
+    { to: [1335, 449.1], ms: 1800, pose: 'walk' },           // to the sauna door
+    { ms: 400, pose: 'wait', tick: hide(true) },              // in
+    { ms: 7000, pose: 'wait' },
+    { ms: 400, pose: 'wait', tick: (k, pg) => { pg.classList.remove('inside'); pg.classList.add('steamy'); } },
+    { to: [1345, 461.2], ms: 1100, pose: 'walk', fast: true }, // out and straight to the hole in the ice
+    { to: [1345, 463.4], ms: 450, pose: 'jump', tick: (k) => { if (k >= 1) { splash.setAttribute('transform', 'translate(1345 462.6)'); splash.classList.remove('go'); void splash.getBoundingClientRect(); splash.classList.add('go'); } } },
+    { ms: 1300, pose: 'wait', tick: hide(true) },             // under the ice for a moment
+    { ms: 1, pose: 'wait', tick: hide(false) },
+    { to: [1341, 460], ms: 500, pose: 'hop' },                // brrr, out
+    { to: [1335, 449.1], ms: 1100, pose: 'walk', fast: true }, // back into the heat
+    { ms: 400, pose: 'wait', tick: hide(true) },
+    { ms: 5000, pose: 'wait' },
+    { ms: 400, pose: 'wait', tick: hide(false) },
+    { to: [1297, 449.6], ms: 1800, pose: 'walk' },            // and home, steaming
+    { to: [1220, 450.2], ms: 3800, pose: 'walk' },
+    { to: [1216, 449.3], ms: 350, pose: 'hop' },
+    { to: [1199, 449], ms: 900, pose: 'walk' },
+    { to: [1195, 447], ms: 600, pose: 'walk' },
+  ]).then(() => { saunaSession = false; saunaState(); });
+};
 async function penguinSolo(route, force = false) {
   if (penguinOut || reduceMotion || (!force && !heroVisible())) return;
   penguinOut = true;
@@ -1353,6 +1393,7 @@ every(45, 110, birds);
 every(90, 240, () => mooseCrossing());
 every(240, 600, () => ufoVisit());
 every(80, 200, () => cowOnRoad());
+every(90, 220, () => { if (live.frozen && lastSky.d > 0.45 && Math.random() < 0.5) penguinSolo(penguinSauna); });
 every(120, 300, () => { if (lastSky.d > 0.8 && live.overcast < 0.5 && !live.particle && Math.random() < 0.45) penguinSolo(penguinStargaze); });
 every(60, 150, () => { if (rainy() && !live.frozen && lastSky.d < 0.6 && ((simulated || weatherNow)?.temp ?? 10) >= 10 && Math.random() < 0.5) penguinSolo(penguinRainDance); });
 every(100, 260, () => { if (Math.random() < 0.5 && !live.frozen) selfieOuting(); });
@@ -1385,6 +1426,7 @@ if (params.has('cowroad')) setTimeout(() => cowOnRoad(true), 1500);
 if (params.has('stargaze')) setTimeout(() => penguinSolo(penguinStargaze, true), 1200);
 if (params.has('raindance')) setTimeout(() => penguinSolo(penguinRainDance, true), 1200);
 if (params.has('angel')) setTimeout(() => penguinSolo(penguinAngel, true), 1200);
+if (params.has('sauna')) setTimeout(() => penguinSolo(penguinSauna, true), 1200);
 if (params.has('selfie')) setTimeout(() => selfieOuting(true), 1200);
 if (params.has('hockey')) setTimeout(() => iceHockey(true), 1200);
 if (params.has('snowman')) { // preview: builds up stage by stage, then melts (?snowman) or starts melted (?snowman=melt)

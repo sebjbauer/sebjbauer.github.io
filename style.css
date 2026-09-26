@@ -455,6 +455,27 @@ kbd {
 .lift-pylon { stroke: #3A4046; stroke-width: .8; }
 .lift-station { fill: #4A5057; }
 .lift-chair { fill: none; stroke: #2E3338; stroke-width: .45; stroke-linecap: round; }
+/* sauna by the jetty */
+.sauna-wall { fill: #5A3D28; } .sauna-logs { fill: none; stroke: #3F2A1B; stroke-width: .35; }
+.sauna-roof { fill: #2A1E17; } .sauna-door { fill: #2E2018; } .sauna-pipe { fill: #5E6368; }
+.sauna-window { fill: #3A2A1E; }
+.sauna.on .sauna-window { fill: #FFB561; }
+[data-season="winter"] .sauna-roof { fill: #EEF2F5; }
+[data-daylight="no"] .sauna-wall { fill: #3A281B; }
+.sauna-smoke { display: none; }
+.sauna-smoke.on { display: inline; }
+.sauna-smoke circle { fill: rgba(205, 205, 205, .5); transform-box: fill-box; transform-origin: center; animation: smoke 4.5s ease-out infinite; }
+.sauna-smoke circle:nth-child(2) { animation-delay: -1.5s; } .sauna-smoke circle:nth-child(3) { animation-delay: -3s; }
+.vak { display: none; fill: #1F3140; }
+[data-frozen="yes"] .vak { display: inline; }
+/* the penguin in and out of the sauna */
+.penguin { transition: opacity .35s; }
+.penguin.inside { opacity: 0; }
+.pg-steam { display: none; }
+.penguin.steamy .pg-steam { display: inline; }
+.pg-steam circle { fill: rgba(255, 255, 255, .7); transform-box: fill-box; transform-origin: center; animation: pg-steam 1.6s ease-out infinite; }
+.pg-steam circle:nth-child(2) { animation-delay: -.55s; } .pg-steam circle:nth-child(3) { animation-delay: -1.1s; }
+@keyframes pg-steam { from { transform: translateY(0) scale(.6); opacity: .9; } to { transform: translateY(-6px) scale(1.6); opacity: 0; } }
 /* owl */
 .owl { display: none; }
 [data-daylight="no"] .owl { display: inline; }

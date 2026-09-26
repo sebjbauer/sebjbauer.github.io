@@ -46,6 +46,7 @@ const ripples = (() => {
     if (!sources.length) { raf = 0; cv.hidden = true; return; }
     const { bb, ux, uy } = L, gw = off.width, gh = off.height, px = img.data;
     const src = sources.map((s) => ({ ...s, tau: now - s.t0 }));
+    const glow = src.some((s) => s.glow); // at night: bioluminescent plankton lights up where the water moves
     for (let j = 0; j < gh; j++) {
       const y = bb.y + (j + 0.5) * uy;
       for (let i = 0; i < gw; i++) {
@@ -59,7 +60,10 @@ const ripples = (() => {
           v += s.a * Math.sin(Math.PI * behind / train) * Math.sin(2 * Math.PI * behind / WAVE) * Math.exp(-s.tau / 2.6) / Math.sqrt(1 + d / 10);
         }
         const k = (j * gw + i) * 4, a = Math.min(1, Math.abs(v));
-        if (v > 0) { px[k] = 255; px[k + 1] = 255; px[k + 2] = 255; px[k + 3] = a * 150; }
+        if (glow) {
+          if (v > 0) { px[k] = 90; px[k + 1] = 225; px[k + 2] = 255; px[k + 3] = Math.min(255, a * 260); }
+          else { px[k] = 20; px[k + 1] = 110; px[k + 2] = 160; px[k + 3] = a * 70; }
+        } else if (v > 0) { px[k] = 255; px[k + 1] = 255; px[k + 2] = 255; px[k + 3] = a * 150; }
         else { px[k] = 12; px[k + 1] = 28; px[k + 2] = 44; px[k + 3] = a * 90; }
       }
     }
@@ -85,7 +89,7 @@ const ripples = (() => {
     if (!raf && !layout()) return;
     // two sets of waves at once, some distance apart: that's interference
     if (a >= 1 && sources.some((s) => s.a >= 1 && now - s.t0 < 3 && Math.hypot(s.x - x, (s.y - y) / SQUASH) > 12)) earnBadge('ripple');
-    sources.push({ x, y, a, train, t0: now });
+    sources.push({ x, y, a, train, t0: now, glow: lastSky.d > 0.75 });
     if (sources.length > 4) sources.shift();
     cv.hidden = false;
     if (!raf) raf = requestAnimationFrame(frame);
