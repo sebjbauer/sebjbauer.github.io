@@ -680,7 +680,7 @@ function renderPublications() {
       <h3>${y}</h3>
       <ol>${SITE.publications.filter((p) => p.year === y).map((p) => `
         <li${p.image ? ' class="has-img"' : ''}>
-          ${p.image ? `<a class="pub-img" href="${esc(linkOf(p))}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="${esc(p.image)}" alt="" loading="lazy" decoding="async"></a>` : ''}
+          ${p.image ? `<a class="pub-img" href="${esc(linkOf(p))}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"${p.imagecredit ? ` title="${esc(p.imagecredit)}"` : ''}><img src="${esc(p.image)}" alt="" loading="lazy" decoding="async"></a>` : ''}
           <div class="pub-text">
           <a class="pub-title" href="${esc(linkOf(p))}" target="_blank" rel="noopener">${esc(p.title)}</a>
           <p class="pub-authors">${bold(p.authors)}</p>

@@ -859,8 +859,8 @@ span.pub-title { display: inline; }
 
 /* publications with a small picture (\web{image}{…} in cv/cv.tex) */
 .pub-list li.has-img { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 0 20px; align-items: start; }
-.pub-img { display: block; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); background: var(--raised); margin-top: 4px; }
-.pub-img img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; transition: transform .4s ease; }
+.pub-img { display: block; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); background: #fff; margin-top: 4px; }
+.pub-img img { display: block; width: 100%; height: auto; max-height: 170px; object-fit: contain; transition: transform .4s ease; }
 .pub-img:hover img { transform: scale(1.04); }
 @media (max-width: 760px) { .pub-list li.has-img { grid-template-columns: 76px minmax(0, 1fr); gap: 0 14px; } }
 
