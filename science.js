@@ -641,7 +641,7 @@ const BACKSTAGE = [
     ['fractal forest', show({}, () => fractalForest(!fractalOn), 0)],
   ]],
   ['Back to normal', [
-    ['live', show({ sky: 'live', season: 'live', weather: 'live' }, () => { COMMANDS.holiday('live'); fractalForest(false); }, 0)],
+    ['live', () => COMMANDS.live()],
   ]],
 ];
 const BACKSTAGE_ACTIONS = new Map(BACKSTAGE.flatMap(([, rows]) => rows.map(([name, fn]) => [name.toLowerCase(), fn])));
@@ -663,3 +663,21 @@ COMMANDS.show = (arg) => {
   return `▶ ${esc(arg)}`;
 };
 HIDDEN.push('backstage', 'show');
+
+/* ---------------- live: back to the real sky ---------------- */
+// "live" resets everything that can be simulated (time of day, season, weather, holiday, the
+// fractal forest). While anything is simulated, a "live" button shows in the terminal's header.
+const simulating = () => forcedHour !== null || forcedSeason !== null || !!simulated || !!forcedHoliday || fractalOn || !!snowPreview;
+COMMANDS.live = () => {
+  const was = simulating();
+  COMMANDS.season('live'); COMMANDS.holiday('live'); COMMANDS.sky('live');
+  fractalForest(false); snowPreview = null;
+  COMMANDS.weather('live'); // fetches the real weather (async)
+  paintSky(); updateLiveButton();
+  return was ? `Back to live: the real time, season and weather in ${esc(base().city)}.` : `Already live: this is the real sky over ${esc(base().city)}.`;
+};
+const liveButton = $('#gpsLive');
+const updateLiveButton = () => { liveButton.hidden = !simulating(); };
+liveButton.addEventListener('click', () => run('live'));
+skyHooks.push(updateLiveButton);
+updateLiveButton();

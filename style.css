@@ -901,6 +901,8 @@ html:not([data-holiday="christmas"]) .xmas-lights circle,
 .gps-coords { flex: 1; text-align: right; }
 .gps-head button { background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 0 2px; }
 .gps-head button:hover { color: var(--text); }
+.gps-head .gps-live { font: 11px var(--mono); color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 2px 9px; }
+.gps-head .gps-live::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 6px; vertical-align: 1px; }
 .gps-out { flex: 1; overflow-y: auto; padding: 14px; line-height: 1.7; white-space: pre-wrap; scrollbar-width: thin; }
 .gps-out .cmd { color: var(--muted); }
 .gps-out .cmd b { color: var(--accent); font-weight: 400; }

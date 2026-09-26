@@ -856,7 +856,7 @@ const HELP = [
     ['whereami', 'current position'], ['clear', 'clear the screen'], ['exit', 'close the terminal'],
   ]],
   ['Live sky over Vienna', [
-    ['weather', 'the real weather right now'], ['sun', 'sunrise and sunset'], ['moon', "tonight's moon"], ['iss', 'where the space station is'],
+    ['live', 'back to the real time, season and weather'], ['weather', 'the real weather right now'], ['sun', 'sunrise and sunset'], ['moon', "tonight's moon"], ['iss', 'where the space station is'],
     ['sky', 'change the time of day', ['dawn', 'day', 'dusk', 'night', 'live']],
     ['season', 'change the season', ['winter', 'spring', 'summer', 'autumn', 'live']],
     ['holiday', 'celebrate early', ['christmas', 'easter', 'midsommar', 'live']],
@@ -935,7 +935,7 @@ ${esc(w.text)}`;
     if (arg === 'live' || !arg) { forcedHour = null; paintSky(); return `Sky synced to the real time in ${esc(base().city)}.`; }
     if (!['dawn', 'day', 'dusk', 'night'].includes(arg)) return 'Usage: sky dawn | day | dusk | night | live';
     forcedHour = skyPreset(arg); paintSky();
-    return `Sky set to ${arg}. ${arg === 'night' ? 'Look north for the northern lights.' : ''}Scroll up to see it.`;
+    return `Sky set to ${arg}. ${arg === 'night' ? 'Look north for the northern lights. ' : ''}Scroll up to see it.`;
   },
 
   season: (arg) => {
@@ -1005,6 +1005,7 @@ async function run(raw) {
   if (!fn) { const [head, ...rest] = lower.split(' '); if (COMMANDS[head]) { fn = COMMANDS[head]; arg = rest.join(' '); } }
   if (!fn) return print(`Command not found: ${esc(cmd)}. Type <b class="warn">help</b>.`);
   const res = await fn(arg);
+  if (typeof updateLiveButton === 'function') updateLiveButton(); // the header's "live" button, if something is now simulated
   if (res == null) return;
   const el = print(res);
   // a long answer (like help) starts at its top, not its end

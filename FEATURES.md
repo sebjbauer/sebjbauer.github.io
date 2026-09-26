@@ -334,6 +334,7 @@ Tab completes commands, ↑ repeats the last one.
 | `whoami` | Name, role and where you're based |
 | `whereami` | Coordinates and local time in Vienna |
 | `route cv` | The career trail drawn as text |
+| `live` | Back to the real time, season, weather and holiday in one go (also undoes `fractal`). While anything is simulated, an orange **live** button shows in the terminal's header; tap it to do the same. |
 | `moo` | All cows stop, lift their heads and look at you (hidden command) |
 | `activities` | Swimming, triathlon, tutoring (Beyond the lab) |
 | `education` | Schools and degrees, newest first |
