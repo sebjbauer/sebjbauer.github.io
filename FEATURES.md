@@ -325,7 +325,6 @@ Tab completes commands, ↑ repeats the last one.
 | `waypoint 1` … | Details of one career stage (also highlights it on the page) |
 | `skills` | Skills as an "equipment check" |
 | `contact` | Email, LinkedIn, GitHub, Google Scholar, ORCID, Bluesky, X |
-| `now` | The "Now" line |
 | `weather` | Live weather in Vienna |
 | `weather rain` | Simulates weather (`clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`, `frost`, `rainbow`); `weather live` goes back |
 | `sun` | Today's sunrise and sunset, and whether the site is in light or dark mode |

@@ -14,7 +14,8 @@ const SITE = {
   // Research keywords, shown in About (and given to Google)
   keywords: ['Single-Molecule Localization Microscopy', 'Flow Matching', 'Graph Neural Networks'],
   // One line about what you're doing right now, and when you last updated it (YYYY-MM).
-  now: { text: 'Guest researcher at AITHYRA in Vienna, working on generative models that sharpen super-resolution microscopy images.', updated: '2026-09' },
+  // When you last updated the About text (YYYY-MM), shown as "Updated …"
+  now: { updated: '2026-09' },
   email: 'sebastian.bauer@scilifelab.se',
   linkedin: 'https://www.linkedin.com/in/sebjbauer/',
   github: 'https://github.com/sebjbauer',
@@ -829,45 +830,54 @@ function print(html, cls = '') {
   div.innerHTML = html;
   out.appendChild(div);
   out.scrollTop = out.scrollHeight;
+  return div;
 }
 
 function goTo(id) { closeGps(); document.getElementById(id).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' }); }
 
 const WEATHER = { 0: 'clear', 1: 'mostly clear', 2: 'partly cloudy', 3: 'cloudy', 45: 'fog', 48: 'fog', 51: 'drizzle', 53: 'drizzle', 55: 'drizzle', 61: 'rain', 63: 'rain', 65: 'heavy rain', 71: 'snow', 73: 'snow', 75: 'heavy snow', 77: 'snow grains', 80: 'showers', 81: 'showers', 82: 'heavy showers', 85: 'snow showers', 86: 'snow showers', 95: 'thunderstorm' };
 
+// The help screen, in groups. [command, what it does, options]: every command and option can be
+// tapped or clicked to run it (commands with options fill in the input line instead).
+const HELP = [
+  ['About me', [
+    ['whoami', 'who is this?'], ['route cv', 'the career trail'], ['education', 'schools and degrees'],
+    ['papers', 'publications'], ['talks', 'talks, posters and awards'], ['activities', 'swimming, triathlon, tutoring'],
+    ['skills', 'equipment check'], ['waypoint', 'details of one career stage', () => SITE.cv.map((_, i) => String(i + 1))],
+    ['contact', 'send a signal'], ['download cv', 'the official PDF'],
+  ]],
+  ['Get around', [
+    ['goto', 'jump to a section', ['about', 'timeline', 'cv', 'education', 'publications', 'talks', 'activities', 'skills', 'contact']],
+    ['whereami', 'current position'], ['clear', 'clear the screen'], ['exit', 'close the terminal'],
+  ]],
+  ['Live sky over Vienna', [
+    ['weather', 'the real weather right now'], ['sun', 'sunrise and sunset'], ['moon', "tonight's moon"], ['iss', 'where the space station is'],
+    ['sky', 'change the time of day', ['dawn', 'day', 'dusk', 'night', 'live']],
+    ['season', 'change the season', ['winter', 'spring', 'summer', 'autumn', 'live']],
+    ['holiday', 'celebrate early', ['christmas', 'easter', 'midsommar', 'live']],
+    ['timelapse', 'a whole day in 20 seconds', ['year']],
+  ]],
+  ['Science', [
+    ['smlm', 'point the microscope at the stars (clear nights)'], ['life', "Conway's Game of Life in the stars (clear nights)"],
+    ['descend', 'the hiker tries gradient descent'], ['fractal', 'grow the forest as fractals (again to undo)'],
+  ]],
+  ['Just for fun', [
+    ['triathlon', 'start a race: swim, bike, run'], ['riddle', 'for the curious'], ['fika', 'mandatory break'], ['badges', "what you've discovered so far"],
+  ]],
+];
+const touch = matchMedia('(pointer: coarse)').matches;
+function helpText() {
+  const button = (run, label, cls) => `<button type="button" class="${cls}" data-run="${esc(run)}">${esc(label)}</button>`;
+  return HELP.map(([title, rows]) => `<div class="h-group"><div class="h-title">${esc(title)}</div>${rows.map(([cmd, desc, opts]) => {
+    const list = typeof opts === 'function' ? opts() : opts;
+    return `<div class="h-row">${list ? `<button type="button" class="h-cmd" data-fill="${esc(cmd)} ">${esc(cmd)}</button>` : button(cmd, cmd, 'h-cmd')}`
+      + `<span class="h-desc">${esc(desc)}${list ? `<span class="h-opts">${list.map((o) => button(`${cmd} ${o}`, o, 'h-opt')).join('')}</span>` : ''}</span></div>`;
+  }).join('')}</div>`).join('')
+    + `<div class="h-tip">${touch ? 'Tap' : 'Click'} a command to run it${touch ? '' : ', or type it: Tab completes, ↑ repeats'}. Some commands are hidden.</div>`;
+}
+
 const COMMANDS = {
-  help: () => `Available commands:
-  <b class="warn">whoami</b>        who is this?
-  <b class="warn">whereami</b>      current position
-  <b class="warn">route cv</b>      the career trail
-  <b class="warn">education</b>     schools and degrees
-  <b class="warn">papers</b>        publications
-  <b class="warn">talks</b>         talks, posters and awards
-  <b class="warn">activities</b>    swimming, triathlon, tutoring
-  <b class="warn">waypoint</b> &lt;n&gt;  details of one stage
-  <b class="warn">skills</b>        equipment check
-  <b class="warn">contact</b>       send a signal
-  <b class="warn">now</b>           what I'm up to
-  <b class="warn">weather</b>       live weather in Vienna
-  <b class="warn">sun</b>           sunrise and sunset
-  <b class="warn">moon</b>          tonight's moon
-  <b class="warn">sky</b> &lt;mode&gt;    dawn | day | dusk | night | live
-  <b class="warn">season</b> &lt;name&gt;  winter | spring | summer | autumn | live
-  <b class="warn">holiday</b> &lt;name&gt; christmas | easter | midsommar | live
-  <b class="warn">riddle</b>        for the curious
-  <b class="warn">smlm</b>          point the microscope at the stars (clear nights only)
-  <b class="warn">life</b>          Conway's Game of Life in the stars (clear nights only)
-  <b class="warn">descend</b>       the hiker tries gradient descent
-  <b class="warn">fractal</b>       grow the forest as fractals (again to undo)
-  <b class="warn">badges</b>        what you've discovered so far
-  <b class="warn">iss</b>           where the space station is right now
-  <b class="warn">timelapse</b>     a whole day in 20 seconds (or: timelapse year)
-  <b class="warn">triathlon</b>     start a race: swim, bike, run
-  <b class="warn">download cv</b>   the official PDF
-  <b class="warn">goto</b> &lt;place&gt;   about | timeline | cv | education | talks | publications | activities | skills | contact
-  <b class="warn">fika</b>          mandatory break
-  <b class="warn">clear</b>, <b class="warn">exit</b>
-Tip: Tab completes, ↑ repeats. Some commands are not listed.`,
+  help: () => helpText(),
 
   whoami: () => `${esc(SITE.name)}
 Role: ${esc(SITE.role)}
@@ -877,7 +887,6 @@ Based in: ${esc(base().city)}, ${esc(base().country)}.`,
   ${esc(base().city)}, ${esc(base().country)}   ${fmtCoord(base())}
 Local time: ${$('#clock').textContent}`,
 
-  now: () => `${esc(SITE.now.text)}\n<span class="cmd">${esc($('#nowDate').textContent)}</span>`,
 
   'route cv': () => {
     const rows = SITE.cv.map((w, i) => `  ${i === SITE.cv.length - 1 ? '<span class="warn">▲</span>' : '●'} ${yearSpan(w).padEnd(10)} ${esc(w.title)}`).reverse();
@@ -973,18 +982,38 @@ async function run(raw) {
   if (!fn) { const [head, ...rest] = lower.split(' '); if (COMMANDS[head]) { fn = COMMANDS[head]; arg = rest.join(' '); } }
   if (!fn) return print(`Command not found: ${esc(cmd)}. Type <b class="warn">help</b>.`);
   const res = await fn(arg);
-  if (res != null) print(res);
+  if (res == null) return;
+  const el = print(res);
+  // a long answer (like help) starts at its top, not its end
+  if (el.offsetHeight > out.clientHeight * 0.8) out.scrollTop += el.getBoundingClientRect().top - out.getBoundingClientRect().top - 36;
 }
 
 function openGps() {
   gps.hidden = false;
-  input.focus();
+  if (!touch) input.focus(); // on phones, don't pop up the keyboard straight away
   if (!booted) {
     booted = true;
     print(`GPS-TRAIL v1.0 · satellites: 7 <span class="warn">▂▄▆█</span>
 Position fix: ${esc(base().city)} ${fmtCoord(base())}
-<span class="ok">Ready.</span> Type <b class="warn">help</b> to see what you can do.`);
+<span class="ok">Ready.</span> ${touch ? 'Tap' : 'Type'} <button type="button" class="h-cmd" data-run="help">help</button> to see what you can do.`);
   }
+}
+// tap or click a command in the output to run it (or to put it on the input line, if it needs an option)
+out.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-run], [data-fill]');
+  if (!b) return;
+  if (b.dataset.run) run(b.dataset.run);
+  else { input.value = b.dataset.fill; if (!touch) input.focus(); }
+});
+// phones: keep the terminal above the on-screen keyboard
+if (window.visualViewport) {
+  const fit = () => {
+    const vv = visualViewport, covered = Math.max(0, innerHeight - vv.height - vv.offsetTop);
+    gps.style.bottom = covered ? `${covered}px` : '';
+    gps.style.maxHeight = covered ? `${vv.height - 12}px` : '';
+  };
+  visualViewport.addEventListener('resize', fit);
+  visualViewport.addEventListener('scroll', fit);
 }
 function closeGps() { gps.hidden = true; }
 

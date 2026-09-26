@@ -749,6 +749,17 @@ span.pub-title { display: inline; }
 .gps-in label { color: var(--accent); }
 .gps-in input { flex: 1; background: transparent; border: 0; outline: none; color: var(--text); font: 13px var(--mono); }
 .gps-in input::placeholder { color: #5A5A58; }
+/* help screen: groups of commands; the commands and options are buttons */
+.gps-out .h-group { white-space: normal; margin: 0 0 12px; }
+.gps-out .h-title { color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-size: 10px; margin: 4px 0 4px; }
+.gps-out .h-row { display: grid; grid-template-columns: 12ch minmax(0, 1fr); gap: 0 12px; align-items: baseline; padding: 1px 0; }
+.gps-out .h-desc { color: #CFCFCB; }
+.gps-out .h-opts { display: flex; flex-wrap: wrap; gap: 0 12px; margin-top: 1px; }
+.gps-out .h-cmd, .gps-out .h-opt { font: inherit; background: none; border: 0; padding: 0; margin: 0; color: var(--accent); cursor: pointer; text-align: left; }
+.gps-out .h-opt { color: var(--muted); }
+.gps-out .h-cmd:hover, .gps-out .h-opt:hover { text-decoration: underline; text-underline-offset: 3px; }
+.gps-out .h-opt:hover { color: var(--text); }
+.gps-out .h-tip { white-space: normal; color: var(--muted); margin-top: 2px; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
@@ -774,7 +785,15 @@ span.pub-title { display: inline; }
   .hero-text { top: 18vh; }
   .hero-clock { display: block; margin-top: 2px; } /* on phones: greeting on one line, time on the next */
   .landscape { height: 47%; }
-  .gps { right: 16px; bottom: 16px; }
+  /* phones: the terminal is a sheet across the bottom of the screen */
+  .gps { left: 0; right: 0; bottom: 0; width: auto; height: min(74svh, 640px); border-width: 1px 0 0; border-radius: 14px 14px 0 0; font-size: 12.5px; }
+  .gps-head { padding: 12px 16px; }
+  .gps-head button { font-size: 24px; padding: 0 4px; }
+  .gps-out { padding: 14px 16px; }
+  .gps-in { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .gps-in input { font-size: 16px; } /* 16 px or more: iPhones don't zoom in when you tap it */
+  .gps-out .h-row { grid-template-columns: 11ch minmax(0, 1fr); gap: 0 10px; padding: 3px 0; }
+  .gps-out .h-opts { gap: 4px 14px; }
 }
 
 /* ---------- time-lapse: no smoothing, every picture is a new moment ---------- */
