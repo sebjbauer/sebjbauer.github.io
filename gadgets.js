@@ -325,7 +325,7 @@ async function penguinRoute(steps) {
     });
     pos = to;
   }
-  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'flash');
+  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze');
   earnBadge('penguin');
 }
 
@@ -352,33 +352,33 @@ const penguinFish = () => penguinRoute([
 const penguinSwim = () => penguinRoute([
   { to: [1199, 449], ms: 700, pose: 'walk', fast: true },   // out onto the veranda
   { to: [1216, 449.3], ms: 1100, pose: 'walk', fast: true }, // across it
-  { to: [1220, 450.2], ms: 350, pose: 'jump' },              // down the step
+  { to: [1220, 450.2], ms: 350, pose: 'hop' },               // down the step
   { to: [1297, 449.6], ms: 3600, pose: 'walk', fast: true }, // along the path to the jetty
   { to: [1302, 471], ms: 1300, pose: 'walk', fast: true },   // down the jetty
   { to: [1307, 481], ms: 650, pose: 'jump' },                // and in!
   { to: [1190, 466], ms: 7500, pose: 'swim' },               // swim to the rocks
   { to: [1168, 455], ms: 2200, pose: 'swim' },
-  { to: [1164, 450.5], ms: 700, pose: 'jump' },              // climb out onto the rocks
+  { to: [1164, 450.5], ms: 700, pose: 'hop' },               // climb out onto the rocks
   { to: [1176, 449.4], ms: 900, pose: 'walk' },              // over to the veranda
   { to: [1195, 447], ms: 1100, pose: 'walk' },               // and inside
 ]);
 
 // under the northern lights: out to the end of the jetty for a selfie (two flashes), and back
-const selfieFlash = (pg) => { pg.classList.remove('flash'); void pg.getBoundingClientRect(); pg.classList.add('flash'); };
+const selfieFlash = (pg) => { pg.classList.remove('snap'); void pg.getBoundingClientRect(); pg.classList.add('snap'); };
 const penguinSelfie = () => { let flashes = 0; return penguinRoute([
   { to: [1199, 449], ms: 800, pose: 'walk' },
   { to: [1216, 449.3], ms: 1200, pose: 'walk' },
-  { to: [1220, 450.2], ms: 350, pose: 'jump' },
+  { to: [1220, 450.2], ms: 350, pose: 'hop' },
   { to: [1297, 449.6], ms: 4200, pose: 'walk' },
   { to: [1302, 471], ms: 1800, pose: 'walk' },
   { ms: 5200, pose: 'wait', tick: (k, pg) => { // phone up, snap, snap
     pg.classList.add('selfie');
     if ((k > 0.35 && flashes === 0) || (k > 0.72 && flashes === 1)) { flashes += 1; selfieFlash(pg); }
   } },
-  { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.remove('selfie', 'flash') },
+  { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.remove('selfie', 'snap') },
   { to: [1297, 449.6], ms: 1800, pose: 'walk' },
   { to: [1220, 450.2], ms: 4200, pose: 'walk' },
-  { to: [1216, 449.3], ms: 350, pose: 'jump' },
+  { to: [1216, 449.3], ms: 350, pose: 'hop' },
   { to: [1199, 449], ms: 1200, pose: 'walk' },
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]); };
@@ -425,11 +425,11 @@ const splashAt = (x) => (k) => {
 const penguinRainDance = () => penguinRoute([
   { to: [1199, 449], ms: 700, pose: 'walk', fast: true },
   { to: [1216, 449.3], ms: 900, pose: 'walk', fast: true },
-  { to: [1220, 450.2], ms: 300, pose: 'jump' },
+  { to: [1220, 450.2], ms: 300, pose: 'hop' },
   { to: [1241, 450.6], ms: 1200, pose: 'walk', fast: true },
   ...Array.from({ length: 8 }, (_, i) => ({ to: [i % 2 ? 1241 : 1245, 450.6], ms: 430, pose: 'hop', tick: splashAt(i % 2 ? 1241 : 1245) })),
   { to: [1220, 450.2], ms: 1300, pose: 'walk', fast: true },
-  { to: [1216, 449.3], ms: 300, pose: 'jump' },
+  { to: [1216, 449.3], ms: 300, pose: 'hop' },
   { to: [1199, 449], ms: 900, pose: 'walk', fast: true },
   { to: [1195, 447], ms: 500, pose: 'walk' },
 ]);

@@ -440,7 +440,7 @@ kbd {
 .pg-phone rect { fill: #2A2F35; }
 .pg-arm { fill: none; stroke: #15181B; stroke-width: 1.2; stroke-linecap: round; }
 .pg-flash { fill: #FFFFFF; opacity: 0; }
-.penguin.flash .pg-flash { animation: pg-flash .35s ease-out; }
+.penguin.snap .pg-flash { animation: pg-flash .35s ease-out; }
 @keyframes pg-flash { 20% { opacity: .95; } 100% { opacity: 0; } }
 /* the cyclist rings the bell (a cow on the road) */
 .cyclist .ring-lines { display: none; }
