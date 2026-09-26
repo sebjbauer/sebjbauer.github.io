@@ -481,13 +481,25 @@ kbd {
 .rowboat.show { display: inline; }
 .rb-drift { animation: rb-drift 110s ease-in-out infinite alternate; }
 @keyframes rb-drift { from { transform: translate(-40px, 0); } 50% { transform: translate(20px, 1.5px); } to { transform: translate(90px, -1px); } }
-.rb-hull { fill: #4A3526; }
-.rb-rod { fill: none; stroke: #6B4A2B; stroke-width: .6; }
-.rb-line { fill: none; stroke: rgba(255, 255, 255, .55); stroke-width: .25; }
-.rb-post { stroke: #3A3A3A; stroke-width: .5; }
+.rb-rock { transform-box: fill-box; transform-origin: 50% 90%; animation: rb-rock 5s ease-in-out infinite alternate; }
+@keyframes rb-rock { from { transform: rotate(-1.6deg); } to { transform: rotate(1.6deg); } }
+.rb-hull { fill: #5C3E27; }
+.rb-plank { fill: none; stroke: #43301F; stroke-width: .35; }
+.rb-rim { stroke: #8A6441; stroke-width: .7; stroke-linecap: round; }
+.rb-shadow { fill: rgba(0, 0, 0, .28); }
+.rb-oar { stroke: #7A5B3A; stroke-width: .55; stroke-linecap: round; }
+.rb-blade { fill: #7A5B3A; }
+.rb-jacket { fill: #34546E; }
+.rb-arm { stroke: #34546E; stroke-width: 1; stroke-linecap: round; }
+.rb-head { fill: #D8B99A; }
+.rb-hat { fill: #B8412F; }
+.rb-rod { fill: none; stroke: #6B4A2B; stroke-width: .45; stroke-linecap: round; }
+.rb-line { fill: none; stroke: rgba(255, 255, 255, .45); stroke-width: .2; }
+.rb-float { fill: #E0493A; }
+.rb-post { fill: none; stroke: #2E2E2E; stroke-width: .45; }
 .rb-lamp { fill: #FFE3A3; }
-.rb-halo { fill: #FFC96B; opacity: .22; }
-.rb-refl { stroke: #FFC96B; stroke-width: .9; stroke-linecap: round; opacity: .35; }
+.rb-halo { fill: #FFC96B; opacity: .1; }
+.rb-refl { fill: none; stroke: #FFC96B; stroke-width: .7; stroke-linecap: round; opacity: .4; }
 /* ice hockey */
 .hockey { display: none; }
 .hockey.on { display: inline; }
