@@ -518,9 +518,13 @@ let roadBusy = false;
 // Move a figure along the valley road. The road ends at the lake, so by default a figure comes in
 // from the left edge, turns around at the end of the road and leaves the way it came (out of the
 // frame). reverse: start at the lake end and head left, without coming back.
-function alongRoad(el, { reverse = false, back = !reverse, speed = 70, onStep } = {}) {
+const snowyRoad = () => currentSeason() === 'winter' || live.particle === 'snow' || live.frozen;
+let tracksFade = 0;
+function alongRoad(el, { reverse = false, back = !reverse, speed = 70, onStep, tracks = false } = {}) {
   const len = road.getTotalLength();
-  let pos = 0, last = 0, leg = 0;
+  let pos = 0, last = 0, leg = 0, reached = 0;
+  const tr = tracks && !reverse && snowyRoad() ? $('#tracks') : null; // tyre or ski tracks, drawn as the figure goes
+  if (tr) { clearTimeout(tracksFade); tr.style.strokeDasharray = `${len} ${len}`; tr.style.strokeDashoffset = len; tr.classList.add('on'); }
   return new Promise((done) => {
     const step = (t) => {
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
@@ -528,11 +532,13 @@ function alongRoad(el, { reverse = false, back = !reverse, speed = 70, onStep } 
       if (pos >= len && back && leg === 0) { leg = 1; pos -= len; } // turn around at the end of the road
       const towardsLake = reverse ? leg === 1 : leg === 0;
       const d = Math.min(len, pos), at = towardsLake ? d : len - d;
+      if (tr && at > reached) { reached = at; tr.style.strokeDashoffset = len - reached; }
       const p = road.getPointAtLength(at), q = road.getPointAtLength(Math.min(len, at + 2));
       const angle = Math.atan2(q.y - p.y, q.x - p.x) * 180 / Math.PI;
       el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${angle.toFixed(1)})${towardsLake ? '' : ' scale(-1 1)'}`);
       if (onStep) onStep(t, p);
-      if (pos < len) requestAnimationFrame(step); else done();
+      if (pos < len) requestAnimationFrame(step);
+      else { if (tr) { tr.classList.remove('on'); tracksFade = setTimeout(() => { tr.style.strokeDasharray = ''; }, 21000); } done(); }
     };
     requestAnimationFrame(step);
   });
@@ -546,7 +552,7 @@ async function ride({ reverse = false, force = false } = {}) {
   cyclist.classList.add('out');
   let at = null, prevX = null, waitingSince = 0;
   const blocked = () => { // a cow standing on the road just ahead?
-    const cow = typeof herd !== 'undefined' && herd.find((c) => c.road === 'on' || (c.road === 'leaving' && c.y > roadAt(c.x) - 4));
+    const cow = typeof herd !== 'undefined' && herd.find((c) => c.road === 'on' || (c.road && c.y > roadAt(c.x) - 4)); // on it, or stepping on or off
     if (!cow || !at || prevX === null) return false;
     const ahead = (at.x - prevX >= 0 ? 1 : -1) * (cow.x - at.x);
     return ahead > 5 && ahead < 24;
@@ -563,6 +569,7 @@ async function ride({ reverse = false, force = false } = {}) {
       return 70 * (cyclist.classList.contains('tuck') ? 1.5 : 1);
     },
     onStep: (t, p) => { prevX = at ? at.x : p.x; at = p; },
+    tracks: true,
   });
   cyclist.classList.remove('out', 'tuck', 'ring');
   riding = false;
@@ -666,6 +673,12 @@ async function triathlon(force = false) {
     swimmer.classList.toggle('alt', Math.sin(t / 260) > 0);
   } });
   swimmer.classList.remove('out');
+  // up the ladder of the small jetty and along it to the road (transition)
+  runner.classList.add('out');
+  await animate(1500, (k) => runner.setAttribute('transform', `translate(958.3 ${(468.8 - 8.4 * k).toFixed(1)})`));
+  await animate(2000, (k, t) => { runner.setAttribute('transform', `translate(${(958 - 27 * k).toFixed(1)} ${(460.4 + 0.5 * k).toFixed(1)}) scale(-1 1)`); runPose(runner, t); });
+  await animate(900, (k, t) => { runner.setAttribute('transform', `translate(${(931 - 5 * k).toFixed(1)} ${(460.9 + 10 * k).toFixed(1)}) scale(-1 1)`); runPose(runner, t); });
+  runner.classList.remove('out');
   // bike (back through the valley), then run
   await ride({ reverse: true, force: true });
   runner.classList.add('out');
@@ -693,7 +706,7 @@ async function xcSki(force = false) {
   const snow = currentSeason() === 'winter' || live.particle === 'snow' || live.frozen;
   xc.classList.toggle('snow', snow);
   xc.classList.add('out');
-  await alongRoad(xc, { speed: snow ? 48 : 60, onStep: (t) => skiPose(xc, t) });
+  await alongRoad(xc, { speed: snow ? 48 : 60, onStep: (t) => skiPose(xc, t), tracks: true });
   xc.classList.remove('out');
   roadBusy = false;
 }
@@ -1237,8 +1250,11 @@ rowboat.querySelector('.hit').addEventListener('click', () => {
   setTimeout(() => rowboat.classList.remove('catch'), 3000);
   earnBadge('catch');
 });
+// gravel colour: sandy in daylight, dark at night
+skyHooks.push(({ d }) => setVar('--gravel-sky', mix('#C9C2B2', '#34302A', Math.min(1, d * 1.1))));
+if (lastSky.sunT) setVar('--gravel-sky', mix('#C9C2B2', '#34302A', Math.min(1, lastSky.d * 1.1)));
 const puddle = $('.puddle');
-const puddleState = () => puddle.classList.toggle('wet', rainy() && !live.frozen);
+const puddleState = () => { puddle.classList.toggle('wet', rainy() && !live.frozen); setData('wet', rainy() && !live.frozen ? 'yes' : 'no'); };
 skyHooks.push(puddleState);
 puddleState();
 boatState();
@@ -1333,6 +1349,11 @@ function mooseCrossing(force = false) {
   const down = Math.random() < 0.5; // out of the forest towards the meadow, or the other way
   const A = [772, 451], B = [818, 507], [from, to] = down ? [A, B] : [B, A];
   const dir = to[0] > from[0] ? 1 : -1, len = Math.hypot(to[0] - from[0], to[1] - from[1]);
+  let onRoadAt = 0.5, best = Infinity; // how far along its path the moose stands on the road
+  for (let k = 0; k <= 1; k += 0.01) {
+    const x = from[0] + (to[0] - from[0]) * k, y = from[1] + (to[1] - from[1]) * k, miss = Math.abs(y - roadAt(x));
+    if (miss < best) { best = miss; onRoadAt = k; }
+  }
   $('#algSign').classList.add('show');
   moose.classList.add('out');
   let pos = 0, last = 0, walked = 0, drawn = 0, paused = 0;
@@ -1341,7 +1362,7 @@ function mooseCrossing(force = false) {
     const step = (t) => {
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
       // stop for a moment in the middle of the road
-      const onRoad = pos > len * 0.45 && pos < len * 0.5;
+      const onRoad = pos > len * (onRoadAt - 0.03) && pos < len * (onRoadAt + 0.02);
       if (onRoad && paused < 1.8 && !mooseHurry) paused += dt;
       else { const v = mooseHurry ? 16 : 5.5; pos = Math.min(len, pos + v * dt); walked += v * dt; }
       if (t - drawn > 33) {

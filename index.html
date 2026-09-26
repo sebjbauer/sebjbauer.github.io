@@ -90,7 +90,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260926203205">
+  <link rel="stylesheet" href="style.css?v=20260926204236">
 </head>
 <body>
 <a class="skip-link" href="#about">Skip to content</a>
@@ -211,7 +211,30 @@
     </g>
     <g id="trees"></g>
     <g id="leafy"></g>
-    <path class="road" id="road" d="M-20 476 C150 462 300 488 450 473 C600 458 760 482 930 478"/>
+    <!-- the valley road: a winding gravel track that ends at a boat ramp on the lake -->
+    <defs><path id="road" d="M-20 479 C50 470 110 462 180 465 C250 468 290 489 360 488 C430 487 470 463 540 461 C610 459 650 476 700 482 C750 488 800 484 850 476 C880 471 905 470 926 471"/></defs>
+    <g class="road-g">
+      <use href="#road" class="road-bank"/>
+      <use href="#road" class="road-edge"/>
+      <use href="#road" class="road"/>
+      <use href="#road" class="road-grit"/>
+      <use href="#road" class="road-grit g2"/>
+      <use href="#road" class="road-leaves"/>
+      <use href="#road" class="road-leaves l2"/>
+      <use href="#road" class="road-wet"/>
+    </g>
+    <path class="ramp" d="M915 467.8 Q923 467.8 930 468.4 L930 476.6 Q922 476.4 914 474.4 Z"/>
+    <path class="ramp wet-part" d="M930 468.4 L946 473.4 Q945 477 940 477.8 L930 476.6 Z"/>
+    <!-- a small jetty with a ladder next to the ramp (the triathletes climb out here) -->
+    <g class="small-jetty">
+      <path class="jetty-posts" d="M937 463 V467.6 M947 462.8 V467.8 M956.6 462.6 V468"/>
+      <path class="jetty-deck" d="M929.6 461 L958 460.4 L958 462.6 L929.6 463.2 Z"/>
+      <path class="ladder" d="M957.2 460.4 V469 M959.4 460.3 V468.9 M957.2 462.6 H959.4 M957.2 464.6 H959.4 M957.2 466.6 H959.4"/>
+    </g>
+    <!-- a rowing boat pulled up on the shore -->
+    <g class="beached-boat" transform="translate(949 481.4) rotate(-5) scale(.8)">
+      <path class="bb-hull" d="M-8.4 -1.2 Q-7.9 1.4 -5.1 2.1 L4.8 2.1 Q7.9 1.5 9 -1.6 Z"/><path class="bb-rim" d="M-8.7 -1.2 L9.2 -1.7"/>
+    </g>
 
     <!-- a strip of shore in front of the cottage, with a gravel path to the jetty -->
     <path class="l-near shore" d="M1158 445.4 L1307 445.4 Q1304 448.6 1297 449.9 Q1236 451.9 1171 450.5 Q1162 449 1158 445.4 Z"/>
@@ -439,7 +462,9 @@
       <rect class="hit" x="-10" y="-20" width="20" height="21"/>
     </g></g>
     <!-- triathlon: swimmer in the lake, then the cyclist, then a runner on the road -->
-    <path id="swimLane" fill="none" stroke="none" d="M1283 479 C1200 475 1080 472 945 467"/>
+    <path id="swimLane" fill="none" stroke="none" d="M1283 479 C1200 475 1080 473 958.4 468.6"/>
+    <!-- tracks left in the snow by skis and bicycle tyres (winter) -->
+    <use href="#road" class="tracks" id="tracks"/>
     <!-- the triathlete dives in from the end of the jetty -->
     <g class="diver" id="diver"><g class="figure">
       <circle cx="0" cy="-12.6" r="1.4"/><path d="M0 -11 V-5 M0 -5 L-1 0 M0 -5 L1 0"/>
@@ -639,11 +664,11 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="notes.js?v=20260926203205"></script>
+<script src="notes.js?v=20260926204236"></script>
 <script src="cv-data.js?v=local"></script>
-<script src="script.js?v=20260926203205"></script>
-<script src="extras.js?v=20260926203205"></script>
-<script src="gadgets.js?v=20260926203205"></script>
-<script src="science.js?v=20260926203205"></script>
+<script src="script.js?v=20260926204236"></script>
+<script src="extras.js?v=20260926204236"></script>
+<script src="gadgets.js?v=20260926204236"></script>
+<script src="science.js?v=20260926204236"></script>
 </body>
 </html>
