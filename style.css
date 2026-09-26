@@ -231,7 +231,7 @@ kbd {
 [data-frozen="yes"] .skater { display: inline; }
 .sk-glide { animation: glide 12s ease-in-out infinite; }
 .sk-flip { transform-box: fill-box; transform-origin: center; animation: glide-flip 12s steps(1) infinite; }
-@keyframes glide { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(330px); } }
+@keyframes glide { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(268px); } } /* turns before the jetty */
 @keyframes glide-flip { 0% { transform: scaleX(1); } 50% { transform: scaleX(-1); } }
 .sk-spin { transform-box: fill-box; transform-origin: center; }
 .skater.spin .sk-spin { animation: pirouette .9s ease-in-out; }
@@ -521,6 +521,12 @@ kbd {
 .rb-lamp { fill: #FFE3A3; }
 .rb-halo { fill: #FFC96B; opacity: .1; }
 .rb-refl { fill: none; stroke: #FFC96B; stroke-width: .7; stroke-linecap: round; opacity: .4; }
+/* the angler's catch */
+.rb-catch { display: none; fill: #A9B8C2; }
+.rowboat.catch .rb-catch { display: inline; }
+.rowboat.catch .rb-line { display: none; }
+/* a big puff of steam when you throw water on the stones (löyly) */
+.sauna-smoke.burst circle { animation-duration: 1.2s; fill: rgba(240, 240, 240, .75); }
 /* ice hockey */
 .hockey { display: none; }
 .hockey.on { display: inline; }

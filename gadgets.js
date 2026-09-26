@@ -32,6 +32,13 @@ const BADGES = [
   ['camp', 'Allemansrätten', 'poked the campfire', 'summer evenings in the Swedish forest'],
   ['ufo', 'Close encounter', 'clicked the UFO', 'keep an eye on the cows after dark'],
   ['peek', 'Peekaboo', 'caught the penguin under the footer', 'go all the way down'],
+  ['owl', 'Night owl', 'startled the owl', 'two eyes in the forest, after dark'],
+  ['glow', 'Sea sparkle', 'made the lake glow', 'touch the water on a dark night'],
+  ['moo', 'Cowbell', 'got the cows\' attention', 'say hello to the herd'],
+  ['hockey', 'Face-off', 'joined the hockey game', 'someone plays on the frozen lake'],
+  ['sauna', 'Löyly', 'threw water on the sauna stones', 'the sauna by the jetty, when it\'s warm inside'],
+  ['catch', 'Night catch', 'helped the angler land a fish', 'a lantern on the lake at night'],
+  ['time', 'Time traveller', 'watched a whole day go by', 'a command that speeds things up'],
 ];
 let earned = (() => { try { return JSON.parse(store.get('badges') || '[]'); } catch { return []; } })();
 function earnBadge(id) {
@@ -332,7 +339,7 @@ async function penguinRoute(steps) {
 // frozen lake: a belly slide across the ice
 const penguinSlide = () => penguinRoute([
   { to: [1203, 458], ms: 1400, pose: 'walk' },   // out of the door, onto the ice
-  { to: [1335, 462], ms: 2400, pose: 'slide' },  // belly slide
+  { to: [1110, 463], ms: 2400, pose: 'slide' },  // belly slide (away from the jetty)
   { to: [1203, 458], ms: 6500, pose: 'walk' },   // waddle back
   { to: [1195, 447], ms: 1200, pose: 'walk' },
 ]);
@@ -340,7 +347,7 @@ const penguinSlide = () => penguinRoute([
 // frozen lake: ice fishing (pimpelfiske) at a hole in the ice, until a fish bites
 const penguinFish = () => penguinRoute([
   { to: [1203, 458], ms: 1400, pose: 'walk' },
-  { to: [1290, 461], ms: 5000, pose: 'walk' },
+  { to: [1165, 463], ms: 3000, pose: 'walk' },   // the hole is well clear of the jetty
   { ms: 9000, pose: 'wait', tick: (k, pg) => { pg.classList.add('fishing'); pg.classList.toggle('caught', k > 0.72); } },
   { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.remove('fishing', 'caught') },
   { to: [1203, 458], ms: 5000, pose: 'walk' },
@@ -447,6 +454,12 @@ const saunaState = () => {
 skyHooks.push(saunaState);
 saunaState();
 const hide = (on) => (k, pg) => pg.classList.toggle('inside', on);
+$('.sauna-hit').addEventListener('click', () => {
+  if (!sauna.classList.contains('on')) return;
+  saunaSmoke.classList.add('burst');
+  setTimeout(() => saunaSmoke.classList.remove('burst'), 2400);
+  earnBadge('sauna');
+});
 const penguinSauna = () => {
   saunaSession = true; saunaState();
   return penguinRoute([
@@ -643,7 +656,7 @@ async function dive() {
   await wait(350);
 }
 async function triathlon(force = false) {
-  if (tri || riding || roadBusy || (!force && (!triWeather() || !heroVisible())) || reduceMotion) return;
+  if (tri || riding || roadBusy || cowOnTheRoad() || (!force && (!triWeather() || !heroVisible())) || reduceMotion) return;
   tri = true; roadBusy = true;
   // the start: arms up at the end of the jetty, then a dive into the lake
   await dive();
@@ -675,7 +688,7 @@ COMMANDS.triathlon = () => {
 /* ---------------- cross-country skier (winter) / roller skier (other seasons) ---------------- */
 const xc = $('#xc');
 async function xcSki(force = false) {
-  if (roadBusy || riding || tri || (!force && (lastSky.d > 0.5 || !heroVisible())) || reduceMotion) return;
+  if (roadBusy || riding || tri || cowOnTheRoad() || (!force && (lastSky.d > 0.5 || !heroVisible())) || reduceMotion) return;
   roadBusy = true;
   const snow = currentSeason() === 'winter' || live.particle === 'snow' || live.frozen;
   xc.classList.toggle('snow', snow);
@@ -976,6 +989,7 @@ COMMANDS.timelapse = (arg) => {
   if (lapsing) return 'A time-lapse is already running. Look up.';
   if (reduceMotion) return 'This one needs animations, which are turned off on your device.';
   if (arg && arg !== 'year') return 'Usage: timelapse | timelapse year';
+  earnBadge('time');
   closeGps();
   scrollTo({ top: 0, behavior: 'smooth' });
   setTimeout(() => timelapse(arg), 600);
@@ -1084,8 +1098,9 @@ skyHooks.push(cowWeather);
 cowWeather();
 
 // now and then a cow wanders onto the road and stays there, until a cyclist rings the bell
+const cowOnTheRoad = () => typeof herd !== 'undefined' && herd.some((c) => c.road);
 function cowOnRoad(force = false) {
-  if (!heroVisible() || reduceMotion || lastSky.d > 0.7 || herd.some((c) => c.road)) return;
+  if (!heroVisible() || reduceMotion || lastSky.d > 0.7 || cowOnTheRoad() || roadBusy || riding || mooseOut) return;
   if (!force && Math.random() > 0.35) return;
   const free = herd.filter((c) => !c.busy);
   const c = free[Math.floor(Math.random() * free.length)];
@@ -1143,11 +1158,18 @@ async function ufoVisit(force = false) {
 }
 ufo.querySelector('.hit').addEventListener('click', () => earnBadge('ufo'));
 
+// click a cow: it stops and looks at you
+herd.forEach((c) => c.el.querySelector('.hit').addEventListener('click', () => {
+  c.lookUntil = performance.now() + 3500; c.walking = false; c.until = c.lookUntil + 2000;
+  earnBadge('moo');
+}));
+
 // the terminal's "moo": every cow stops, lifts its head and looks at you for a few seconds
 COMMANDS.moo = () => {
   const until = performance.now() + 4500;
   herd.forEach((c) => { c.lookUntil = until + Math.random() * 600; c.walking = false; c.until = until + 1500 + Math.random() * 7000; });
   closeGps(); scrollTo({ top: 0, behavior: 'smooth' });
+  earnBadge('moo');
   return 'Moo.';
 };
 HIDDEN.push('moo');
@@ -1186,6 +1208,7 @@ const owl = $('#owl');
 owl.querySelector('.hit').addEventListener('click', async () => {
   if (owl.classList.contains('flying') || owl.classList.contains('gone') || reduceMotion) return;
   owl.classList.add('flying');
+  earnBadge('owl');
   const bird = owl.querySelector('.owl-bird'), wings = owl.querySelectorAll('.owl-wing');
   await animate(2400, (k, t) => {
     bird.setAttribute('transform', `translate(${(-130 * k).toFixed(1)} ${(-50 * k - Math.sin(k * Math.PI) * 12).toFixed(1)}) scale(${(1 - 0.3 * k).toFixed(2)})`);
@@ -1203,6 +1226,12 @@ const rowboat = $('#rowboat');
 const boatState = () => rowboat.classList.toggle('show', params.has('boat') ||
   (lastSky.d > 0.7 && currentSeason() !== 'winter' && !live.frozen && !live.particle && !live.fog));
 skyHooks.push(boatState);
+rowboat.querySelector('.hit').addEventListener('click', () => {
+  if (rowboat.classList.contains('catch')) return;
+  rowboat.classList.add('catch');
+  setTimeout(() => rowboat.classList.remove('catch'), 3000);
+  earnBadge('catch');
+});
 const puddle = $('.puddle');
 const puddleState = () => puddle.classList.toggle('wet', rainy() && !live.frozen);
 skyHooks.push(puddleState);
@@ -1214,6 +1243,7 @@ boatState();
 // the puck into the other's net, and the penguin comes out to referee.
 const hockey = $('#hockey'), hockeyPlayers = [...hockey.querySelectorAll('.player')], puckEl = hockey.querySelector('.puck');
 let hockeyOn = false;
+hockeyPlayers.forEach((pl) => pl.querySelector('.hit').addEventListener('click', () => earnBadge('hockey')));
 async function iceHockey(force = false) {
   if (hockeyOn || penguinOut || reduceMotion || !heroVisible()) return;
   if (!force && (!live.frozen || lastSky.d > 0.5)) return;
@@ -1292,7 +1322,7 @@ peek.addEventListener('click', () => { earnBadge('peek'); peek.classList.remove(
 const moose = $('#moose'), mooseLegs = moose.querySelector('.ms-legs'), mooseFlip = moose.querySelector('.ms-flip');
 let mooseOut = false, mooseHurry = false;
 function mooseCrossing(force = false) {
-  if (mooseOut || roadBusy || riding || tri || reduceMotion || !heroVisible()) return;
+  if (mooseOut || roadBusy || riding || tri || cowOnTheRoad() || reduceMotion || !heroVisible()) return;
   if (!force && (lastSky.d > 0.85 || Math.random() > 0.35)) return;
   mooseOut = true; roadBusy = true; mooseHurry = false;
   const down = Math.random() < 0.5; // out of the forest towards the meadow, or the other way
@@ -1413,12 +1443,14 @@ if (params.has('fishing')) setTimeout(penguinFish, 800);
 if (params.has('swim')) setTimeout(penguinSwim, 800);
 if (params.has('smlm')) setTimeout(() => (lastSky.d >= 0.75 ? smlmShow() : toast('The microscope only works at night.')), 900);
 if (params.has('timelapse')) setTimeout(() => timelapse(params.get('timelapse') === 'year' ? 'year' : ''), 900);
-if (params.has('iss')) { // preview: a pass from west-south-west to east over 40 seconds
+// a pretend ISS pass from west-south-west to east over 40 seconds (preview and backstage)
+function issDemo() {
   clearTimeout(issTimer);
   issDot.classList.add('show', 'demo');
   let k = 0; placeIss(240, 12);
-  const demo = setInterval(() => { k += 1; placeIss(240 - k * 12, 12 + Math.sin((k / 12) * Math.PI) * 45); if (k >= 12) { clearInterval(demo); setTimeout(() => issDot.classList.remove('show', 'demo'), 4000); } }, 3300);
+  const demo = setInterval(() => { k += 1; placeIss(240 - k * 12, 12 + Math.sin((k / 12) * Math.PI) * 45); if (k >= 12) { clearInterval(demo); setTimeout(() => { issDot.classList.remove('show', 'demo'); checkIss(); }, 4000); } }, 3300);
 }
+if (params.has('iss')) issDemo();
 if (params.has('birds')) setTimeout(() => birds(true), 800);
 if (params.has('moose')) setTimeout(() => mooseCrossing(true), 800);
 if (params.has('ufo')) setTimeout(() => ufoVisit(true), 1500);
@@ -1429,8 +1461,10 @@ if (params.has('angel')) setTimeout(() => penguinSolo(penguinAngel, true), 1200)
 if (params.has('sauna')) setTimeout(() => penguinSolo(penguinSauna, true), 1200);
 if (params.has('selfie')) setTimeout(() => selfieOuting(true), 1200);
 if (params.has('hockey')) setTimeout(() => iceHockey(true), 1200);
-if (params.has('snowman')) { // preview: builds up stage by stage, then melts (?snowman) or starts melted (?snowman=melt)
+// the snowman built stage by stage, then melting (preview and backstage)
+function snowmanDemo(melted = false) {
   let k = 0;
-  const tick = () => { k++; snowPreview = { stage: Math.min(5, k), melting: params.get('snowman') === 'melt' || k > 7 }; paintSky(); if (k < 9) setTimeout(tick, 1500); };
+  const tick = () => { k++; snowPreview = { stage: Math.min(5, k), melting: melted || k > 7 }; paintSky(); if (k < 9) setTimeout(tick, 1500); else setTimeout(() => { snowPreview = null; paintSky(); }, 6000); };
   tick();
 }
+if (params.has('snowman')) snowmanDemo(params.get('snowman') === 'melt');

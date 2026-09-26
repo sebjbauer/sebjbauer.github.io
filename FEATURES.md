@@ -270,7 +270,7 @@ The page scrolls to the top, stars start blinking one at a time and each blink l
 
 ## Trail badges
 
-Terminal command `badges`: shows which of the 14 badges the visitor has found, with hints for the rest. The browser remembers them.
+Terminal command `badges`: shows which of the 30 badges the visitor has found, with hints for the rest. The browser remembers them.
 
 | Badge | How to get it |
 |---|---|
@@ -288,6 +288,22 @@ Terminal command `badges`: shows which of the 14 badges the visitor has found, w
 | Swim, bike, run | Click the swimmer or the runner in the triathlon |
 | Diagonal stride | Click the cross-country or roller skier |
 | Grill master | See the penguin at the barbecue (every third outing) |
+| Interference | Tap the lake twice so two sets of ripples meet |
+| Conway | Run `life` on a clear night |
+| Momentum | Run `descend` (the hiker's gradient descent) |
+| Self-similar | See the fractal forest (`fractal`, or 3% of visits) |
+| Älgvarning | Click the moose on the road |
+| Snow day | Click the snowman (its hat hops) |
+| Allemansrätten | Poke the campfire by the tent |
+| Close encounter | Click the UFO |
+| Peekaboo | Click the penguin that pops up under the footer |
+| Night owl | Tap the owl's eyes in the forest at night |
+| Sea sparkle | Tap the lake at night (glowing plankton) |
+| Cowbell | Click a cow, or type `moo` |
+| Face-off | Click a hockey player on the frozen lake |
+| Löyly | Tap the sauna while it's heated (a big puff of steam) |
+| Night catch | Click the rowing boat at night (the angler lands a fish) |
+| Time traveller | Run `timelapse` |
 
 ## Add to contacts
 
@@ -459,3 +475,9 @@ In `cv/cv.tex`, add `\web{image}{images/pubs/smlmflow.jpg}` right after a `\pub{
 ## Printing
 
 Printing the page (or "Save as PDF") gives a clean light one-column version: no sky, menu, terminal, timeline, map or buttons; contact links show their addresses.
+
+## Backstage (for you only)
+
+In the terminal, type `backstage` and then your password (the input is hidden and never kept in the command history). A panel lists every animation and scene in groups (sky and weather, seasons and holidays, road, sky, lake, penguin, animals, cottage, science); tap one and it plays right away, with the sky, season or weather it needs set automatically. `show live` (or "live" at the bottom) returns to the real sky. The panel stays unlocked until the browser tab is closed.
+
+Only a SHA-256 fingerprint of the password is stored in the code, not the password itself. It keeps visitors out of the panel, but it is not a real secret: on a static site anyone reading the code can run the animations too, and a short dictionary word can be guessed from its fingerprint.

@@ -975,7 +975,25 @@ Break complete. Productivity +20%.`,
 };
 const HIDDEN = ['ls', 'cat .secret', 'cat about.txt', 'cat trail.gpx', 'sudo hire-me', 'hej', 'servus', 'rm -rf /'];
 
+// "backstage": a password-protected panel for the site owner (see science.js). Only a SHA-256
+// fingerprint of the password is stored here, never the password itself.
+const BACKSTAGE_HASH = '0a4346f806b28b3ce94905c3ac56fcd5ee2337d8613161696aba52eb0c3551cc';
+let askingPassword = false;
+const sha256 = async (text) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))].map((b) => b.toString(16).padStart(2, '0')).join('');
+const backstageOpen = () => { try { return sessionStorage.getItem('backstage') === '1'; } catch { return false; } };
+
 async function run(raw) {
+  if (askingPassword) { // the line typed after "backstage" is the password: never echoed, never kept in the history
+    askingPassword = false; input.type = 'text';
+    print('<b>$</b> ••••••••', 'cmd');
+    let ok = false;
+    try { ok = (await sha256(raw.trim())) === BACKSTAGE_HASH; } catch { /* no crypto (http): stays locked */ }
+    if (!ok) return print('<span class="warn">Access denied.</span>');
+    try { sessionStorage.setItem('backstage', '1'); } catch { /* private mode: ask again next time */ }
+    const el = print(backstagePanel());
+    out.scrollTop += el.getBoundingClientRect().top - out.getBoundingClientRect().top - 36;
+    return;
+  }
   const cmd = raw.trim().replace(/\s+/g, ' ');
   if (!cmd) return;
   history.push(cmd); histIdx = history.length;

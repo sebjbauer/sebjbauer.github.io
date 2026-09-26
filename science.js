@@ -101,6 +101,7 @@ const ripples = (() => {
     if (!e.target.closest('.l-lake')) return;
     const p = toLand(e.clientX, e.clientY);
     add(p.x, p.y);
+    if (lastSky.d > 0.75 && !live.frozen && !reduceMotion) earnBadge('glow');
   });
   addEventListener('resize', () => { if (raf) layout(); });
   cv.hidden = true;
@@ -243,7 +244,10 @@ function fishJump(force = false) {
   if (fishing || reduceMotion || !heroVisible() || live.frozen) return;
   if (!force && (currentSeason() !== 'summer' || !twilight || live.particle)) return;
   fishing = true;
-  const fish = $('#fish'), x = sciRand(985, 1255), y = sciRand(463, 480), dir = Math.random() < 0.5 ? -1 : 1;
+  // not through the rowing boat, if it's out
+  const boatOut = $('#rowboat').classList.contains('show');
+  const x = boatOut ? (Math.random() < 0.5 ? sciRand(985, 1040) : sciRand(1222, 1258)) : sciRand(985, 1255);
+  const fish = $('#fish'), y = sciRand(463, 480), dir = Math.random() < 0.5 ? -1 : 1;
   const dx = dir * sciRand(9, 14), up = sciRand(8, 13), DUR = 850;
   ripples.add(x, y, 0.55, 0.7);
   fish.classList.add('show');
@@ -550,3 +554,112 @@ if (params.has('flock')) setTimeout(() => flock(true), 800);
 if (params.has('life')) setTimeout(() => (lastSky.d >= 0.75 ? lifeShow() : toast('The Game of Life needs the night sky.')), 900);
 if (params.has('descend')) setTimeout(() => { $('#timeline').scrollIntoView(); setTimeout(descend, 800); }, 900);
 if (params.has('ripples')) setTimeout(() => { ripples.add(1060, 468); setTimeout(() => ripples.add(1170, 472), 700); }, 1000);
+
+/* ---------------- backstage: every animation on demand (password protected) ---------------- */
+// Type "backstage" in the terminal, then the password. A panel lists every animation and scene;
+// tap one to see it right away (the sky, season or weather it needs is set first).
+// Note: this is a static website, so the gate keeps visitors out of the panel, but it isn't a
+// real secret: anyone reading the code can still call the functions.
+const setScene = ({ sky, season, weather } = {}) => {
+  if (season) COMMANDS.season(season);
+  if (weather) COMMANDS.weather(weather);
+  if (sky) COMMANDS.sky(sky);
+};
+const show = (sceneOpts, fn, delay = 900) => () => {
+  setScene(sceneOpts);
+  closeGps();
+  scrollTo({ top: 0, behavior: 'smooth' });
+  if (fn) setTimeout(fn, delay);
+};
+const twoRipples = () => { ripples.add(1060, 468); setTimeout(() => ripples.add(1170, 472), 700); };
+const BACKSTAGE = [
+  ['Sky and weather', [
+    ['dawn', show({ sky: 'dawn' })], ['day', show({ sky: 'day' })], ['dusk', show({ sky: 'dusk' })], ['night', show({ sky: 'night' })],
+    ['clear', show({ weather: 'clear' })], ['rain', show({ weather: 'rain' })], ['snow', show({ weather: 'snow' })], ['storm', show({ weather: 'storm' })],
+    ['fog', show({ weather: 'fog' })], ['frost', show({ weather: 'frost' })], ['rainbow', show({ weather: 'rainbow', sky: 'day' })],
+    ['northern lights', show({ weather: 'clear' }, () => { originalNorthernLights(); setTimeout(() => selfieOuting(true), 2500); })],
+    ['shooting star', show({ sky: 'night', weather: 'clear' }, shootingStar, 1500)],
+    ['ISS pass', show({ sky: 'night', weather: 'clear' }, issDemo)],
+    ['timelapse', show({}, () => timelapse(''))], ['timelapse year', show({}, () => timelapse('year'))],
+  ]],
+  ['Seasons and holidays', [
+    ['winter', show({ season: 'winter' })], ['spring', show({ season: 'spring' })], ['summer', show({ season: 'summer' })], ['autumn', show({ season: 'autumn' })],
+    ['christmas', show({}, () => COMMANDS.holiday('christmas'), 0)], ['easter', show({}, () => COMMANDS.holiday('easter'), 0)], ['midsommar', show({}, () => COMMANDS.holiday('midsommar'), 0)],
+  ]],
+  ['On the road', [
+    ['cyclist', show({ sky: 'day' }, () => ride({ force: true }))],
+    ['triathlon', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => triathlon(true))],
+    ['roller skier', show({ sky: 'day', season: 'summer' }, () => xcSki(true))],
+    ['cross-country skier', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => xcSki(true))],
+    ['moose', show({ sky: 'day' }, () => mooseCrossing(true))],
+    ['cow on the road', show({ sky: 'day', weather: 'clear' }, () => cowOnRoad(true))],
+  ]],
+  ['In the sky', [
+    ['plane', show({ sky: 'day' }, () => flyPlane(true))],
+    ['geese', show({ sky: 'day', season: 'autumn' }, () => birds(true))],
+    ['songbird flock', show({ sky: 'day', weather: 'clear' }, () => flock(true))],
+    ['UFO', show({ sky: 'night', weather: 'clear' }, () => ufoVisit(true), 1500)],
+    ['chairlift and skier', show({ sky: 'day', season: 'winter', weather: 'frost' }, ski)],
+  ]],
+  ['On the lake', [
+    ['ripples', show({ sky: 'day', season: 'summer', weather: 'clear' }, twoRipples)],
+    ['glowing plankton', show({ sky: 'night', season: 'summer', weather: 'clear' }, twoRipples)],
+    ['jumping fish', show({ sky: 'dusk', season: 'summer', weather: 'clear' }, () => fishJump(true))],
+    ['ducks', show({ sky: 'day', season: 'summer', weather: 'clear' })],
+    ['night fishing', show({ sky: 'night', season: 'summer', weather: 'clear' })],
+    ['ice skater', show({ sky: 'day', season: 'winter', weather: 'frost' })],
+    ['ice hockey', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => iceHockey(true))],
+  ]],
+  ['The penguin', [
+    ['walk', show({}, () => penguinSolo(penguinWalk, true))],
+    ['swim', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => penguinSolo(penguinSwim, true))],
+    ['barbecue', show({ sky: 'day' }, () => penguinSolo(penguinGrill, true))],
+    ['belly slide', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => penguinSolo(penguinSlide, true))],
+    ['ice fishing', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => penguinSolo(penguinFish, true))],
+    ['snow angel', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => penguinSolo(penguinAngel, true))],
+    ['sauna', show({ sky: 'dusk', season: 'winter', weather: 'frost' }, () => penguinSolo(penguinSauna, true))],
+    ['aurora selfie', show({ sky: 'night', weather: 'clear' }, () => selfieOuting(true))],
+    ['stargazing', show({ sky: 'night', weather: 'clear' }, () => penguinSolo(penguinStargaze, true))],
+    ['rain dance', show({ sky: 'day', season: 'summer', weather: 'rain' }, () => penguinSolo(penguinRainDance, true))],
+    ['under the footer', () => { closeGps(); peekNext = 0; scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }],
+  ]],
+  ['Animals', [
+    ['moo', () => COMMANDS.moo()],
+    ['deer', show({ sky: 'dusk' })],
+    ['owl', show({ sky: 'night' })],
+    ['fireflies', show({ sky: 'night', season: 'summer', weather: 'clear' })],
+  ]],
+  ['Around the cottage', [
+    ['tent and campfire', show({ sky: 'dusk', season: 'summer', weather: 'clear' })],
+    ['snowman', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => snowmanDemo(false), 300)],
+    ['path lights', show({ sky: 'night' })],
+  ]],
+  ['Science', [
+    ['microscope', show({ sky: 'night', weather: 'clear' }, () => { if (!smlmRunning && !lifeRunning) smlmShow(); })],
+    ['game of life', show({ sky: 'night', weather: 'clear' }, () => { if (!smlmRunning && !lifeRunning) lifeShow(); })],
+    ['gradient descent', () => COMMANDS.descend()],
+    ['fractal forest', show({}, () => fractalForest(!fractalOn), 0)],
+  ]],
+  ['Back to normal', [
+    ['live', show({ sky: 'live', season: 'live', weather: 'live' }, () => { COMMANDS.holiday('live'); fractalForest(false); }, 0)],
+  ]],
+];
+const BACKSTAGE_ACTIONS = new Map(BACKSTAGE.flatMap(([, rows]) => rows.map(([name, fn]) => [name.toLowerCase(), fn])));
+function backstagePanel() {
+  return '<span class="ok">Backstage.</span> Tap anything to see it now.' + BACKSTAGE.map(([title, rows]) => `<div class="h-group"><div class="h-title">${esc(title)}</div><div class="h-opts">${
+    rows.map(([name]) => `<button type="button" class="h-cmd" data-run="show ${esc(name)}">${esc(name)}</button>`).join('')}</div></div>`).join('')
+    + '<div class="h-tip">Type <b class="warn">backstage</b> to open this again, <b class="warn">show live</b> to go back to the real sky.</div>';
+}
+COMMANDS.backstage = () => {
+  if (backstageOpen()) return backstagePanel();
+  askingPassword = true; input.type = 'password'; input.value = '';
+  return 'Password:';
+};
+COMMANDS.show = (arg) => {
+  if (!backstageOpen()) return `Command not found: show. Type <b class="warn">help</b>.`;
+  const fn = BACKSTAGE_ACTIONS.get(arg);
+  if (!fn) return `Nothing called "${esc(arg)}". Type <b class="warn">backstage</b> for the list.`;
+  fn();
+  return `▶ ${esc(arg)}`;
+};
+HIDDEN.push('backstage', 'show');
