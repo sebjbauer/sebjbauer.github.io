@@ -777,9 +777,8 @@ function renderTalks() {
       <h3>${y}</h3>
       <ol>${list.filter((t) => t.year === y).map((t) => {
         const roles = rolesOf(t);
-        const body = roles.length === 1
-          ? `${heading(roles[0].title, t.url)}<p class="pub-venue">${typeLabel(roles[0].type)} ${esc(t.where)}</p>`
-          : `${heading(t.where, t.url)}${roles.map((r) => `<p class="talk-role">${typeLabel(r.type)} ${esc(r.title)}</p>`).join('')}`;
+        // the event first, then what was done there
+        const body = `${heading(t.where, t.url)}${roles.map((r) => `<p class="talk-role">${typeLabel(r.type)} ${esc(r.title)}</p>`).join('')}`;
         return `
         <li data-t="${list.indexOf(t)}">${body}</li>`;
       }).join('')}</ol>
@@ -967,9 +966,8 @@ ${esc(w.text)}`;
   education: () => 'Education route:\n' + [...SITE.education].reverse().map((e) =>
     `  ${yearSpan(e).padEnd(10)} ${esc(e.title)}\n  ${''.padEnd(10)} <span class="cmd">${esc(e.org)}</span>`).join('\n'),
 
-  talks: () => 'Talks, posters and awards:\n' + SITE.talks.map((t) => (t.roles
-    ? `  ${t.year}  ${esc(t.where)}\n` + t.roles.map((r) => `        ${esc(r.type)}: ${esc(r.title)}`).join('\n')
-    : `  ${t.year}  ${esc(t.type)}: ${esc(t.title)}\n        <span class="cmd">${esc(t.where)}</span>`)).join('\n'),
+  talks: () => 'Talks, posters and awards:\n' + SITE.talks.map((t) =>
+    `  ${t.year}  ${esc(t.where)}\n` + rolesOf(t).map((r) => `        <span class="cmd">${esc(r.type)}:</span> ${esc(r.title)}`).join('\n')).join('\n'),
 
   papers: () => `Publications (${SITE.publications.length}):\n` + SITE.publications.map((p) =>
     `  ${p.year}  <a href="${esc(linkOf(p))}" target="_blank" rel="noopener">${esc(p.title)}</a>\n        <span class="cmd">${esc(p.type)}, ${esc(venueOf(p))}</span>`).join('\n') +
