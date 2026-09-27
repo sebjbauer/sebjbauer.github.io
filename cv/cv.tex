@@ -9,7 +9,7 @@
 %       \entry{Title}{Dates}{Organisation}{Location}  + optional \details{text}
 %       \pub{Authors}{Title}{Venue}{DOI}      venue like: Nano Letters 26(4), 1321--1326, 2026
 %       \talk{Year}{Type}{Title}{Event}{City}          (Type: Invited talk, Poster, ...)
-%       \award{Year}{Award}{Event or reason}{City}
+%       \award{Year}{Award}{Event or prize name}{City}
 %       \organised{Year}{Role}{Event}{City}
 %       \activity{Years}{Role}{Organisation}{City}{Details}
 %     A talk and an award (or organising) at the same event, with the same Event
@@ -84,9 +84,15 @@
   before={\interlinepenalty=10000}}  % never split a publication across pages
 
 % talks, awards, service and activities (use inside a dated list)
-\newcommand{\talk}[5]{\item[#1] #2, \emph{#3}. #4, #5.}
-\newcommand{\award}[4]{\item[#1] \textbf{#2}, #3.}
-\newcommand{\organised}[4]{\item[#1] #2, #3, #4.}
+% the event first, then what was done there; a second entry for the same event
+% (a talk and an award, say) goes on its own line under it. The city may be left empty.
+\def\lastevent{}
+\newcommand{\eventhead}[3]{\def\thisevent{#2}%
+  \ifx\thisevent\lastevent\item[]\else\item[#1] #2\ifx&#3&\else, #3\fi.\ \fi
+  \global\let\lastevent\thisevent}
+\newcommand{\talk}[5]{\eventhead{#1}{#4}{#5}#2: \emph{#3}.}
+\newcommand{\award}[4]{\eventhead{#1}{#3}{#4}\textbf{#2}.}
+\newcommand{\organised}[4]{\eventhead{#1}{#3}{#4}#2.}
 \newcommand{\activity}[5]{\item[#1] #2\ifx&#3&\else, #3\fi\ifx&#4&\else, #4\fi.\ifx&#5&\else\ #5\fi}
 
 % website-only annotations: they print nothing in the PDF
@@ -253,12 +259,11 @@ microscopy.}
   \award{2025}{Best Poster Prize}
     {Workshop of the 2nd Anomalous Diffusion (AnDi) Challenge}{Gothenburg}
   \talk{2025}{Poster}{SMLMFlow}
-    {LOGML 2025, London Geometry and Machine Learning Summer School, Imperial College London}{London}
+    {LOGML 2025, London Geometry and Machine Learning Summer School, Imperial College London}{}
     \web{city}{London, United Kingdom}
-  \award{2016}{1st place, Hans Riegel-Fachpreis in physics, region Vienna}
-    {for the high-school thesis on aerodynamics in road cycling}{Vienna}
-    \web{where}{Hans Riegel-Fachpreis in physics, region Vienna}
-    \web{title}{1st place, for the high-school thesis on aerodynamics in road cycling}
+  \award{2016}{1st place\normalfont, for the high-school thesis on aerodynamics in road cycling}
+    {Hans Riegel-Fachpreis in physics, region Vienna}{}
+    \web{city}{Vienna}
 \end{dated}
 
 % ======================================================================
