@@ -1550,8 +1550,9 @@ let peekNext = 0;
 new IntersectionObserver(([e]) => {
   if (!e.isIntersecting || reduceMotion || performance.now() < peekNext) return;
   peekNext = performance.now() + 30000;
-  setTimeout(() => { peek.classList.add('peek'); setTimeout(() => peek.classList.remove('peek'), 3400); }, 600);
+  setTimeout(peekOut, 600);
 }, { threshold: 0.98 }).observe($('.footer'));
+function peekOut() { peek.classList.add('peek'); setTimeout(() => peek.classList.remove('peek'), 3400); }
 peek.addEventListener('click', () => { earnBadge('peek'); peek.classList.remove('peek'); });
 
 /* ---------------- the moose (älg) ---------------- */

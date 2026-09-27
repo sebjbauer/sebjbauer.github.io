@@ -221,7 +221,9 @@ specialGreeting = () => HOLIDAY_GREETING[holidayToday()] || null;
 
 // Flag by the cottage: only on Swedish National Day (6 June) and Austrian National Day (26 October),
 // between sunrise and sunset (Swedish custom). The rest of the time the pole is empty.
+let flagPreview = null; // backstage: 'se' or 'at'
 function flagToday(isDay) {
+  if (flagPreview) return flagPreview;
   if (params.get('flag')) return params.get('flag'); // preview: ?flag=se or ?flag=at
   const [, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date()).split('-').map(Number);
   const national = m === 6 && d === 6 ? 'se' : m === 10 && d === 26 ? 'at' : null;
