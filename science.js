@@ -643,6 +643,40 @@ COMMANDS.descend = () => {
   return 'Minimising altitude by gradient descent…';
 };
 
+/* ---------------- the real northern sky: the Big Dipper, the Pole Star and Cassiopeia ---------------- */
+// The view looks north (that's where the northern lights are). These stars are placed where they
+// really are for Vienna at the shown time: the Pole Star stands as high as the latitude (48°) and the
+// Big Dipper and Cassiopeia turn around it once a (sidereal) day, low in the north on autumn evenings,
+// high overhead in spring. Positions: J2000 right ascension (hours), declination (°), magnitude.
+const NORTH_STARS = [
+  [2.530, 89.264, 2.0],                                                                  // Polaris
+  [11.062, 61.751, 1.8], [11.031, 56.382, 2.4], [11.897, 53.695, 2.4], [12.257, 57.033, 3.3], // Dubhe, Merak, Phecda, Megrez
+  [12.900, 55.960, 1.8], [13.399, 54.925, 2.2], [13.792, 49.313, 1.9],                   // Alioth, Mizar, Alkaid
+  [0.153, 59.150, 2.3], [0.675, 56.537, 2.2], [0.945, 60.717, 2.5], [1.430, 60.235, 2.7], [1.907, 63.670, 3.4], // Cassiopeia's W
+];
+const northSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+northSvg.setAttribute('viewBox', '0 0 1440 600'); northSvg.setAttribute('preserveAspectRatio', 'xMidYMin slice');
+northSvg.innerHTML = NORTH_STARS.map(([, , mag]) => `<circle r="${Math.max(0.7, 2.1 - 0.4 * mag).toFixed(2)}"/>`).join('');
+$('#starfield').appendChild(northSvg);
+const northDots = [...northSvg.children];
+function placeNorthStars({ h }) {
+  if (lastSky.d < 0.3 && document.documentElement.dataset.night !== 'yes') return; // only matters when stars show
+  const rad = Math.PI / 180, lat = base().lat * rad;
+  const when = new Date(Date.now() + (h - localHour()) * 3600e3); // the shown time (it may be simulated)
+  const days = when.getTime() / 864e5 - 10957.5; // days since J2000
+  const lst = ((18.697374558 + 24.06570982441908 * days) + base().lon / 15) % 24;
+  NORTH_STARS.forEach(([ra, dec], i) => {
+    const H = (lst - ra) * 15 * rad, d = dec * rad;
+    const east = -Math.cos(d) * Math.sin(H), north = Math.sin(d) * Math.cos(lat) - Math.cos(d) * Math.cos(H) * Math.sin(lat);
+    const alt = Math.asin(Math.sin(d) * Math.sin(lat) + Math.cos(d) * Math.cos(H) * Math.cos(lat)) / rad;
+    const az = Math.atan2(east, north) / rad; // 0 = north, + = east (to the right, looking north)
+    const x = 720 + az * 7 * Math.cos(alt * rad * 0.8), y = 440 - alt * 6.4; // below ~12° they are behind the mountains
+    northDots[i].setAttribute('cx', x.toFixed(1)); northDots[i].setAttribute('cy', y.toFixed(1));
+  });
+}
+skyHooks.push(placeNorthStars);
+placeNorthStars(lastSky);
+
 /* ---------------- frost on the window ---------------- */
 // When it's really freezing where I am (-3 °C or colder, from the live weather), ice ferns grow in from
 // the corners of the "window", the way frost does on glass: straight needles that branch at 60°
@@ -748,6 +782,9 @@ const BACKSTAGE = [
       skyPlace = SITE.places.se; skyDate = new Date(new Date().getFullYear(), 5, 21, 12);
       show({ season: 'summer', weather: 'clear' }, () => { forcedHour = skyPreset('night'); paintSky(); }, 0)();
     }],
+    ['Big Dipper and Pole Star', show({ sky: 'night', weather: 'clear' })],
+    ['smoke in the wind', show({ sky: 'dusk', season: 'winter', weather: 'windy' })],
+    ['ice from the shore', show({ sky: 'day', season: 'winter', weather: 'icing' })],
     ['shooting star', show({ sky: 'night', weather: 'clear' }, shootingStar, 1500)],
     ['ISS pass', show({ sky: 'night', weather: 'clear' }, issDemo)],
     ['timelapse', show({}, () => timelapse(''))], ['timelapse year', show({}, () => timelapse('year'))],
@@ -794,6 +831,10 @@ const BACKSTAGE = [
     ['stargazing', show({ sky: 'night', weather: 'clear' }, () => penguinSolo(penguinStargaze, true))],
     ['kayak', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => penguinSolo(penguinKayak, true))],
     ['chanterelles', show({ sky: 'day', season: 'autumn', weather: 'clear' }, () => penguinSolo(penguinChanterelles, true))],
+    ['shovelling snow', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => { pathSnowPreview = true; setData('pathsnow', 'yes'); penguinSolo(penguinShovel, true); })],
+    ['raking leaves', show({ sky: 'day', season: 'autumn', weather: 'clear' }, () => penguinSolo(penguinRake, true))],
+    ['watering flowers', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => { thirstyPreview = true; boxFlowers.forEach((g) => g.classList.add('thirsty')); setTimeout(() => penguinSolo(penguinWater, true), 2500); }, 0)],
+    ['reading on the veranda', show({ sky: 'dusk', season: 'summer', weather: 'clear' }, () => penguinSolo(penguinRead, true))],
     ['birthday cake', show({ sky: 'day' }, () => { cake.classList.remove('show', 'out'); penguinSolo(penguinCake, true); })],
     ['rain dance', show({ sky: 'day', season: 'summer', weather: 'rain' }, () => penguinSolo(penguinRainDance, true))],
     ['under the footer', () => { closeGps(); peekNext = 0; scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }],

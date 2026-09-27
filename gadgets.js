@@ -322,6 +322,7 @@ async function penguinRoute(steps) {
         if (s.pose === 'slide') pose = 'translate(0 -1.5) rotate(78)';
         if (s.pose === 'jump') { y -= Math.sin(Math.PI * k) * 9; pose = `rotate(${(20 + 70 * k).toFixed(0)})`; }
         if (s.pose === 'hop') y -= Math.sin(Math.PI * k) * 4;
+        if (s.pose === 'read') pose = 'translate(0 1.3) rotate(-5)'; // sitting on the veranda chair
         if (s.pose === 'bend') pose = `rotate(${(Math.sin(Math.PI * k) * 42).toFixed(0)})`; // down to pick something up, and back
         const swimming = s.pose === 'swim', paddling = s.pose === 'paddle';
         if (paddling) { pose = `translate(0 2.9) rotate(${(Math.sin(t / 420) * 3).toFixed(1)})`; /* sitting in the cockpit */ pg.querySelector('.pg-paddle').setAttribute('transform', `rotate(${(Math.sin(t / 280) * 26).toFixed(0)} 0 -6)`); }
@@ -338,7 +339,7 @@ async function penguinRoute(steps) {
     });
     pos = to;
   }
-  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze', 'inside', 'steamy', 'kayak', 'basket', 'p1', 'p2', 'p3', 'carrycake');
+  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze', 'inside', 'steamy', 'kayak', 'basket', 'p1', 'p2', 'p3', 'carrycake', 'shovel', 'rake', 'watering', 'pouring', 'reading', 'pageturn');
   earnBadge('penguin');
 }
 
@@ -540,6 +541,124 @@ const penguinKayak = () => penguinRoute([
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]);
 const calm = () => ((simulated || weatherNow)?.wind ?? 0) < 15;
+
+// The front door opens whenever the penguin stands in the doorway (going out or coming home).
+const stugaDoor = $('#stugaDoor'), penguinEl = $('#penguin');
+let doorTimer = 0;
+new MutationObserver(() => {
+  const m = /translate\(([\d.]+) ([\d.]+)\)/.exec(penguinEl.getAttribute('transform') || '');
+  const inDoorway = penguinEl.classList.contains('out') && m && Math.hypot(m[1] - 1195, m[2] - 447) < 2.2;
+  if (inDoorway) { clearTimeout(doorTimer); doorTimer = 0; stugaDoor.classList.add('open'); }
+  else if (stugaDoor.classList.contains('open') && !doorTimer) doorTimer = setTimeout(() => { stugaDoor.classList.remove('open'); doorTimer = 0; }, 450);
+}).observe(penguinEl, { attributes: true, attributeFilter: ['transform', 'class'] });
+
+const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date()); // 2026-11-16
+const outDoor = [ // out of the door, along the veranda and down the step
+  { to: [1199, 449], ms: 800, pose: 'walk' },
+  { to: [1216, 449.3], ms: 1200, pose: 'walk' },
+  { to: [1220, 450.2], ms: 350, pose: 'hop' },
+];
+const homeAgain = [
+  { to: [1216, 449.3], ms: 350, pose: 'hop' },
+  { to: [1199, 449], ms: 1200, pose: 'walk' },
+  { to: [1195, 447], ms: 700, pose: 'walk' },
+];
+
+// After real snowfall (at least 1 cm in the last 24 hours), the path is snowed over until the penguin
+// shovels it clear, from the step down to the jetty.
+const pathSnow = $('#pathSnow');
+let pathSnowPreview = false;
+const pathLen = pathSnow.getTotalLength();
+const snowyPath = () => pathSnowPreview || (((simulated || weatherNow)?.snow24 ?? 0) >= 1 && store.get('shoveled') !== today()
+  && (currentSeason() === 'winter' || live.particle === 'snow' || ((simulated || weatherNow)?.temp ?? 5) <= 2));
+const cleared = (x) => { pathSnow.style.strokeDasharray = `0 ${(Math.min(1, Math.max(0, (x - 1216) / 81)) * pathLen).toFixed(1)} ${pathLen.toFixed(1)}`; };
+const shovelTo = (x0, x1) => (k) => cleared(x0 + (x1 - x0) * k);
+skyHooks.push(() => { setData('pathsnow', snowyPath() ? 'yes' : 'no'); });
+const penguinShovel = () => penguinRoute([
+  { ms: 1, pose: 'wait', tick: (k, pg) => { pg.classList.add('shovel'); cleared(1216); } },
+  ...outDoor,
+  { to: [1240, 450.3], ms: 3200, pose: 'walk', tick: shovelTo(1216, 1240) },
+  { to: [1266, 450.3], ms: 3400, pose: 'walk', tick: shovelTo(1240, 1266) },
+  { to: [1297, 449.6], ms: 3800, pose: 'walk', tick: shovelTo(1266, 1297) },
+  { ms: 1200, pose: 'wait' },
+  { to: [1220, 450.2], ms: 4200, pose: 'walk' },
+  ...homeAgain,
+]).then(() => { store.set('shoveled', today()); pathSnowPreview = false; setData('pathsnow', 'no'); pathSnow.style.strokeDasharray = ''; });
+
+// Autumn: the leaves on the grass are raked into a pile, and then, of course, jumped into.
+const leafEls = [...document.querySelectorAll('#leaves .lf')], leafPile = $('#leafPile');
+leafEls.forEach((el) => { // keep each leaf's tilt in the style, so it can move and stay tilted
+  const r = /rotate\((-?[\d.]+)/.exec(el.getAttribute('transform'))[1];
+  el.removeAttribute('transform'); el.dataset.r = r;
+  el.style.transformBox = 'fill-box'; el.style.transformOrigin = 'center';
+  el.style.transform = `rotate(${r}deg)`;
+});
+const leafTo = (el, x, y) => { el.style.transform = `translate(${(x - el.dataset.x).toFixed(1)}px, ${(y - el.dataset.y).toFixed(1)}px) rotate(${el.dataset.r}deg)`; };
+let raked = 0;
+const rakeUpTo = (x0, x1, fromLeft) => (k) => {
+  const x = x0 + (x1 - x0) * k;
+  leafEls.forEach((el) => {
+    if (el.dataset.piled || (fromLeft ? +el.dataset.x > x : +el.dataset.x < x)) return;
+    el.dataset.piled = '1'; raked++;
+    leafTo(el, 1261 + (Math.random() - 0.5) * 5, 447.6 + (Math.random() - 0.5) * 1.2);
+    leafPile.setAttribute('transform', `translate(1261 448.6) scale(${(raked / leafEls.length).toFixed(2)})`);
+  });
+};
+const leafBurst = () => {
+  const leaves = $('#leaves');
+  leaves.classList.add('burst');
+  leafPile.setAttribute('transform', 'translate(1261 448.6) scale(0)');
+  leafEls.forEach((el) => { delete el.dataset.piled; leafTo(el, 1236 + Math.random() * 50, 446.6 + Math.random() * 2.6); });
+  raked = 0;
+  setTimeout(() => leaves.classList.remove('burst'), 800);
+};
+const penguinRake = () => penguinRoute([
+  ...outDoor,
+  { to: [1224, 448.4], ms: 700, pose: 'walk', tick: (k, pg) => pg.classList.add('rake') },
+  { to: [1253, 448.2], ms: 5200, pose: 'walk', tick: rakeUpTo(1224, 1253, true) },   // sweeping from the left …
+  { to: [1291, 448.2], ms: 2600, pose: 'walk' },
+  { to: [1268, 448.2], ms: 4200, pose: 'walk', tick: rakeUpTo(1291, 1268, false) },  // … and from the right
+  { to: [1250, 448.5], ms: 1800, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.remove('rake'); } },
+  { ms: 900, pose: 'wait' },
+  { to: [1261, 448], ms: 650, pose: 'jump', tick: (k) => { if (k >= 1) leafBurst(); } },   // wheee
+  { ms: 1300, pose: 'wait' },
+  { to: [1220, 450.2], ms: 3000, pose: 'walk' },
+  ...homeAgain,
+]);
+
+// Spring and summer: after three or more dry, hot days (from the real weather), the flowers in the
+// window boxes droop; the penguin comes out with a watering can and they perk up again.
+const boxFlowers = [...document.querySelectorAll('#winboxes .wb-flowers')];
+let thirstyPreview = false;
+const thirsty = () => thirstyPreview || (['spring', 'summer'].includes(currentSeason()) && ((simulated || weatherNow)?.dryHot ?? 0) >= 3 && store.get('watered') !== today());
+skyHooks.push(() => { if (!penguinOut) boxFlowers.forEach((g) => g.classList.toggle('thirsty', thirsty())); });
+const pour = (box) => (k, pg) => { pg.classList.toggle('pouring', k < 1); if (k > 0.5) boxFlowers[box].classList.remove('thirsty'); };
+const penguinWater = () => penguinRoute([
+  { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.add('watering') },
+  { to: [1191.5, 447], ms: 900, pose: 'walk' },          // under the left window, facing the box
+  { ms: 3500, pose: 'wait', tick: pour(0) },
+  { to: [1198, 447], ms: 1300, pose: 'walk' },           // and the right one
+  { ms: 3500, pose: 'wait', tick: pour(1) },
+  { ms: 800, pose: 'wait' },
+  { to: [1195, 447], ms: 700, pose: 'walk' },
+]).then(() => { store.set('watered', today()); thirstyPreview = false; });
+
+// Warm summer evenings: a chair on the veranda, a book, and the lamp by the door.
+const porchLamp = $('.porch-lamp');
+let pageTimer = 0;
+const penguinRead = () => penguinRoute([
+  { to: [1206, 447.4], ms: 1600, pose: 'walk' },
+  { ms: 45000, pose: 'read', tick: (k, pg) => {
+    pg.classList.add('reading'); porchLamp.classList.add('on');
+    if (!pageTimer) pageTimer = setTimeout(() => { pg.classList.remove('pageturn'); void pg.getBoundingClientRect(); pg.classList.add('pageturn'); pageTimer = 0; }, 7000 + Math.random() * 5000);
+  } },
+  { ms: 1, pose: 'wait', tick: (k, pg) => { pg.classList.remove('reading'); porchLamp.classList.remove('on'); clearTimeout(pageTimer); pageTimer = 0; } },
+  { to: [1195, 447], ms: 1500, pose: 'walk' },
+]);
+const summerEvening = () => {
+  const { h, sunT } = lastSky, w = simulated || weatherNow;
+  return currentSeason() === 'summer' && sunT && h > sunT.set - 2.5 && h < sunT.set + 1 && (w?.temp ?? 0) >= 18 && !live.particle;
+};
 
 // 16 November (my birthday): the penguin carries a cake out onto the veranda and leaves it there for
 // the day. Click it to blow out the candles.
@@ -1542,6 +1661,10 @@ setTimeout(() => flyPlane(), 12000);
 every(70, 160, () => flyPlane());
 every(200, 480, () => flyBalloon());
 every(100, 240, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.4) penguinSolo(penguinChanterelles); });
+every(60, 150, () => { if (snowyPath() && lastSky.d < 0.45 && localHour() < 15) penguinSolo(penguinShovel); });
+every(120, 300, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.35) penguinSolo(penguinRake); });
+every(90, 200, () => { if (thirsty() && lastSky.d < 0.45 && !live.particle && Math.random() < 0.5) penguinSolo(penguinWater); });
+every(120, 260, () => { if (summerEvening() && Math.random() < 0.4) penguinSolo(penguinRead); });
 every(150, 320, () => { if (currentSeason() === 'summer' && lastSky.d < 0.4 && !live.particle && !live.frozen && calm() && Math.random() < 0.25) penguinSolo(penguinKayak); });
 setTimeout(ski, 4000);
 every(20, 50, ski);
@@ -1589,6 +1712,10 @@ if (params.has('sauna')) setTimeout(() => penguinSolo(penguinSauna, true), 1200)
 if (params.has('kayak')) setTimeout(() => penguinSolo(penguinKayak, true), 1200);
 if (params.has('chanterelles')) setTimeout(() => penguinSolo(penguinChanterelles, true), 1200);
 if (params.has('balloon')) setTimeout(() => flyBalloon(true), 1000);
+if (params.has('shovel')) { pathSnowPreview = true; setData('pathsnow', 'yes'); setTimeout(() => penguinSolo(penguinShovel, true), 1500); }
+if (params.has('rake')) setTimeout(() => penguinSolo(penguinRake, true), 1200);
+if (params.has('water')) { thirstyPreview = true; boxFlowers.forEach((g) => g.classList.add('thirsty')); setTimeout(() => penguinSolo(penguinWater, true), 2500); }
+if (params.has('read')) setTimeout(() => penguinSolo(penguinRead, true), 1200);
 if (params.has('selfie')) setTimeout(() => selfieOuting(true), 1200);
 if (params.has('hockey')) setTimeout(() => iceHockey(true), 1200);
 // the snowman built stage by stage, then melting (preview and backstage)

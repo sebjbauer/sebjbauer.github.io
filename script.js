@@ -61,7 +61,7 @@ const PHASES = {
 let forcedHour = null;
 let skyPlace = null, skyDate = null; // backstage: another place and day for the sun (e.g. a Stockholm midsummer night)
 // Live conditions, filled in by extras.js from real weather data
-const live = { overcast: 0, particle: null, fog: 0, frozen: false };
+const live = { overcast: 0, particle: null, fog: 0, frozen: false, ice: 0 };
 const skyHooks = [];
 // Only touch the page when a value really changes: on phones every change restyles the whole landscape.
 const varCache = {};
@@ -130,8 +130,9 @@ function paintSky() {
   const sunT = sunTimes(skyPlace ?? base(), skyDate ?? new Date());
   const v = skyAt(h, sunT);
   const d = darkness(h, sunT);
-  // the lake freezes when it's below 0 °C in Vienna
+  // the lake has frozen over (after several frosty days, see pastDays in extras.js)
   if (live.frozen) v.lake = mix(v.lake, d > 0.5 ? '#3B4652' : '#E3EDF2', 0.8);
+  setVar('--ice-col', mix('#E3EDF2', '#3B4652', d)); // the shore ice before the lake freezes over
   setData('frozen', live.frozen ? 'yes' : 'no');
   setData('daylight', d < 0.55 ? 'yes' : 'no');
   // clouds grey out the sky; heavy overcast hides stars and northern lights

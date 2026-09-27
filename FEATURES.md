@@ -11,7 +11,7 @@ This file is not part of the website (see `_config.yml`), it only lives in the r
 | `sky` | `dawn`, `day`, `dusk`, `night` |
 | `season` | `winter`, `spring`, `summer`, `autumn` |
 | `holiday` | `christmas`, `easter`, `midsommar`, `none` |
-| `weather` | `clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`, `frost` (clear and below 0 °C: frozen lake), `rainbow` (sun after rain) |
+| `weather` | `clear`, `cloudy`, `rain`, `drizzle`, `snow`, `storm`, `fog`, `frost` (clear and below 0 °C: frozen lake), `rainbow` (sun after rain), `icing` (a few cold days: ice creeping out from the shore), `windy` (strong westerly: smoke streams sideways) |
 | `star` | no value; shows a shooting star right after loading |
 | `smlm` | no value; runs the microscope stars right away (needs `sky=night`) |
 | `ride`, `penguin`, `birds` | no value; sends out the cyclist, the penguin or the birds right away |
@@ -112,7 +112,8 @@ Checked every 15 minutes (free Open-Meteo service, no key needed).
 | Snow | Snow falls, in any season |
 | Thunderstorm | Rain plus a lightning flash every 6 to 18 seconds |
 | Fog | Mist rises from the valley |
-| Below 0 °C | The lake freezes (icy colour, cracks) and an ice skater glides across it |
+| Cold days | The lake freezes gradually, from the last week of real temperatures: after frosty days ice creeps out from the shore (a white band along the edges), and only after several days of frost does it freeze over (icy colour, cracks, skater, hockey). Mild days melt it again. |
+| Wind | Chimney and sauna smoke drift downwind with the real wind direction and strength (the view faces north, so a westerly blows it to the right); on calm days it rises straight up, in strong wind it streams almost sideways. |
 | Rain in the last 3 hours, now dry and not too cloudy | A rainbow behind the Alps (daytime only) |
 
 Real rain or snow replaces the seasonal leaves or petals.
@@ -139,8 +140,8 @@ Based on the date in Vienna.
 ## Things visitors can find and click
 
 - **Shooting stars:** at night, one crosses the sky every 15 to 50 seconds. Clicking it "catches" it ("Make a wish."). The browser remembers how many each visitor has caught.
-- **The cottage:** clicking the red cottage switches its light and chimney smoke on or off (no message). On its own, the light is on in the evening, and the chimney smokes in the evening and in autumn and winter.
-- **The deer:** appears at the forest edge only at **dusk and dawn**, and sometimes lowers its head to graze. Clicking it makes it run into the forest (it comes back after 90 seconds).
+- **The cottage:** a red stuga with a green front door and two white-framed windows with window boxes. The door opens whenever the penguin goes in or out. Clicking the cottage switches its light and chimney smoke on or off (no message). On its own, the light is on in the evening, and the chimney smokes in the evening and in autumn and winter.
+- **The deer:** a small roe deer (rådjur), red-brown in summer and grey-brown in winter, with a white rump patch. It appears at the forest edge only at **dusk and dawn**, and sometimes lowers its head to graze. Clicking it makes it bound off into the forest (it comes back after 90 seconds).
 - **The Timeline section (mountain trail):** from 2008 to today, above the Career and Education sections. Orange circles (year above the line) mark where each job starts, green diamonds (year below) where each degree starts; a bigger diamond around a circle means both started that year. Every period is shaded faintly under the line; clicking a marker, a Career entry or an Education entry highlights that period. The line turns dashed after today.
 - **Headlamp:** after dark, the hiker wears a small headlamp with a soft beam.
 - **Fika:** from 15:00 to 15:15 Vienna time, the hiker sits down on the trail with a steaming cup of coffee.
@@ -382,6 +383,10 @@ Like a real shell: **Tab** completes commands and their options (`sky d` → Tab
 | `hej`, `servus` | Greetings back |
 | `rm -rf /` | "Avalanche warning. Permission denied." |
 
+## Speed
+
+The web fonts load without holding up the first paint (for a split second the text shows in a system font), and the portrait is 560 px and 37 KB (it's shown at up to about 280 px).
+
 ## Quality (checked 24 September 2026)
 
 - **Readability:** every text colour keeps at least 4.5:1 contrast at every moment: through twilight, in every season, and over the live sky (a soft shade appears behind the name at dawn and dusk only when needed).
@@ -445,6 +450,7 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 | **Umbrella from the forecast** | The hiker carries a packed umbrella when the real forecast says ≥60% chance of rain in the next 6 hours, and opens it while it rains. | `?weather=forecast`, `?weather=rain` |
 | **SMLM cluster analysis** | The `smlm` microscope show now images molecules in small nanoclusters; after acquisition, DBSCAN (the standard SMLM cluster analysis) colours each cluster, noise stays grey. | `?smlm&sky=night` |
 | **Ducklings on a pursuit curve** | Summer days: the mother duck wanders, each duckling always swims straight at the one in front. | `?season=summer&sky=day` |
+| **The real northern sky** | The Big Dipper, the Pole Star and Cassiopeia's W are placed where they really are over Vienna at the shown time (sidereal time, the view faces north): the Pole Star 48° up, the Dipper low in the north on autumn evenings and high in spring, both turning around the pole once a day (fast in the time-lapse). | `?sky=night` |
 | **Optimal transport flow** | Terminal `flow`: points sampled from a Gaussian are paired one-to-one with points sampled from the letters "SB", using the pairing with the smallest total squared distance (exact optimal transport, solved with the Hungarian algorithm in the browser, about 50 ms). Each point then moves along a straight line (displacement interpolation, the paths OT flow matching learns), with the paths faintly drawn. Badge *Optimal transport*. | backstage: *optimal transport flow* |
 | **Frost on the window** | When it's -3 °C or colder in Vienna (live weather), ice ferns grow in from the corners of the top of the page, like frost on glass: straight needles branching at 60° (ice is hexagonal). The colder it is, the further they reach. They melt away when it warms up. | `?weather=frost` |
 | **Boids** | Now and then by day a small flock of songbirds crosses the sky, flocking by Reynolds' three rules (separation, alignment, cohesion). | `?flock` |
@@ -457,6 +463,10 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 
 | What | Where / when | Preview |
 |---|---|---|
+| **Shovelling snow** | After real snowfall (at least 1 cm in the last 24 hours, cold enough to stay), the path is snowed over; before 15:00 the penguin shovels it clear from the step to the jetty, leaving a trodden track. Once a day. | `?shovel&season=winter` |
+| **Raking leaves** | Autumn days, dry: the leaves on the grass are raked into a pile, from the left and then from the right, and then the penguin jumps into it and they scatter again. | `?rake&season=autumn&sky=day` |
+| **Watering the flowers** | Spring and summer: after three or more dry, hot days in a row (real weather: no rain, 25 °C or more), the flowers in the window boxes droop; the penguin waters both boxes and they perk up. Once a day. | `?water&season=summer&sky=day` |
+| **Reading on the veranda** | Warm summer evenings (from 18 °C, dry, around sunset): the penguin sits on a chair on the veranda with a book, turning the pages, under the lamp by the door. | `?read&season=summer&sky=dusk` |
 | **Birthday cake** | On 16 November (Vienna date) the penguin carries a cake with candles out onto the veranda and leaves it there for the day; the candles flicker. Click it to blow them out (badge *Birthday wishes*). Backstage: *birthday cake*. | `?birthday` |
 | **Hot-air balloon** | Spring to autumn, on calm mornings (up to 3 h after sunrise) and evenings (the last 3 h before sunset), only when the real wind is under 12 km/h and it's dry and clear enough. It drifts slowly across the sky; click it and the burner fires and it climbs (badge *Up and away*). | `?balloon` |
 | **Cranes** | In spring the migrating V is cranes flying north (long necks, legs trailing, slower wingbeats); in autumn geese fly south. | `?birds&season=spring` |
@@ -495,6 +505,6 @@ Printing the page (or "Save as PDF") gives a clean light one-column version: no 
 
 ## Backstage (for you only)
 
-In the terminal, type `backstage` and then your password (the input is hidden and never kept in the command history). A panel lists every animation and scene in groups (sky and weather, seasons and holidays, road, sky, lake, penguin, animals, cottage (including the stove and its smoke), the hiker (walk, rain coming, umbrella, fika break), the page (screensaver), science). New since: *light summer night*, *cranes*, *hot-air balloon*, *kayak*, *chanterelles*, *optimal transport flow*; tap one and it plays right away, with the sky, season or weather it needs set automatically. `show live` (or "live" at the bottom) returns to the real sky. The panel stays unlocked until the browser tab is closed.
+In the terminal, type `backstage` and then your password (the input is hidden and never kept in the command history). A panel lists every animation and scene in groups (sky and weather, seasons and holidays, road, sky, lake, penguin, animals, cottage (including the stove and its smoke), the hiker (walk, rain coming, umbrella, fika break), the page (screensaver), science). New since: *light summer night*, *Big Dipper and Pole Star*, *smoke in the wind*, *ice from the shore*, *cranes*, *hot-air balloon*, *kayak*, *chanterelles*, *shovelling snow*, *raking leaves*, *watering flowers*, *reading on the veranda*, *birthday cake*, *optimal transport flow*; tap one and it plays right away, with the sky, season or weather it needs set automatically. `show live` (or "live" at the bottom) returns to the real sky. The panel stays unlocked until the browser tab is closed.
 
 Only a SHA-256 fingerprint of the password is stored in the code, not the password itself. It keeps visitors out of the panel, but it is not a real secret: on a static site anyone reading the code can run the animations too, and a short dictionary word can be guessed from its fingerprint.

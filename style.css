@@ -303,7 +303,8 @@ kbd {
 [data-season="winter"] .rocks path { fill: #DCE2E7; }
 .gravel { fill: none; stroke: #CDBF9E; stroke-width: 1.3; stroke-linecap: round; opacity: .75; }
 [data-daylight="no"] .gravel { stroke: #4A443A; }
-[data-season="winter"] .gravel { stroke: #E4E8EC; }
+[data-season="winter"] .gravel { stroke: #B3AEA4; opacity: .8; } /* shovelled: a trodden, gravelly track through the snow */
+[data-season="winter"][data-daylight="no"] .gravel { stroke: #5A5650; }
 .deck { fill: #8C7652; }
 .deck-edge { fill: none; stroke: #5E4E36; stroke-width: .8; }
 .rail { fill: none; stroke: #F3EEE6; stroke-width: .7; stroke-linecap: round; }
@@ -550,6 +551,19 @@ kbd {
 .pg-scope { display: none; }
 /* kayak (summer) and chanterelle basket (autumn) */
 .pg-kayak, .pg-paddle, .pg-basket, .kayak-moored, .chanterelles { display: none; }
+.pg-chair, .pg-shovel, .pg-rake, .pg-can, .pg-book { display: none; }
+.penguin.shovel .pg-shovel, .penguin.rake .pg-rake, .penguin.watering .pg-can, .penguin.reading .pg-chair, .penguin.reading .pg-book { display: inline; }
+.pg-chair path { fill: none; stroke: #8A6A48; stroke-width: .7; stroke-linecap: round; }
+.pg-handle { stroke: #8A6A48; stroke-width: .5; stroke-linecap: round; } .pg-blade2 { fill: #5E6A73; }
+.pg-rakehead { stroke: #5E6A73; stroke-width: .4; stroke-linecap: round; }
+.pg-canbody { fill: #4E8A5A; } .pg-spout, .pg-canhandle { fill: none; stroke: #4E8A5A; stroke-width: .5; stroke-linecap: round; }
+.pg-drops circle { fill: #8CC8EE; opacity: 0; }
+.penguin.pouring .pg-drops circle { animation: pg-drip .5s linear infinite; }
+.penguin.pouring .pg-drops circle:nth-child(2) { animation-delay: .17s; } .penguin.pouring .pg-drops circle:nth-child(3) { animation-delay: .34s; }
+@keyframes pg-drip { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(2px); } }
+.pg-pages { fill: #F4F4F2; stroke: #3D5A80; stroke-width: .3; } .pg-spine { stroke: #3D5A80; stroke-width: .25; }
+.penguin.pageturn .pg-pages { transform-box: fill-box; transform-origin: 50% 50%; animation: pg-page .4s ease-in-out; }
+@keyframes pg-page { 50% { transform: scaleX(.4); } }
 .penguin.kayak .pg-kayak, .penguin.kayak .pg-paddle, .penguin.basket .pg-basket { display: inline; }
 [data-season="summer"] .kayak-moored { display: inline; }
 .kayak-moored.away { display: none !important; }
@@ -644,6 +658,33 @@ kbd {
 .fx { pointer-events: none; }
 .stuga-hit { fill: transparent; pointer-events: all; cursor: pointer; }
 [data-cottage="on"] .window { opacity: 1; }
+/* cottage windows and door */
+.win-frame, .door-frame { fill: #F3EEE6; } .win-glass { fill: #3A2E2C; } .win-bar { stroke: #F3EEE6; stroke-width: .45; }
+.door-in { fill: #1E1512; } .door-in-light { fill: #F4C95D; opacity: calc(var(--window) * .8); }
+[data-cottage="on"] .door-in-light { opacity: .8; } [data-cottage="off"] .door-in-light { opacity: 0; }
+.door-leaf rect { fill: #3F5A48; } .door-panel { fill: none; stroke: #2E4436; stroke-width: .35; } .door-knob { fill: #E3C26B; }
+.door-leaf { transform-box: fill-box; transform-origin: 0 50%; transition: transform .35s ease-in-out; }
+.stuga-door.open .door-leaf { transform: scaleX(.16); }
+.porch-lamp rect { fill: #2B2B2B; } .porch-glow { fill: #FFD27A; opacity: 0; transition: opacity .6s; }
+.porch-lamp.on .porch-glow { opacity: .28; }
+/* window boxes */
+.wb-box { fill: #7A5230; } .wb-stems { stroke: #4E7A3A; stroke-width: .35; }
+.wb-flowers, .wb-stems { display: none; }
+[data-season="spring"] .wb-flowers, [data-season="summer"] .wb-flowers, [data-season="spring"] .wb-stems, [data-season="summer"] .wb-stems { display: inline; }
+.wf1 { fill: #E0455A; } .wf2 { fill: #F2C14E; } .wf3 { fill: #E98AA5; }
+.wb-flowers circle { transform-box: fill-box; transform-origin: 50% 100%; transition: transform 2s ease-out, opacity 2s; }
+.winboxes.thirsty .wb-flowers circle { transform: translateY(.6px) scale(.7); opacity: .6; }
+/* autumn leaves and the pile */
+.leaves, .leafpile { display: none; }
+[data-season="autumn"] .leaves, [data-season="autumn"] .leafpile { display: inline; }
+.leaves .lf { transition: transform 1.1s ease-in-out; }
+.leaves.burst .lf { transition-duration: .7s; transition-timing-function: cubic-bezier(.2, .8, .3, 1); }
+/* fresh snow on the path, shovelled off from the step to the jetty */
+.path-snow { display: none; fill: none; stroke: var(--snow, #F7F9FB); stroke-width: 2.6; stroke-linecap: round; }
+[data-pathsnow="yes"] .path-snow { display: inline; }
+/* shore ice before the lake freezes over: a band along the edges, as wide as extras.js says */
+.shore-ice { fill: none; stroke: var(--ice-col, #E3EDF2); stroke-width: var(--ice-band, 0); opacity: .9; }
+[data-frozen="yes"] .shore-ice { display: none; }
 [data-cottage="off"] .window { opacity: 0; }
 .smoke { display: none; }
 [data-smoke="on"] .smoke, [data-cottage="on"] .smoke { display: inline; }
@@ -651,16 +692,21 @@ kbd {
 .smoke circle { fill: rgba(205, 205, 205, .55); transform-box: fill-box; transform-origin: center; animation: smoke 4.5s ease-out infinite; }
 .smoke circle:nth-child(2) { animation-delay: 1.5s; }
 .smoke circle:nth-child(3) { animation-delay: 3s; }
-@keyframes smoke { from { transform: translate(0, 0) scale(.6); opacity: .9; } to { transform: translate(6px, -26px) scale(2.4); opacity: 0; } }
+/* the smoke drifts downwind: --smoke-dx and --smoke-dy come from the real wind (gadgets.js) */
+@keyframes smoke { from { transform: translate(0, 0) scale(.6); opacity: .9; } to { transform: translate(var(--smoke-dx, 6px), var(--smoke-dy, -26px)) scale(2.4); opacity: 0; } }
 
 .deer { opacity: 0; pointer-events: none; transition: opacity 3s; cursor: pointer; }
 .deer.show { opacity: 1; pointer-events: auto; }
-.deer-body { fill: var(--tree); transition: transform 1.2s ease-in, opacity 1.2s; }
-.deer .antler { fill: none; stroke: var(--tree); stroke-width: 1; stroke-linecap: round; }
+.deer-body { transition: transform 1.2s ease-in, opacity 1.2s; }
+/* a roe deer: red-brown in summer, grey-brown in winter, white rump patch */
+.deer-coat { fill: #9A5E36; } .deer-leg { fill: none; stroke: #7E4C2C; stroke-width: .75; stroke-linecap: round; }
+[data-season="winter"] .deer-coat { fill: #7A6858; } [data-season="winter"] .deer-leg { stroke: #62544A; }
+.deer-rump { fill: #F2EBDD; } .deer-nose { fill: #1C1A18; }
+.deer .antler { fill: none; stroke: #5A4632; stroke-width: .4; stroke-linecap: round; }
 .deer-head { transform-box: fill-box; transform-origin: 100% 100%; animation: graze 11s ease-in-out infinite; }
 .deer:not(.show) .deer-head { animation-play-state: paused; }
 @keyframes graze { 0%, 55%, 100% { transform: rotate(0); } 62%, 88% { transform: rotate(-58deg); } }
-.deer.flee .deer-body { transform: translateX(60px); opacity: 0; }
+.deer.flee .deer-body { transform: translateX(-45px); opacity: 0; } /* bounds off into the forest */
 
 .special, .xmas-lights { display: none; }
 [data-holiday="christmas"] .special-christmas, [data-holiday="christmas"] .xmas-lights,

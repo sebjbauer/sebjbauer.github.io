@@ -104,6 +104,8 @@ const WEATHER_PRESETS = {
   fog: { code: 45, cloud: 60, temp: 4 }, frost: { code: 0, cloud: 10, temp: -6 },
   rainbow: { code: 1, cloud: 35, temp: 16, recentRain: true },
   forecast: { code: 3, cloud: 80, temp: 12, rainSoon: true }, // dry now, rain expected soon
+  icing: { code: 0, cloud: 20, temp: -4, ice: 0.45 },          // a few cold days: ice creeping out from the shore
+  windy: { code: 2, cloud: 40, temp: 6, wind: 28, windDir: 250 }, // strong westerly: smoke streams to the right
 };
 let weatherNow = null, simulated = null, stormTimer = 0;
 
@@ -111,7 +113,16 @@ function applyWeather(w) {
   const c = w.code;
   live.overcast = Math.min(1, w.cloud / 100);
   live.fog = c === 45 || c === 48 ? 1 : 0;
-  live.frozen = typeof w.temp === 'number' && w.temp < 0;
+  // The lake freezes over gradually, from the last week of temperatures (ice 0…1, see pastDays).
+  // Presets without that history freeze at once below 0 °C, like before.
+  live.ice = w.ice ?? (typeof w.temp === 'number' && w.temp < 0 ? 1 : 0);
+  live.frozen = live.ice >= 1;
+  document.documentElement.style.setProperty('--ice-band', live.ice > 0 && live.ice < 1 ? (live.ice * 26).toFixed(1) : '0');
+  // chimney and sauna smoke drift downwind (we look north: wind from the west blows the smoke right)
+  const kmh = w.wind ?? 5, dir = w.windDir ?? 250, push = Math.min(1, kmh / 30);
+  const dx = kmh < 2 ? 0 : Math.sin((dir + 180) * Math.PI / 180) * (4 + 30 * push);
+  document.documentElement.style.setProperty('--smoke-dx', dx.toFixed(1) + 'px');
+  document.documentElement.style.setProperty('--smoke-dy', (-26 * (1 - 0.6 * push)).toFixed(1) + 'px');
   // a rainbow when it rained in the last hours and the sun is out again (shown by day only, see CSS)
   const raining = (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || c >= 95;
   document.documentElement.dataset.rainbow = w.recentRain && !raining && w.cloud < 75 ? 'yes' : 'no';
@@ -135,16 +146,35 @@ function lightning() {
   }, 6000 + Math.random() * 12000);
 }
 
+// From the last week of daily temperatures and rain: how far the lake has frozen (ice 0…1: ice grows on
+// frosty days, about a quarter of the lake per day at a mean of -3 °C, and melts on mild ones), and how
+// many dry, hot days in a row there have been (for the window boxes).
+function pastDays(daily, tempNow) {
+  const max = daily?.temperature_2m_max, min = daily?.temperature_2m_min, rain = daily?.precipitation_sum;
+  if (!max || !min) return { ice: tempNow < 0 ? 1 : 0, dryHot: 0 };
+  let ice = 0;
+  for (let i = 0; i < max.length; i++) {
+    const mean = ((max[i] ?? 0) + (min[i] ?? 0)) / 2;
+    ice = Math.min(1, Math.max(0, ice + (mean < 0 ? -mean / 12 : -mean / 6)));
+  }
+  let dryHot = 0;
+  for (let i = max.length - 2; i >= 0 && (rain?.[i] ?? 1) < 0.5 && max[i] >= 25; i--) dryHot++; // counting back from yesterday
+  return { ice: ice > 0.97 ? 1 : ice, dryHot };
+}
+
 async function fetchWeather() {
   if (simulated) return;
   const p = base();
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m,weather_code,cloud_cover,wind_speed_10m&hourly=precipitation,precipitation_probability&past_hours=3&forecast_hours=6&timezone=auto`;
-    const { current, hourly } = await (await fetch(url)).json();
-    // the hourly lists hold the 3 past hours, then the next 6
-    const pastRain = (hourly?.precipitation || []).slice(0, 3).reduce((sum, mm) => sum + (mm || 0), 0);
-    const chance = Math.max(0, ...(hourly?.precipitation_probability || []).slice(3).map((v) => v || 0));
-    weatherNow = { code: current.weather_code, cloud: current.cloud_cover, temp: current.temperature_2m, wind: current.wind_speed_10m, recentRain: pastRain >= 0.2, rainSoon: chance >= 60 };
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m&hourly=precipitation,precipitation_probability,snowfall&past_hours=24&forecast_hours=6&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&past_days=7&forecast_days=1&timezone=auto`;
+    const { current, hourly, daily } = await (await fetch(url)).json();
+    // the hourly lists hold the 24 past hours, then the next 6
+    const hours = (key) => (hourly?.[key] || []).map((v) => v || 0);
+    const pastRain = hours('precipitation').slice(21, 24).reduce((a, b) => a + b, 0);
+    const chance = Math.max(0, ...hours('precipitation_probability').slice(24));
+    const snow24 = hours('snowfall').slice(0, 24).reduce((a, b) => a + b, 0); // cm of fresh snow in the last day
+    weatherNow = { code: current.weather_code, cloud: current.cloud_cover, temp: current.temperature_2m, wind: current.wind_speed_10m, windDir: current.wind_direction_10m,
+      recentRain: pastRain >= 0.2, rainSoon: chance >= 60, snow24, ...pastDays(daily, current.temperature_2m) };
     applyWeather(weatherNow);
   } catch { /* offline: keep the clear default */ }
 }
