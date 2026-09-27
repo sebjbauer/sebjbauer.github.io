@@ -617,10 +617,23 @@ function linkRow(links) {
     `<a href="${esc(url)}"${url.startsWith('http') ? ' target="_blank" rel="noopener"' : ''}>${esc(label)}${url.startsWith('http') ? '<svg class="i" aria-hidden="true"><use href="#i-out"/></svg>' : ''}</a>`).join('')}</span>`;
 }
 
-// Education: a vertical route, newest at the top
-function renderEducation() {
-  $('#eduList').innerHTML = SITE.education.map((e, i) => ({ e, i })).reverse().map(({ e, i }) => `
-    <li data-k="edu-${i}">
+// Education and career: a vertical dotted route, newest at the top. Entries that overlap an
+// earlier one (a guest position during the PhD, say) branch off to the side and, if they end
+// while the other goes on, join the route again. Months (span in cv-data.js) only place the
+// branches; the text shows years.
+function renderRoute(list, entries, prefix) {
+  const items = entries.map((e, i) => ({ e, k: `${prefix}-${i}`, from: e.span?.[0] ?? +e.from, to: e.span ? (e.span[1] ?? Infinity) : e.to === 'now' ? Infinity : +e.to + 1 }));
+  // lanes: the first lane that is free when the entry starts; the branch leaves from the lane beside it
+  const laneEnd = [];
+  [...items].sort((a, b) => a.from - b.from).forEach((it) => {
+    let l = laneEnd.findIndex((end) => end <= it.from + 0.001);
+    if (l < 0) l = laneEnd.length;
+    laneEnd[l] = it.to;
+    it.lane = l;
+  });
+  const rows = [...items].reverse().sort((a, b) => b.from - a.from); // newest start at the top
+  list.innerHTML = rows.map(({ e, k, lane }) => `
+    <li data-k="${k}"${lane ? ` class="branch" style="--lane:${lane}"` : ''}>
       <span class="tl-years">${esc(yearSpan(e))}</span>
       <div class="tl-body">
         <h3>${esc(e.title)}</h3>
@@ -629,9 +642,60 @@ function renderEducation() {
         ${e.award ? `<p class="award"><svg class="i" aria-hidden="true"><use href="#i-award"/></svg>${esc(e.award)}</p>` : ''}
         ${linkRow(e.links)}
       </div>
-    </li>`).join('');
-  $('#eduList').querySelectorAll('li').forEach((li) => li.addEventListener('click', (ev) => { if (!ev.target.closest('a')) selectEntry(li.dataset.k); }));
+    </li>`).join('') + '<svg class="route" aria-hidden="true"></svg>';
+  list.querySelectorAll('li').forEach((li) => li.addEventListener('click', (ev) => { if (!ev.target.closest('a')) selectEntry(li.dataset.k); }));
+
+  const svg = list.querySelector('svg.route');
+  const draw = () => {
+    const lis = [...list.querySelectorAll('li')];
+    if (!lis.length || !lis[0].offsetHeight) return;
+    rows.forEach((r, n) => { // centre of each waypoint, measured from the CSS
+      const li = lis[n], dot = getComputedStyle(li, '::after');
+      r.x = li.offsetLeft + parseFloat(dot.left) + parseFloat(dot.width) / 2 + parseFloat(dot.borderLeftWidth);
+      r.y = li.offsetTop + parseFloat(dot.top) + parseFloat(dot.height) / 2 + parseFloat(dot.borderTopWidth);
+    });
+    const step = rows.find((r) => r.lane) ? rows.find((r) => r.lane).x - rows.find((r) => !r.lane).x : 22;
+    const x0 = rows.find((r) => !r.lane)?.x ?? rows[0].x;
+    const xOf = (lane) => x0 + lane * step;
+    const top = rows[0].y;
+    // time → height, through the waypoints (each sits at its start date) and "now" at the top
+    const anchors = [[Infinity, top], ...rows.map((r) => [r.from, r.y])];
+    const yAt = (t) => {
+      if (t === Infinity) return top;
+      for (let n = 1; n < anchors.length; n++) {
+        const [ta, ya] = anchors[n - 1], [tb, yb] = anchors[n];
+        if (t >= tb) return ta === Infinity ? Math.min(yb, top + (yb - top) * 0.5) : ya + (yb - ya) * (ta - t) / (ta - tb || 1);
+      }
+      return anchors.at(-1)[1];
+    };
+    const curve = (xa, ya, xb, yb) => { const m = (ya + yb) / 2; return `C${xa} ${m} ${xb} ${m} ${xb} ${yb}`; };
+    let d = '';
+    rows.forEach((r, n) => {
+      let path;
+      if (!r.lane) { // main route: up to the next newer waypoint on the route, or to "now"
+        const newer = rows.slice(0, n).reverse().find((o) => !o.lane);
+        const upTo = newer ? newer.y : r.to === Infinity ? top : null;
+        path = upTo === null || upTo >= r.y ? '' : `M${r.x} ${r.y}V${upTo}`;
+      } else { // a branch: out of the lane beside it, up while it lasts, and back in when it ends
+        const below = rows[n + 1]?.y ?? r.y + 60;
+        const out = Math.min(110, (below - r.y) * 0.5), from = xOf(r.lane - 1);
+        path = `M${from} ${r.y + out}${curve(from, r.y + out, r.x, r.y)}`;
+        if (r.to !== Infinity) {
+          const back = Math.min(yAt(r.to), r.y - 70);
+          path += `M${r.x} ${r.y}V${back + 40}${curve(r.x, back + 40, from, back)}`;
+        } else if (top < r.y) path += `M${r.x} ${r.y}V${top}`;
+      }
+      if (path) d += `<path data-k="${r.k}" d="${path}"/>`;
+    });
+    svg.innerHTML = d;
+    svg.querySelectorAll('path').forEach((p) => p.classList.toggle('active', !!list.querySelector(`li.active[data-k="${p.dataset.k}"]`)));
+  };
+  draw();
+  new ResizeObserver(draw).observe(list);
+  document.fonts?.ready.then(draw);
 }
+
+function renderEducation() { renderRoute($('#eduList'), SITE.education, 'edu'); }
 
 // "Journal 26(4), 1321–1326" from the structured fields
 const venueOf = (p) => p.school ? p.school
@@ -722,16 +786,9 @@ function renderTalks() {
     </div>`).join('');
 }
 
-// The table is the readable CV; the profile above is its map.
+// Career: the same route as Education; the profile above is its map.
 function renderCvTable() {
-  const rows = SITE.cv.map((w, i) => ({ w, i })).reverse();
-  $('#cvTable tbody').innerHTML = rows.map(({ w, i }) => `
-    <tr data-k="job-${i}">
-      <td class="years">${esc(yearSpan(w))}</td>
-      <td><span class="role">${esc(w.title)}</span><span class="org">${esc(w.org)}</span><span class="note">${esc(w.text)}</span>${linkRow(w.links)}</td>
-      <td class="where">${esc(w.place)}</td>
-    </tr>`).join('');
-  $('#cvTable tbody').querySelectorAll('tr').forEach((tr) => tr.addEventListener('click', () => selectEntry(tr.dataset.k)));
+  renderRoute($('#cvList'), SITE.cv, 'job');
   selectWaypoint(SITE.cv.length - 1);
 }
 
@@ -740,7 +797,7 @@ const waypointHooks = []; // extras.js: the hiker walks to the selected waypoint
 // and its row in the Career table or Education list.
 function selectEntry(k) {
   waypointHooks.forEach((fn) => fn(k));
-  document.querySelectorAll('#profile .wp, #profile .span, #cvTable tbody tr, #eduList li')
+  document.querySelectorAll('#profile .wp, #profile .span, #cvList li, #eduList li, svg.route path')
     .forEach((el) => el.classList.toggle('active', el.dataset.k === k));
 }
 const selectWaypoint = (i) => selectEntry(`job-${i}`); // career stage by number (terminal: waypoint 1…)

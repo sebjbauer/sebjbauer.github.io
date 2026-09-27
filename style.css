@@ -717,7 +717,11 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 #eduList li { cursor: pointer; }
 #eduList li.active::after { background: var(--edu); border-color: var(--edu); }
 #eduList li.active .tl-years { color: var(--edu); }
-.timeline li::after { border-color: var(--edu); }
+#eduList li::after { border-color: var(--edu); }
+#cvList li { cursor: pointer; }
+#cvList li.active::after { background: var(--accent); }
+#cvList li.active .tl-years { color: var(--accent); }
+#cvList { margin-bottom: 28px; }
 #profile .hiker { pointer-events: none; }
 #profile .gd { pointer-events: none; transition: opacity .8s; }
 #profile .gd.gone { opacity: 0; }
@@ -746,17 +750,6 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 #profile .hiker .steam { fill: none; stroke: var(--muted); stroke-width: .8; stroke-linecap: round; animation: steam 2.4s ease-in-out infinite; }
 @keyframes steam { 0%, 100% { opacity: .2; } 50% { opacity: .9; } }
 
-.cv-table { width: 100%; border-collapse: collapse; font-size: 17px; margin-bottom: 24px; }
-.cv-table th { text-align: left; font-weight: 400; color: var(--muted); font-size: 14px; padding: 0 16px 8px 0; border-bottom: 1px solid var(--line); }
-.cv-table td { padding: 14px 16px 14px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
-.cv-table tr { cursor: pointer; transition: background-color .15s; }
-.cv-table tbody tr:hover { background: var(--raised); }
-.cv-table tr.active td:first-child { color: var(--accent); }
-.cv-table .years { white-space: nowrap; width: 8.5em; color: var(--muted); }
-.cv-table .role { font-weight: 500; }
-.cv-table .org { display: block; color: var(--muted); font-weight: 400; }
-.cv-table .note { display: block; color: var(--muted); font-weight: 400; font-size: 16px; margin-top: 6px; max-width: 60ch; }
-.cv-table .where { white-space: nowrap; color: var(--muted); }
 .text-link { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; }
 
 .entry-links { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 8px; font-size: 15px; }
@@ -767,15 +760,17 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 .timeline { list-style: none; padding: 0; margin: 0; position: relative; }
 .timeline li { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); gap: 0 28px; position: relative; padding: 0 0 30px; }
 .timeline li:last-child { padding-bottom: 4px; }
-.timeline li::before {  /* the dashed route */
-  content: ''; position: absolute; left: calc(8.5em + 13px); top: 14px; bottom: 0;
-  border-left: 2px dashed var(--line-strong);
+.timeline li { --lane: 0; }
+.timeline li::after {  /* the waypoint; a branch (--lane: 1) sits beside the route */
+  content: ''; position: absolute; left: calc(8.5em + 8px + var(--lane) * 22px); top: 7px; width: 8px; height: 8px;
+  border: 2px solid var(--accent); border-radius: 50%; background: var(--bg); z-index: 1;
 }
-.timeline li:last-child::before { display: none; }
-.timeline li::after {  /* the waypoint */
-  content: ''; position: absolute; left: calc(8.5em + 8px); top: 7px; width: 8px; height: 8px;
-  border: 2px solid var(--accent); border-radius: 50%; background: var(--bg);
-}
+.timeline .tl-body { padding-left: calc(4px + var(--lane) * 22px); }
+/* the dashed route and its branches, drawn by renderRoute() in script.js */
+.timeline svg.route { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.timeline svg.route path { fill: none; stroke: var(--line-strong); stroke-width: 2; stroke-dasharray: 6 5; transition: stroke .2s; }
+#eduList svg.route path.active { stroke: var(--edu); }
+#cvList svg.route path.active { stroke: var(--accent); }
 
 .tl-years { color: var(--muted); font-size: 16px; padding-top: 1px; white-space: nowrap; }
 .tl-body { padding-left: 4px; }
@@ -935,10 +930,9 @@ html:not([data-holiday="christmas"]) .xmas-lights circle,
   .skills dt { border-bottom: 0; padding-bottom: 0; }
   .skills dd:first-of-type { padding-top: 0; }
   .skills dt ~ dt { padding-top: 14px; }
-  .cv-table .where { display: none; }
-  .timeline li { grid-template-columns: minmax(0, 1fr); padding-left: 28px; }
-  .timeline li::before { left: 5px; }
-  .timeline li::after { left: 0; }
+  .timeline li { grid-template-columns: minmax(0, 1fr); padding-left: calc(28px + var(--lane) * 22px); }
+  .timeline li::after { left: calc(var(--lane) * 22px); }
+  .timeline .tl-body { padding-left: 4px; }
   .tl-years { font-size: 14px; }
   .tl-place { display: block; margin-left: 0; }
   .pub-year { grid-template-columns: minmax(0, 1fr); }

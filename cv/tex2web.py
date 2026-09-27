@@ -109,6 +109,37 @@ def years(dates):
     return a, b
 
 
+MONTHS = 'jan feb mar apr may jun jul aug sep oct nov dec'.split()
+
+
+def span(dates):
+    """'Nov 2023 -- present' → [2023.83, None]: start and end as fractional years, for drawing overlaps.
+    Months are optional ('2016--17' → [2016.0, 2017.92]); they are never shown on the website."""
+    d = plain(dates).split('(')[0]
+    parts = re.split(r'\s*[–-]\s*', d, maxsplit=1)
+    def at(part, end):
+        y = re.search(r'\b(\d{4}|\d{2})\b', part)
+        if not y:
+            return None
+        year = int(y[1]) if len(y[1]) == 4 else None
+        m = re.search(r'\b(' + '|'.join(MONTHS) + r')', part, re.I)
+        month = MONTHS.index(m[1].lower()) if m else (11 if end else 0)
+        return year, month
+    a = at(parts[0], False)
+    if not a or a[0] is None:
+        return None
+    one = lambda ym: round(ym[0] + ym[1] / 12, 3)
+    if len(parts) == 1:
+        b = (a[0], a[1] if re.search(r'[a-zA-Z]{3} \d{4}', parts[0]) else 11)
+    elif re.search(r'present|now', parts[1]):
+        return [one(a), None]
+    else:
+        b = at(parts[1], True)
+        if b and b[0] is None:  # '2016--17'
+            b = (int(str(a[0])[:2] + re.search(r'\d{2}', parts[1])[0]), b[1])
+    return [one(a), round(one(b) + 1 / 12, 3)]  # the end month counts in full
+
+
 def cap(s):
     return s[:1].upper() + s[1:]
 
@@ -131,7 +162,7 @@ def parse(tex):
         elif cmd == 'entry':
             (title, dates, org, loc), i = args(body, i, 4)
             a, b = years(dates)
-            last = {'from': a, 'to': b, 'title': plain(title), 'org': plain(org), 'place': place(plain(loc)), 'text': ''}
+            last = {'from': a, 'to': b, 'span': span(dates), 'title': plain(title), 'org': plain(org), 'place': place(plain(loc)), 'text': ''}
             data['education' if section == 'Education' else 'cv'].append(last)
         elif cmd == 'details':
             (text,), i = args(body, i, 1)
@@ -162,7 +193,7 @@ def parse(tex):
         elif cmd == 'activity':
             (dates, role, org, city, text), i = args(body, i, 5)
             a, b = years(dates)
-            last = {'years': plain(dates), 'from': a, 'to': b, 'title': plain(role), 'org': plain(org),
+            last = {'years': plain(dates), 'from': a, 'to': b, 'span': span(dates), 'title': plain(role), 'org': plain(org),
                     'place': plain(city), 'text': plain(text)}
             data['extracurricular'].append(last)
         elif cmd == 'weblink':
@@ -176,6 +207,8 @@ def parse(tex):
                     if isinstance(lst, list) and last in lst:
                         lst.remove(last)
                 data[{'career': 'cv'}.get(value, value)].append(last)
+            elif field == 'months':  # exact dates for the website's timeline only, e.g. Sep 2016 -- Jun 2017
+                last['span'] = span(value)
             else:
                 last[field] = int(value) if field == 'year' else value
         elif cmd == 'begin{tabularx}' and section.startswith('Skills'):
@@ -206,8 +239,8 @@ def parse(tex):
     # activities newest first (by when they ended), like in the PDF
     data['extracurricular'].sort(key=lambda w: order({'from': w['to'], 'to': w['from']}), reverse=True)
     for w in data['extracurricular']:
-        w.pop('from', None)
-        w.pop('to', None)
+        for k in ('from', 'to', 'span'):
+            w.pop(k, None)
     data['publications'].sort(key=lambda p: -p['year'])
     for k in ('cv', 'education', 'extracurricular'):
         for w in data[k]:
