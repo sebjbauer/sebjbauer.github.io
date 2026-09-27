@@ -633,6 +633,16 @@ const BACKSTAGE = [
     ['tent and campfire', show({ sky: 'dusk', season: 'summer', weather: 'clear' })],
     ['snowman', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => snowmanDemo(false), 300)],
     ['path lights', show({ sky: 'night' })],
+    ['stove and smoke', show({ sky: 'dusk', season: 'winter' }, () => { document.documentElement.dataset.cottage = 'on'; }, 0)],
+  ]],
+  ['The hiker', [
+    ['walk the trail', () => { goTo('timeline'); setTimeout(() => selectEntry('job-0'), 900); setTimeout(() => selectEntry(`job-${SITE.cv.length - 1}`), 6000); }],
+    ['rain coming', () => { setScene({ weather: 'forecast' }); goTo('timeline'); }],
+    ['umbrella', () => { setScene({ weather: 'rain' }); goTo('timeline'); }],
+    ['fika break', () => { fikaUntil = Date.now() + 90000; goTo('timeline'); const k = $('#cvList li.active')?.dataset.k === 'job-3' ? 'job-2' : 'job-3'; setTimeout(() => selectEntry(k), 900); }], // it sits down when it arrives
+  ]],
+  ['The page', [
+    ['screensaver', () => { closeGps(); scrollTo({ top: 0 }); setTimeout(() => document.documentElement.classList.add('screensaver'), 1500); }],
   ]],
   ['Science', [
     ['microscope', show({ sky: 'night', weather: 'clear' }, () => { if (!smlmRunning && !lifeRunning) smlmShow(); })],

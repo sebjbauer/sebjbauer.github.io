@@ -263,7 +263,8 @@ skyHooks.push(({ d }) => {
 
 /* ---------------- the hiker on the career trail ---------------- */
 // Fika: from 15:00 to 15:15 Vienna time the hiker sits down with a coffee (preview: ?fika)
-const fikaTime = () => params.has('fika') || (localHour() >= 15 && localHour() < 15.25);
+let fikaUntil = 0; // backstage: a fika break right now
+const fikaTime = () => params.has('fika') || Date.now() < fikaUntil || (localHour() >= 15 && localHour() < 15.25);
 const hiker = { busy: false }; // filled in by setupHiker()
 function setupHiker() {
   const svg = $('#profile'), trail = svg.querySelector('.trail');

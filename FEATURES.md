@@ -483,6 +483,6 @@ Printing the page (or "Save as PDF") gives a clean light one-column version: no 
 
 ## Backstage (for you only)
 
-In the terminal, type `backstage` and then your password (the input is hidden and never kept in the command history). A panel lists every animation and scene in groups (sky and weather, seasons and holidays, road, sky, lake, penguin, animals, cottage, science); tap one and it plays right away, with the sky, season or weather it needs set automatically. `show live` (or "live" at the bottom) returns to the real sky. The panel stays unlocked until the browser tab is closed.
+In the terminal, type `backstage` and then your password (the input is hidden and never kept in the command history). A panel lists every animation and scene in groups (sky and weather, seasons and holidays, road, sky, lake, penguin, animals, cottage (including the stove and its smoke), the hiker (walk, rain coming, umbrella, fika break), the page (screensaver), science); tap one and it plays right away, with the sky, season or weather it needs set automatically. `show live` (or "live" at the bottom) returns to the real sky. The panel stays unlocked until the browser tab is closed.
 
 Only a SHA-256 fingerprint of the password is stored in the code, not the password itself. It keeps visitors out of the panel, but it is not a real secret: on a static site anyone reading the code can run the animations too, and a short dictionary word can be guessed from its fingerprint.
