@@ -47,28 +47,46 @@ skyHooks.push(({ isDay }) => {
   if (sun.innerHTML !== html) sun.innerHTML = html;
 });
 
-/* ---------------- tab icon: sun by day, tonight's moon at night ---------------- */
+/* ---------------- tab icon: the landscape in miniature, by day or by night ---------------- */
+// Same drawing as favicon.svg (the static icon for Google and home screens): by day a blue sky and the
+// sun, at night a dark sky with tonight's moon phase and a lit cottage window.
 let faviconKey = '';
 function drawFavicon(isDay) {
-  const m = moonPhase(), key = isDay ? 'sun' : `moon-${Math.round(m.p * 60)}`;
+  const m = moonPhase(), key = isDay ? 'day' : `night-${Math.round(m.p * 60)}`;
   if (key === faviconKey) return;
   faviconKey = key;
   const c = document.createElement('canvas'); c.width = c.height = 64;
   const g = c.getContext('2d');
-  g.translate(32, 32);
-  if (isDay) {
-    g.strokeStyle = '#F2A15A'; g.lineWidth = 5; g.lineCap = 'round';
-    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; g.beginPath(); g.moveTo(Math.cos(a) * 21, Math.sin(a) * 21); g.lineTo(Math.cos(a) * 29, Math.sin(a) * 29); g.stroke(); }
-    g.fillStyle = '#F7C948'; g.beginPath(); g.arc(0, 0, 15, 0, 7); g.fill();
-  } else {
-    g.scale(1.6, 1.6);
+  const pal = isDay
+    ? { top: '#4E9ACB', bot: '#CDE6EE', far: '#8BA7B0', snow: '#FFFFFF', mid: '#3B6457', lake: '#6FA8BF', window: '#F4F4F2' }
+    : { top: '#070B12', bot: '#1B2733', far: '#39434F', snow: '#C3CCD3', mid: '#18231F', lake: '#1A252E', window: '#FFD27A' };
+  g.beginPath(); g.roundRect(0, 0, 64, 64, 14); g.clip();
+  const sky = g.createLinearGradient(0, 0, 0, 64); sky.addColorStop(0, pal.top); sky.addColorStop(1, pal.bot);
+  g.fillStyle = sky; g.fillRect(0, 0, 64, 64);
+  if (isDay) { g.fillStyle = '#FFD27A'; g.beginPath(); g.arc(46, 17, 6.5, 0, 7); g.fill(); }
+  else {
+    g.fillStyle = '#E9EDEF';
+    [[10, 9], [22, 14], [15, 22], [56, 30], [34, 7]].forEach(([x, y]) => g.fillRect(x, y, 1.2, 1.2));
+    g.save(); g.translate(46, 17); g.scale(0.4, 0.4); // the moon path is drawn for a radius of about 18
     g.fillStyle = '#2B3440'; g.beginPath(); g.arc(0, 0, 18, 0, 7); g.fill();
-    const svg = moonSvg(m), d = svg.match(/ d="([^"]+)"/)[1];
-    g.fillStyle = '#E9EDEF'; g.fill(new Path2D(d));
+    g.fillStyle = '#E9EDEF'; g.fill(new Path2D(moonSvg(m).match(/ d="([^"]+)"/)[1]));
+    g.restore();
   }
-  let link = document.querySelector('link[rel="icon"]');
-  if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
-  link.type = 'image/png';
+  const poly = (fill, pts) => { g.fillStyle = fill; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.fill(); };
+  poly(pal.far, [[0, 44], [13, 29], [21, 36], [31, 19], [42, 33], [50, 29], [64, 38], [64, 64], [0, 64]]);
+  poly(pal.snow, [[31, 19], [26.4, 26.4], [29, 25.4], [31, 28], [33.2, 25.6], [35.6, 26.6]]);
+  g.fillStyle = pal.mid; g.beginPath(); g.moveTo(0, 49); g.bezierCurveTo(12, 43, 24, 47, 36, 44.5); g.bezierCurveTo(47, 42.5, 56, 45.5, 64, 43.5); g.lineTo(64, 64); g.lineTo(0, 64); g.fill();
+  g.fillStyle = pal.lake; g.fillRect(0, 54, 64, 10);
+  g.fillStyle = '#B23A2E'; g.fillRect(41, 47.5, 8, 6.5);
+  poly('#2B1B17', [[39.8, 47.8], [45, 43.6], [50.2, 47.8]]);
+  g.fillStyle = pal.window; g.fillRect(43.9, 50.2, 2.2, 3.8);
+  // replace the static icons in the page head with this one (they stay in the HTML for Google and home screens)
+  let link = document.querySelector('link#liveIcon');
+  if (!link) {
+    document.querySelectorAll('link[rel="icon"]').forEach((l) => l.remove());
+    link = document.createElement('link'); link.rel = 'icon'; link.id = 'liveIcon'; link.type = 'image/png';
+    document.head.appendChild(link);
+  }
   link.href = c.toDataURL('image/png');
 }
 skyHooks.push(({ isDay }) => drawFavicon(isDay));

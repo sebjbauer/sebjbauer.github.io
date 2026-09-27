@@ -66,7 +66,7 @@ If a link still shows an older version, press **Cmd + Option + R** in Safari (or
 
 Everything at the top of the page follows the real conditions in **Vienna** (set by `workBase` in `script.js`).
 
-- **Time of day:** the sky goes through dawn, day, dusk and night, anchored to the real sunrise and sunset for each day. Sunrise and sunset are calculated, not fixed, so they move with the seasons and summer time.
+- **Time of day:** the sky follows the real height of the sun above (or below) the horizon for the place and day, calculated, not fixed. Full daylight above 12°, dawn and dusk colours around the horizon, and full night only once the sun is 12° below it. So twilight is short in winter and long in summer, and where the sun never sinks that far (Stockholm around midsummer, -7°) the night stays light: a deep blue sky with a glow in the north and only a few stars. Vienna gets properly dark even in June. Backstage: *light summer night* shows a Stockholm midsummer night.
 - **Sun and moon:** the sun travels across the sky during the day, the moon at night.
 - **Moon phase:** the moon shows its real shape for that night (crescent, half, gibbous, full).
 - **Stars:** they appear after sunset and some twinkle.
@@ -175,7 +175,7 @@ Everything pauses when the top of the page is scrolled out of view.
 
 ## Tab icon
 
-The small icon in the browser tab is a **sun during the day** and **tonight's moon phase at night**, drawn live.
+The icon in the browser tab is the landscape in miniature: blue sky and sun, a snowy Alp, green hills, the red cottage by the lake. It's drawn live: at night the sky turns dark, tonight's real moon phase and a few stars appear, and the cottage window is lit. The static versions (`favicon.svg`, `favicon.ico`, `favicon-32.png`, `icon-192.png`, and `apple-touch-icon.png` for the iPhone home screen) are the day version; Google and browsers without JavaScript use those.
 
 ## Publications: copy citation and BibTeX
 
@@ -246,7 +246,7 @@ The site sends a cookie-free page count to GoatCounter; no personal data, no con
 
 ## Google: who this page is about
 
-Invisible structured data in `index.html` (the `application/ld+json` block) tells Google the name, positions, affiliations (Stockholm University, SciLifeLab, AITHYRA), alumni of (KTH, TU Wien), Vienna, and the profiles (Google Scholar, LinkedIn, GitHub, Bluesky, X). Update it if positions change. You can test it at https://search.google.com/test/rich-results.
+Invisible structured data in `index.html` (the `application/ld+json` block, a `ProfilePage` about a `Person`, the form Google recommends for profile pages) tells Google the name, where you work (`worksFor`), positions, affiliations (Stockholm University, SciLifeLab, AITHYRA), alumni of (KTH, TU Wien), Vienna, and the profiles (Google Scholar, LinkedIn, GitHub, Bluesky, X). Update it if positions change. You can test it at https://search.google.com/test/rich-results.
 
 ## Research keywords
 
@@ -271,7 +271,7 @@ The page scrolls to the top, stars start blinking one at a time and each blink l
 
 ## Trail badges
 
-Terminal command `badges`: shows which of the 30 badges the visitor has found, with hints for the rest. The browser remembers them.
+Terminal command `badges`: shows which of the 32 badges the visitor has found, with hints for the rest. The browser remembers them.
 
 | Badge | How to get it |
 |---|---|
@@ -298,6 +298,8 @@ Terminal command `badges`: shows which of the 30 badges the visitor has found, w
 | Allemansrätten | Poke the campfire by the tent |
 | Close encounter | Click the UFO |
 | Peekaboo | Click the penguin that pops up under the footer |
+| Optimal transport | Run `flow` |
+| Up and away | Click the hot-air balloon |
 | Night owl | Tap the owl's eyes in the forest at night |
 | Sea sparkle | Tap the lake at night (glowing plankton) |
 | Cowbell | Click a cow, or type `moo` |
@@ -440,6 +442,8 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 | **Umbrella from the forecast** | The hiker carries a packed umbrella when the real forecast says ≥60% chance of rain in the next 6 hours, and opens it while it rains. | `?weather=forecast`, `?weather=rain` |
 | **SMLM cluster analysis** | The `smlm` microscope show now images molecules in small nanoclusters; after acquisition, DBSCAN (the standard SMLM cluster analysis) colours each cluster, noise stays grey. | `?smlm&sky=night` |
 | **Ducklings on a pursuit curve** | Summer days: the mother duck wanders, each duckling always swims straight at the one in front. | `?season=summer&sky=day` |
+| **Optimal transport flow** | Terminal `flow`: points sampled from a Gaussian are paired one-to-one with points sampled from the letters "SB", using the pairing with the smallest total squared distance (exact optimal transport, solved with the Hungarian algorithm in the browser, about 50 ms). Each point then moves along a straight line (displacement interpolation, the paths OT flow matching learns), with the paths faintly drawn. Badge *Optimal transport*. | backstage: *optimal transport flow* |
+| **Frost on the window** | When it's -3 °C or colder in Vienna (live weather), ice ferns grow in from the corners of the top of the page, like frost on glass: straight needles branching at 60° (ice is hexagonal). The colder it is, the further they reach. They melt away when it warms up. | `?weather=frost` |
 | **Boids** | Now and then by day a small flock of songbirds crosses the sky, flocking by Reynolds' three rules (separation, alignment, cohesion). | `?flock` |
 | **Geese take turns leading** | The spring/autumn V is now geese (south = left in autumn, north = right in spring); twice per flight the lead goose drops back and another takes over. | `?birds&season=autumn` |
 | **Flowers sleep** | Spring flowers close at night and open in the morning (nyctinasty). | `?season=spring&sky=night` |
@@ -450,6 +454,10 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 
 | What | Where / when | Preview |
 |---|---|---|
+| **Hot-air balloon** | Spring to autumn, on calm mornings (up to 3 h after sunrise) and evenings (the last 3 h before sunset), only when the real wind is under 12 km/h and it's dry and clear enough. It drifts slowly across the sky; click it and the burner fires and it climbs (badge *Up and away*). | `?balloon` |
+| **Cranes** | In spring the migrating V is cranes flying north (long necks, legs trailing, slower wingbeats); in autumn geese fly south. | `?birds&season=spring` |
+| **Penguin kayaking** | Summer days, dry and calm (wind under 15 km/h), once in a while at random: down the jetty into the orange kayak moored there, a paddle round the bay, and back. | `?kayak&season=summer&sky=day` |
+| **Penguin picking chanterelles** | Autumn days, when dry: with a basket to the forest edge behind the path, bends down for three chanterelles, and home. They grow back after 10 minutes. | `?chanterelles&season=autumn&sky=day` |
 | **Cows** | Three black-and-white cows with cowbells graze on the meadow between the tree line and the road: they eat (head down), then amble to fresh grass. In winter (or below 3 °C) they wear red scarves; at night they lie down. | `?season=winter` for scarves |
 | **UFO** | Very rarely after dark (clear sky), a UFO swoops in, beams up one of the cows, looks at it on board for a moment, puts it back facing the other way, and zooms off. Click the UFO: badge *Close encounter*. | `?ufo` (works any time) |
 | **Penguin's aurora selfie** | On clear nights when the northern lights are out (and right after solving the riddle), now and then the penguin walks to the end of the jetty, holds up its phone and takes two flash selfies. | `?selfie&sky=night` |
@@ -483,6 +491,6 @@ Printing the page (or "Save as PDF") gives a clean light one-column version: no 
 
 ## Backstage (for you only)
 
-In the terminal, type `backstage` and then your password (the input is hidden and never kept in the command history). A panel lists every animation and scene in groups (sky and weather, seasons and holidays, road, sky, lake, penguin, animals, cottage (including the stove and its smoke), the hiker (walk, rain coming, umbrella, fika break), the page (screensaver), science); tap one and it plays right away, with the sky, season or weather it needs set automatically. `show live` (or "live" at the bottom) returns to the real sky. The panel stays unlocked until the browser tab is closed.
+In the terminal, type `backstage` and then your password (the input is hidden and never kept in the command history). A panel lists every animation and scene in groups (sky and weather, seasons and holidays, road, sky, lake, penguin, animals, cottage (including the stove and its smoke), the hiker (walk, rain coming, umbrella, fika break), the page (screensaver), science). New since: *light summer night*, *cranes*, *hot-air balloon*, *kayak*, *chanterelles*, *optimal transport flow*; tap one and it plays right away, with the sky, season or weather it needs set automatically. `show live` (or "live" at the bottom) returns to the real sky. The panel stays unlocked until the browser tab is closed.
 
 Only a SHA-256 fingerprint of the password is stored in the code, not the password itself. It keeps visitors out of the panel, but it is not a real secret: on a static site anyone reading the code can run the animations too, and a short dictionary word can be guessed from its fingerprint.

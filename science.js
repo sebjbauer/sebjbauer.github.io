@@ -407,6 +407,7 @@ function lifeShow() {
 }
 COMMANDS.life = () => {
   if (lifeRunning) return 'The game is already running. Look up.';
+  if (flowRunning) return 'The sky is busy right now. Try again in a minute.';
   if (smlmRunning) return 'The microscope is using the sky right now. Try again in a moment.';
   if (lastSky.d < 0.75) return 'The stars are only out at night. Come back after sunset.';
   if (live.overcast > 0.6) return 'Too cloudy tonight: no stars to play with.';
@@ -418,7 +419,106 @@ COMMANDS.life = () => {
   return "Conway's Game of Life: every star is a cell. Look up.";
 };
 const smlmCommand = COMMANDS.smlm;
-COMMANDS.smlm = () => (lifeRunning ? 'The stars are busy playing the Game of Life. Try again in a minute.' : smlmCommand());
+COMMANDS.smlm = () => (lifeRunning || flowRunning ? 'The stars are busy playing the Game of Life. Try again in a minute.' : smlmCommand());
+
+/* ---------------- flow: from a Gaussian to my initials, by optimal transport ---------------- */
+// Points are sampled from a Gaussian and matched one-to-one to points sampled from the letters "SB"
+// with the assignment that minimises the total squared distance (exact optimal transport, solved with
+// the Hungarian algorithm). Each point then moves along a straight line: the displacement
+// interpolation between the two distributions, the same paths that OT flow matching learns.
+let flowRunning = false;
+// minimum-cost assignment for an n×n cost matrix (Hungarian algorithm, O(n³)); returns target of each source
+function hungarian(C, n) {
+  const u = new Float64Array(n + 1), v = new Float64Array(n + 1), p = new Int32Array(n + 1), way = new Int32Array(n + 1);
+  for (let i = 1; i <= n; i++) {
+    p[0] = i;
+    let j0 = 0;
+    const minv = new Float64Array(n + 1).fill(Infinity), used = new Uint8Array(n + 1);
+    do {
+      used[j0] = 1;
+      const i0 = p[j0], row = (i0 - 1) * n;
+      let delta = Infinity, j1 = 0;
+      for (let j = 1; j <= n; j++) {
+        if (used[j]) continue;
+        const cur = C[row + j - 1] - u[i0] - v[j];
+        if (cur < minv[j]) { minv[j] = cur; way[j] = j0; }
+        if (minv[j] < delta) { delta = minv[j]; j1 = j; }
+      }
+      for (let j = 0; j <= n; j++) {
+        if (used[j]) { u[p[j]] += delta; v[j] -= delta; } else minv[j] -= delta;
+      }
+      j0 = j1;
+    } while (p[j0] !== 0);
+    do { const j1 = way[j0]; p[j0] = p[j1]; j0 = j1; } while (j0);
+  }
+  const to = new Int32Array(n);
+  for (let j = 1; j <= n; j++) to[p[j] - 1] = j - 1;
+  return to;
+}
+const gauss = () => { let a = 0; while (!a) a = Math.random(); return Math.sqrt(-2 * Math.log(a)) * Math.cos(2 * Math.PI * Math.random()); };
+function flowShow() {
+  flowRunning = true;
+  sciHero.classList.add('life-on');
+  const cv = $('#smlm'), ctx = cv.getContext('2d'), r = Math.min(devicePixelRatio || 1, 1.5);
+  const W = cv.clientWidth, H = cv.clientHeight, narrow = innerWidth < 760;
+  cv.width = Math.round(W * r); cv.height = Math.round(H * r); ctx.setTransform(r, 0, 0, r, 0, 0);
+  const N = narrow ? 320 : 480, cx = narrow ? W * 0.5 : W * 0.72, cy = narrow ? H * 0.54 : H * 0.3, size = narrow ? Math.min(W * 0.5, H * 0.2) : Math.min(W * 0.2, H * 0.34);
+  // the target: pixels of the letters, thinned out to N points
+  const off = document.createElement('canvas'), oc = off.getContext('2d');
+  const font = `800 ${Math.round(size)}px ${getComputedStyle(document.body).fontFamily}`;
+  oc.font = font;
+  const tw = Math.ceil(oc.measureText('SB').width) + 4, th = Math.ceil(size * 1.1);
+  off.width = tw; off.height = th;
+  oc.font = font; oc.textBaseline = 'middle'; oc.fillText('SB', 2, th / 2);
+  const img = oc.getImageData(0, 0, tw, th).data, cand = [];
+  for (let y = 0; y < th; y += 2) for (let x = 0; x < tw; x += 2) if (img[(y * tw + x) * 4 + 3] > 140) cand.push([x, y]);
+  for (let i = cand.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cand[i], cand[j]] = [cand[j], cand[i]]; }
+  const target = cand.slice(0, N).map(([x, y]) => [cx - tw / 2 + x + Math.random() - 0.5, cy - th / 2 + y + Math.random() - 0.5]);
+  const n = target.length;
+  const source = Array.from({ length: n }, () => [cx + gauss() * size * 0.55, cy + gauss() * size * 0.55]);
+  const C = new Float64Array(n * n);
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const dx = source[i][0] - target[j][0], dy = source[i][1] - target[j][1]; C[i * n + j] = dx * dx + dy * dy; }
+  const match = hungarian(C, n);
+  const ink = getComputedStyle(document.documentElement).getPropertyValue('--hero-ink').trim() || '#111111';
+  const [ir, ig, ib] = hex2rgb(ink);
+  const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
+  // timeline (ms): fade in, look at the noise, flow, admire, fade out
+  const T = { in: 700, hold: 1400, flow: 3600, show: 4500, out: 1200 };
+  const total = T.in + T.hold + T.flow + T.show + T.out;
+  let t0 = 0;
+  const frame = (now) => {
+    if (!t0) t0 = now;
+    const e = now - t0;
+    ctx.clearRect(0, 0, W, H);
+    const k = ease(Math.min(1, Math.max(0, (e - T.in - T.hold) / T.flow)));
+    const alpha = e < T.in ? e / T.in : e > total - T.out ? Math.max(0, (total - e) / T.out) : 1;
+    if (k > 0 && k < 1) { // the straight paths, faintly
+      ctx.strokeStyle = `rgba(${ir}, ${ig}, ${ib}, ${0.12 * alpha})`; ctx.lineWidth = 0.6; ctx.beginPath();
+      for (let i = 0; i < n; i++) { const [sx, sy] = source[i], [tx, ty] = target[match[i]]; ctx.moveTo(sx, sy); ctx.lineTo(sx + (tx - sx) * k, sy + (ty - sy) * k); }
+      ctx.stroke();
+    }
+    ctx.fillStyle = `rgba(${ir}, ${ig}, ${ib}, ${0.85 * alpha})`; ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const [sx, sy] = source[i], [tx, ty] = target[match[i]], x = sx + (tx - sx) * k, y = sy + (ty - sy) * k;
+      ctx.moveTo(x + 1.6, y); ctx.arc(x, y, 1.6, 0, Math.PI * 2);
+    }
+    ctx.fill();
+    if (e < total) requestAnimationFrame(frame);
+    else { ctx.clearRect(0, 0, W, H); sciHero.classList.remove('life-on'); flowRunning = false; }
+  };
+  requestAnimationFrame(frame);
+  earnBadge('flow');
+}
+COMMANDS.flow = () => {
+  if (flowRunning) return 'Already flowing. Look up.';
+  if (lifeRunning || smlmRunning) return 'The sky is busy right now. Try again in a minute.';
+  if (reduceMotion) return 'This one needs animations, which are turned off on your device.';
+  closeGps();
+  scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(flowShow, 600);
+  return `Sampling points from a Gaussian, pairing each with a point of my initials by optimal transport
+(the pairing with the smallest total squared distance), and moving them along straight lines.`;
+};
 
 /* ---------------- maths: a fractal forest ---------------- */
 // Every pine regrows as a fractal: a trunk whose branches are smaller copies of the trunk,
@@ -543,6 +643,72 @@ COMMANDS.descend = () => {
   return 'Minimising altitude by gradient descent…';
 };
 
+/* ---------------- frost on the window ---------------- */
+// When it's really freezing where I am (-3 °C or colder, from the live weather), ice ferns grow in from
+// the corners of the "window", the way frost does on glass: straight needles that branch at 60°
+// (ice is hexagonal). The colder it is, the further they reach. Drawn once, then left alone.
+const frostCv = $('#frost');
+let frostTemp = null;
+function frostDraw(temp, animate) {
+  const ctx = frostCv.getContext('2d'), r = Math.min(devicePixelRatio || 1, 1.5);
+  const W = frostCv.clientWidth, H = frostCv.clientHeight;
+  frostCv.width = Math.round(W * r); frostCv.height = Math.round(H * r); ctx.setTransform(r, 0, 0, r, 0, 0);
+  const reach = Math.min(1, Math.max(0.45, (-temp - 2) / 10)) * Math.min(W, H) * (innerWidth < 760 ? 0.5 : 0.36);
+  const segs = []; // [x0, y0, x1, y1, when, width]
+  const branch = (x, y, ang, len, depth, t0) => {
+    let t = t0, travelled = 0;
+    while (travelled < len) {
+      const step = 3 + Math.random() * 2;
+      ang += (Math.random() - 0.5) * 0.12;
+      const nx = x + Math.cos(ang) * step, ny = y + Math.sin(ang) * step;
+      segs.push([x, y, nx, ny, t, Math.max(0.6, 1.8 - depth * 0.4)]);
+      x = nx; y = ny; travelled += step; t += step;
+      if (depth < 4 && Math.random() < (depth ? 0.3 : 0.45) && travelled > 5) { // side needles at 60°, often in pairs, like a fern
+        const rest = (len - travelled) * (0.3 + Math.random() * 0.25);
+        branch(x, y, ang + Math.PI / 3, rest, depth + 1, t);
+        if (Math.random() < 0.7) branch(x, y, ang - Math.PI / 3, rest * (0.7 + Math.random() * 0.3), depth + 1, t);
+      }
+    }
+  };
+  // seeds: fans of needles from each corner, a few from the side edges
+  [[0, 0, 0], [W, 0, Math.PI / 2], [0, H, -Math.PI / 2], [W, H, Math.PI]].forEach(([x, y, a0]) => {
+    for (let i = 0; i < 11; i++) branch(x, y, a0 + (i + 0.5) * (Math.PI / 2) / 11, reach * (0.5 + Math.random() * 0.55), 0, Math.random() * 20);
+  });
+  for (let i = 0; i < 6; i++) {
+    const left = i % 2 === 0, y = H * (0.15 + Math.random() * 0.7);
+    branch(left ? 0 : W, y, (left ? 0 : Math.PI) + (Math.random() - 0.5) * 0.9, reach * (0.25 + Math.random() * 0.3), 1, Math.random() * 30);
+  }
+  segs.sort((a, b) => a[4] - b[4]);
+  // frosted glass: a soft white haze in the corners
+  const haze = (x, y) => { const g = ctx.createRadialGradient(x, y, 0, x, y, reach * 1.1); g.addColorStop(0, 'rgba(255,255,255,.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); };
+  [[0, 0], [W, 0], [0, H], [W, H]].forEach(([x, y]) => haze(x, y));
+  ctx.strokeStyle = 'rgba(255, 255, 255, .75)'; ctx.lineCap = 'round';
+  let drawn = 0;
+  const drawUpTo = (t) => {
+    ctx.beginPath();
+    let w = -1;
+    for (; drawn < segs.length && segs[drawn][4] <= t; drawn++) {
+      const [x0, y0, x1, y1, , sw] = segs[drawn];
+      if (sw !== w) { ctx.stroke(); ctx.beginPath(); ctx.lineWidth = w = sw; }
+      ctx.moveTo(x0, y0); ctx.lineTo(x1, y1);
+    }
+    ctx.stroke();
+  };
+  if (!animate || reduceMotion) { drawUpTo(Infinity); return; }
+  const end = segs.length ? segs[segs.length - 1][4] : 0, t0 = performance.now(), speed = end / 7000; // grows for about 7 seconds
+  const frame = (now) => { drawUpTo((now - t0) * speed); if (drawn < segs.length && frostTemp !== null) requestAnimationFrame(frame); };
+  requestAnimationFrame(frame);
+}
+const frostState = () => {
+  const temp = (simulated || weatherNow)?.temp;
+  const on = typeof temp === 'number' && temp <= -3;
+  if (on && frostTemp === null) { frostTemp = temp; frostDraw(temp, true); frostCv.classList.add('on'); }
+  else if (!on && frostTemp !== null) { frostTemp = null; frostCv.classList.remove('on'); }
+};
+skyHooks.push(frostState);
+frostState();
+addEventListener('resize', () => { if (frostTemp !== null) frostDraw(frostTemp, false); });
+
 /* ---------------- schedule and previews ---------------- */
 every(20, 60, () => fishJump());
 setTimeout(() => flock(), 25000);
@@ -578,6 +744,10 @@ const BACKSTAGE = [
     ['clear', show({ weather: 'clear' })], ['rain', show({ weather: 'rain' })], ['snow', show({ weather: 'snow' })], ['storm', show({ weather: 'storm' })],
     ['fog', show({ weather: 'fog' })], ['frost', show({ weather: 'frost' })], ['rainbow', show({ weather: 'rainbow', sky: 'day' })],
     ['northern lights', show({ weather: 'clear' }, () => { originalNorthernLights(); setTimeout(() => selfieOuting(true), 2500); })],
+    ['light summer night', () => { // Stockholm at midsummer: the sun only dips to -7°, so it never gets fully dark
+      skyPlace = SITE.places.se; skyDate = new Date(new Date().getFullYear(), 5, 21, 12);
+      show({ season: 'summer', weather: 'clear' }, () => { forcedHour = skyPreset('night'); paintSky(); }, 0)();
+    }],
     ['shooting star', show({ sky: 'night', weather: 'clear' }, shootingStar, 1500)],
     ['ISS pass', show({ sky: 'night', weather: 'clear' }, issDemo)],
     ['timelapse', show({}, () => timelapse(''))], ['timelapse year', show({}, () => timelapse('year'))],
@@ -597,6 +767,8 @@ const BACKSTAGE = [
   ['In the sky', [
     ['plane', show({ sky: 'day' }, () => flyPlane(true))],
     ['geese', show({ sky: 'day', season: 'autumn' }, () => birds(true))],
+    ['cranes', show({ sky: 'day', season: 'spring' }, () => birds(true))],
+    ['hot-air balloon', show({ sky: 'dawn', season: 'summer', weather: 'clear' }, () => flyBalloon(true))],
     ['songbird flock', show({ sky: 'day', weather: 'clear' }, () => flock(true))],
     ['UFO', show({ sky: 'night', weather: 'clear' }, () => ufoVisit(true), 1500)],
     ['chairlift and skier', show({ sky: 'day', season: 'winter', weather: 'frost' }, ski)],
@@ -620,6 +792,8 @@ const BACKSTAGE = [
     ['sauna', show({ sky: 'dusk', season: 'winter', weather: 'frost' }, () => penguinSolo(penguinSauna, true))],
     ['aurora selfie', show({ sky: 'night', weather: 'clear' }, () => selfieOuting(true))],
     ['stargazing', show({ sky: 'night', weather: 'clear' }, () => penguinSolo(penguinStargaze, true))],
+    ['kayak', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => penguinSolo(penguinKayak, true))],
+    ['chanterelles', show({ sky: 'day', season: 'autumn', weather: 'clear' }, () => penguinSolo(penguinChanterelles, true))],
     ['rain dance', show({ sky: 'day', season: 'summer', weather: 'rain' }, () => penguinSolo(penguinRainDance, true))],
     ['under the footer', () => { closeGps(); peekNext = 0; scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }],
   ]],
@@ -648,6 +822,7 @@ const BACKSTAGE = [
     ['microscope', show({ sky: 'night', weather: 'clear' }, () => { if (!smlmRunning && !lifeRunning) smlmShow(); })],
     ['game of life', show({ sky: 'night', weather: 'clear' }, () => { if (!smlmRunning && !lifeRunning) lifeShow(); })],
     ['gradient descent', () => COMMANDS.descend()],
+    ['optimal transport flow', () => { if (!flowRunning && !lifeRunning && !smlmRunning) show({}, flowShow, 700)(); }],
     ['fractal forest', show({}, () => fractalForest(!fractalOn), 0)],
   ]],
   ['Back to normal', [
@@ -677,11 +852,11 @@ HIDDEN.push('backstage', 'show');
 /* ---------------- live: back to the real sky ---------------- */
 // "live" resets everything that can be simulated (time of day, season, weather, holiday, the
 // fractal forest). While anything is simulated, a "live" button shows in the terminal's header.
-const simulating = () => forcedHour !== null || forcedSeason !== null || !!simulated || !!forcedHoliday || fractalOn || !!snowPreview;
+const simulating = () => forcedHour !== null || !!skyPlace || forcedSeason !== null || !!simulated || !!forcedHoliday || fractalOn || !!snowPreview;
 COMMANDS.live = () => {
   const was = simulating();
   COMMANDS.season('live'); COMMANDS.holiday('live'); COMMANDS.sky('live');
-  fractalForest(false); snowPreview = null;
+  fractalForest(false); snowPreview = null; skyPlace = skyDate = null;
   COMMANDS.weather('live'); // fetches the real weather (async)
   paintSky(); updateLiveButton();
   return was ? `Back to live: the real time, season and weather in ${esc(base().city)}.` : `Already live: this is the real sky over ${esc(base().city)}.`;

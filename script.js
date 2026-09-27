@@ -59,6 +59,7 @@ const PHASES = {
   dusk:  { skyTop: '#26295A', skyBot: '#EE8657', far: '#584A6B', mid: '#2C3B40', snow: '#F4BFA0', lake: '#7D5263', sun: '#FFB36B', stars: .35, aurora: .2, window: .8 },
 };
 let forcedHour = null;
+let skyPlace = null, skyDate = null; // backstage: another place and day for the sun (e.g. a Stockholm midsummer night)
 // Live conditions, filled in by extras.js from real weather data
 const live = { overcast: 0, particle: null, fog: 0, frozen: false };
 const skyHooks = [];
@@ -84,7 +85,9 @@ function localHour() {
   return get('hour') + get('minute') / 60;
 }
 
-// Sunrise and sunset (local hours) for a place, using the NOAA approximation.
+// Sunrise, sunset and the height of the sun (local hours, degrees) for a place, using the NOAA
+// approximation. alt(h) is the sun's elevation at local hour h: it sets how deep the twilight is,
+// so summer nights in Stockholm stay light (the sun only dips to about -7°) while Vienna gets dark.
 function sunTimes(place, date = new Date()) {
   const rad = Math.PI / 180;
   const day = Math.floor((Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - Date.UTC(date.getUTCFullYear(), 0, 0)) / 864e5);
@@ -93,32 +96,39 @@ function sunTimes(place, date = new Date()) {
   const decl = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
   const cosH = (Math.cos(90.833 * rad) - Math.sin(place.lat * rad) * Math.sin(decl)) / (Math.cos(place.lat * rad) * Math.cos(decl));
   const ha = Math.acos(Math.min(1, Math.max(-1, cosH))) / rad;
-  const utcNow = date.getUTCHours() + date.getUTCMinutes() / 60;
-  const offset = Math.round(((localHour() - utcNow + 36) % 24 - 12) * 4) / 4; // time-zone offset in hours
-  return { rise: (720 - 4 * (place.lon + ha) - eqt) / 60 + offset, set: (720 - 4 * (place.lon - ha) - eqt) / 60 + offset };
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).formatToParts(date);
+  const there = +parts.find((p) => p.type === 'hour').value + +parts.find((p) => p.type === 'minute').value / 60;
+  const offset = Math.round(((there - date.getUTCHours() - date.getUTCMinutes() / 60 + 36) % 24 - 12) * 4) / 4; // time-zone offset on that day
+  const noon = (720 - 4 * place.lon - eqt) / 60 + offset;
+  const alt = (h) => Math.asin(Math.sin(place.lat * rad) * Math.sin(decl) + Math.cos(place.lat * rad) * Math.cos(decl) * Math.cos((h - noon) * 15 * rad)) / rad;
+  return { rise: noon - ha / 15, set: noon + ha / 15, noon, alt };
 }
 
-// The sky's colour stops, anchored to today's real sunrise and sunset.
-function keyframes({ rise, set }) {
-  return [[0, 'night'], [rise - 1.2, 'night'], [rise + 0.3, 'dawn'], [rise + 2, 'day'], [set - 1.5, 'day'], [set, 'dusk'], [set + 1.3, 'night'], [24, 'night']];
+const smoothstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+// The sky's colours from the height of the sun: full day above 12°, dawn or dusk colours around
+// the horizon, and full night only once the sun is 12° below it (nautical twilight is over).
+function skyAt(h, sunT) {
+  const alt = sunT.alt(h), twilight = PHASES[((h - sunT.noon + 36) % 24) - 12 < 0 ? 'dawn' : 'dusk'];
+  const v = {};
+  for (const key in PHASES.day) {
+    v[key] = alt >= 0 ? mix(twilight[key], PHASES.day[key], smoothstep(0, 12, alt)) : mix(PHASES.night[key], twilight[key], smoothstep(-12, 0, alt));
+  }
+  // stars appear once it's darker than civil twilight, all of them only in a truly dark sky
+  v.stars = 1 - smoothstep(-15, -5, alt);
+  v.aurora = 1 - smoothstep(-14, -6, alt);
+  return v;
 }
 
 function skyPreset(name) {
-  const { rise, set } = sunTimes(base());
-  return { dawn: rise + 0.3, day: (rise + set) / 2, dusk: set, night: 23.5 }[name];
+  const { rise, set, noon } = sunTimes(skyPlace ?? base(), skyDate ?? new Date());
+  return { dawn: rise + 0.3, day: noon, dusk: set, night: (noon + 12) % 24 }[name]; // night: the darkest moment
 }
 
 function paintSky() {
   const h = forcedHour ?? localHour();
-  const sunT = sunTimes(base());
-  const frames = keyframes(sunT);
-  let k = 0;
-  while (k < frames.length - 2 && h >= frames[k + 1][0]) k++;
-  const [h0, p0] = frames[k], [h1, p1] = frames[k + 1];
-  const t = h1 === h0 ? 0 : Math.min(1, Math.max(0, (h - h0) / (h1 - h0)));
-  const a = PHASES[p0], b = PHASES[p1], root = document.documentElement.style;
-  const v = {};
-  for (const key in a) v[key] = mix(a[key], b[key], t);
+  const sunT = sunTimes(skyPlace ?? base(), skyDate ?? new Date());
+  const v = skyAt(h, sunT);
   const d = darkness(h, sunT);
   // the lake freezes when it's below 0 °C in Vienna
   if (live.frozen) v.lake = mix(v.lake, d > 0.5 ? '#3B4652' : '#E3EDF2', 0.8);
@@ -194,9 +204,9 @@ const LIGHT = { bg: '#FFFFFF', text: '#111111', edu: '#2C7A68', tree: '#1F3A31' 
 const DARK = { bg: '#0A0A0A', text: '#EDEDED', edu: '#7CC4AE', tree: '#0A0A0A' };
 
 // 0 = full daylight, 1 = full night. Fades over roughly an hour of twilight.
-function darkness(h, { rise, set }) {
-  const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-  return h < (rise + set) / 2 ? 1 - smooth(rise - 0.7, rise + 0.3, h) : smooth(set - 0.3, set + 0.7, h);
+// 0 by day, 1 at night: follows the sun from 2° above the horizon to 5° below it
+function darkness(h, sunT) {
+  return 1 - smoothstep(-5, 2, sunT.alt(h));
 }
 
 // Colour mode chosen with the switch in the menu: 'auto' follows daylight, or fixed 'light' / 'dark'
@@ -921,6 +931,7 @@ const HELP = [
   ['Science', [
     ['smlm', 'point the microscope at the stars (clear nights)'], ['life', "Conway's Game of Life in the stars (clear nights)"],
     ['descend', 'the hiker tries gradient descent'], ['fractal', 'grow the forest as fractals (again to undo)'],
+    ['flow', 'from a Gaussian to my initials, by optimal transport'],
   ]],
   ['Just for fun', [
     ['triathlon', 'start a race: swim, bike, run'], ['riddle', 'for the curious'], ['fika', 'mandatory break'], ['badges', "what you've discovered so far"],

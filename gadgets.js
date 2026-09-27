@@ -38,6 +38,8 @@ const BADGES = [
   ['hockey', 'Face-off', 'joined the hockey game', 'someone plays on the frozen lake'],
   ['sauna', 'Löyly', 'threw water on the sauna stones', 'the sauna by the jetty, when it\'s warm inside'],
   ['catch', 'Night catch', 'helped the angler land a fish', 'a lantern on the lake at night'],
+  ['flow', 'Optimal transport', 'flowed noise into a name', 'from a Gaussian to two letters, the cheapest way'],
+  ['balloon', 'Up and away', 'fired the burner of the hot-air balloon', 'calm mornings and evenings, high above the valley'],
   ['time', 'Time traveller', 'watched a whole day go by', 'a command that speeds things up'],
 ];
 let earned = (() => { try { return JSON.parse(store.get('badges') || '[]'); } catch { return []; } })();
@@ -299,7 +301,7 @@ async function penguinWalk() {
   penguinOut = false;
 }
 
-// The penguin follows a route of steps. Poses: walk (waddle), slide (belly), jump, swim, wait.
+// The penguin follows a route of steps. Poses: walk (waddle), slide (belly), jump, hop, bend, swim, paddle (kayak), wait.
 async function penguinRoute(steps) {
   const pg = $('#penguin'), flip = pg.querySelector('.pg-flip'), waddle = pg.querySelector('.pg-waddle'), ripple = pg.querySelector('.pg-ripple');
   waddle.removeAttribute('clip-path'); ripple.style.opacity = 0;
@@ -319,11 +321,14 @@ async function penguinRoute(steps) {
         if (s.pose === 'slide') pose = 'translate(0 -1.5) rotate(78)';
         if (s.pose === 'jump') { y -= Math.sin(Math.PI * k) * 9; pose = `rotate(${(20 + 70 * k).toFixed(0)})`; }
         if (s.pose === 'hop') y -= Math.sin(Math.PI * k) * 4;
-        const swimming = s.pose === 'swim';
+        if (s.pose === 'bend') pose = `rotate(${(Math.sin(Math.PI * k) * 42).toFixed(0)})`; // down to pick something up, and back
+        const swimming = s.pose === 'swim', paddling = s.pose === 'paddle';
+        if (paddling) { pose = `translate(0 2.9) rotate(${(Math.sin(t / 420) * 3).toFixed(1)})`; /* sitting in the cockpit */ pg.querySelector('.pg-paddle').setAttribute('transform', `rotate(${(Math.sin(t / 280) * 26).toFixed(0)} 0 -6)`); }
+        pg.classList.toggle('kayak', paddling);
         pg.setAttribute('transform', `translate(${x.toFixed(1)} ${(y + (swimming ? 2.5 : 0)).toFixed(1)}) scale(${(1 + (y - 447) * 0.014).toFixed(3)})`);
         flip.setAttribute('transform', dir < 0 ? 'scale(-1 1)' : '');
         waddle.setAttribute('transform', pose);
-        if (swimming) waddle.setAttribute('clip-path', 'url(#pgClip)'); else waddle.removeAttribute('clip-path');
+        if (swimming || paddling) waddle.setAttribute('clip-path', `url(#${paddling ? 'pgClipKayak' : 'pgClip'})`); else waddle.removeAttribute('clip-path');
         ripple.style.opacity = swimming ? 0.6 : 0;
         if (s.tick) s.tick(k, pg);
         if (k < 1) requestAnimationFrame(step); else done();
@@ -332,7 +337,7 @@ async function penguinRoute(steps) {
     });
     pos = to;
   }
-  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze', 'inside', 'steamy');
+  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze', 'inside', 'steamy', 'kayak', 'basket', 'p1', 'p2', 'p3');
   earnBadge('penguin');
 }
 
@@ -487,6 +492,54 @@ const penguinSauna = () => {
     { to: [1195, 447], ms: 600, pose: 'walk' },
   ]).then(() => { saunaSession = false; saunaState(); });
 };
+// autumn days: chanterelles at the forest edge behind the path, into a basket, and home
+const chanterelles = [...document.querySelectorAll('#chanterelles .cht')];
+const pick = (n) => (k, pg) => { if (k >= 1) { chanterelles[n - 1].classList.add('picked'); pg.classList.remove('p1', 'p2'); pg.classList.add(`p${n}`); } };
+const penguinChanterelles = () => penguinRoute([
+  { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.add('basket') },
+  { to: [1199, 449], ms: 800, pose: 'walk' },
+  { to: [1216, 449.3], ms: 1200, pose: 'walk' },
+  { to: [1220, 450.2], ms: 350, pose: 'hop' },
+  { to: [1262, 449.8], ms: 2800, pose: 'walk' },
+  { to: [1265, 447.4], ms: 900, pose: 'walk' },                  // off the path, to the edge of the forest
+  { to: [1265, 447.4], ms: 1600, pose: 'bend', tick: pick(1) },  // bend down …
+  { to: [1269.5, 447.8], ms: 900, pose: 'walk' },
+  { to: [1269.5, 447.8], ms: 1600, pose: 'bend', tick: pick(2) },
+  { to: [1274, 447.2], ms: 900, pose: 'walk' },
+  { to: [1274, 447.2], ms: 1600, pose: 'bend', tick: pick(3) },
+  { ms: 900, pose: 'wait' },
+  { to: [1262, 449.8], ms: 1300, pose: 'walk' },
+  { to: [1220, 450.2], ms: 2900, pose: 'walk' },
+  { to: [1216, 449.3], ms: 350, pose: 'hop' },
+  { to: [1199, 449], ms: 1200, pose: 'walk' },
+  { to: [1195, 447], ms: 700, pose: 'walk' },
+]).then(() => setTimeout(() => chanterelles.forEach((c) => c.classList.remove('picked')), 10 * 60000)); // they grow back
+
+// calm summer days, once in a while: down the jetty, into the kayak, a paddle round the bay, and back
+const kayakMoored = $('#kayakMoored');
+const moored = (on) => (k) => { if (k >= 1) kayakMoored.classList.toggle('away', !on); };
+const penguinKayak = () => penguinRoute([
+  { to: [1199, 449], ms: 800, pose: 'walk' },
+  { to: [1216, 449.3], ms: 1200, pose: 'walk' },
+  { to: [1220, 450.2], ms: 350, pose: 'hop' },
+  { to: [1297, 449.6], ms: 4200, pose: 'walk' },
+  { to: [1302, 471], ms: 1800, pose: 'walk' },
+  { to: [1311, 474.5], ms: 500, pose: 'hop', tick: moored(false) }, // in
+  { to: [1350, 479], ms: 5000, pose: 'paddle' },
+  { to: [1410, 475], ms: 6500, pose: 'paddle' },
+  { to: [1425, 469], ms: 2500, pose: 'paddle' },
+  { to: [1370, 466], ms: 5500, pose: 'paddle' },
+  { to: [1318, 470], ms: 5000, pose: 'paddle' },
+  { to: [1311, 474.5], ms: 1800, pose: 'paddle' },
+  { to: [1302, 471], ms: 500, pose: 'hop', tick: (k) => { if (k > 0) kayakMoored.classList.remove('away'); } }, // out
+  { to: [1297, 449.6], ms: 1800, pose: 'walk' },
+  { to: [1220, 450.2], ms: 4200, pose: 'walk' },
+  { to: [1216, 449.3], ms: 350, pose: 'hop' },
+  { to: [1199, 449], ms: 1200, pose: 'walk' },
+  { to: [1195, 447], ms: 700, pose: 'walk' },
+]);
+const calm = () => ((simulated || weatherNow)?.wind ?? 0) < 15;
+
 async function penguinSolo(route, force = false) {
   if (penguinOut || reduceMotion || (!force && !heroVisible())) return;
   penguinOut = true;
@@ -731,6 +784,26 @@ plane.querySelector('.jet').addEventListener('click', () => {
   earnBadge('plane');
 });
 
+// A hot-air balloon on calm, dry mornings and evenings from spring to autumn (balloons need little
+// wind). It drifts slowly the way the wind blows; a click fires the burner and it climbs.
+const balloon = $('#balloon');
+function flyBalloon(force = false) {
+  const w = simulated || weatherNow, { h, sunT } = lastSky;
+  const goodHour = sunT && ((h > sunT.rise && h < sunT.rise + 3) || (h > sunT.set - 3 && h < sunT.set - 0.3));
+  const goodWeather = (w?.wind ?? 0) < 12 && live.overcast < 0.7 && !live.particle && live.fog < 0.3;
+  if (balloon.classList.contains('fly') || reduceMotion || (!force && (currentSeason() === 'winter' || !goodHour || !goodWeather || !heroVisible()))) return;
+  balloon.classList.toggle('west', Math.random() < 0.5);
+  balloon.style.top = ((innerWidth < 760 ? 46 : 22) + Math.random() * 8).toFixed(1) + '%'; // below the text on phones
+  void balloon.getBoundingClientRect();
+  balloon.classList.add('fly');
+}
+balloon.addEventListener('animationend', (e) => { if (e.target === balloon) balloon.classList.remove('fly', 'burn'); });
+balloon.querySelector('.hit').addEventListener('click', () => {
+  balloon.classList.add('burn');
+  setTimeout(() => balloon.classList.remove('burn'), 2500);
+  earnBadge('balloon');
+});
+
 // the skier comes down the Alps in winter, in daylight
 const skier = $('#skier');
 async function ski() {
@@ -777,6 +850,7 @@ function birds(force = false) {
   b.style.top = 8 + Math.random() * 20 + '%';
   b.classList.add('fly');
   if (season === 'spring') b.classList.add('north');
+  b.classList.toggle('cranes', season === 'spring'); // cranes fly north in spring, geese south in autumn
   vTimers = [setTimeout(changeLead, 8000), setTimeout(changeLead, 17000)];
 }
 formation();
@@ -1442,6 +1516,9 @@ every(180, 360, () => triathlon());
 every(60, 140, () => xcSki());
 setTimeout(() => flyPlane(), 12000);
 every(70, 160, () => flyPlane());
+every(200, 480, () => flyBalloon());
+every(100, 240, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.4) penguinSolo(penguinChanterelles); });
+every(150, 320, () => { if (currentSeason() === 'summer' && lastSky.d < 0.4 && !live.particle && !live.frozen && calm() && Math.random() < 0.25) penguinSolo(penguinKayak); });
 setTimeout(ski, 4000);
 every(20, 50, ski);
 setTimeout(birds, 8000);
@@ -1485,6 +1562,9 @@ if (params.has('stargaze')) setTimeout(() => penguinSolo(penguinStargaze, true),
 if (params.has('raindance')) setTimeout(() => penguinSolo(penguinRainDance, true), 1200);
 if (params.has('angel')) setTimeout(() => penguinSolo(penguinAngel, true), 1200);
 if (params.has('sauna')) setTimeout(() => penguinSolo(penguinSauna, true), 1200);
+if (params.has('kayak')) setTimeout(() => penguinSolo(penguinKayak, true), 1200);
+if (params.has('chanterelles')) setTimeout(() => penguinSolo(penguinChanterelles, true), 1200);
+if (params.has('balloon')) setTimeout(() => flyBalloon(true), 1000);
 if (params.has('selfie')) setTimeout(() => selfieOuting(true), 1200);
 if (params.has('hockey')) setTimeout(() => iceHockey(true), 1200);
 // the snowman built stage by stage, then melting (preview and backstage)

@@ -151,6 +151,8 @@ kbd {
 [data-daylight="no"] #flowers .petals { transform: scale(.4); }
 [data-daylight="no"] #flowers .c { display: none; }
 .weather { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.frost { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 2.5s; }
+.frost.on { opacity: 1; }
 /* soft edge where a coloured meadow meets the page */
 .hero::after { content: ''; position: absolute; inset: auto 0 0 0; height: 3%; background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none; }
 /* summer: the sun gets slow rays */
@@ -210,6 +212,30 @@ kbd {
 .ripples { position: absolute; pointer-events: none; }
 .hero.life-on .starfield { opacity: calc(var(--stars) * .2); }
 @keyframes flap { to { transform: scaleY(.35); } }
+/* cranes in spring: grey, legs trailing, slower wingbeats */
+.birds .legs { display: none; fill: none; stroke: var(--hero-ink); stroke-width: 1; stroke-linecap: round; opacity: .6; }
+.birds.cranes .legs { display: inline; }
+.birds.cranes .b { animation-duration: .7s; }
+.birds.cranes .neck { stroke-width: 1.1; }
+/* the hot-air balloon drifts slowly with the (light) wind and rises a little */
+.balloon { position: absolute; left: 0; top: 20%; width: 30px; height: 44px; opacity: 0; pointer-events: none; will-change: transform; }
+.balloon.fly { opacity: 1; animation: balloon-east 160s linear forwards; }
+.balloon.fly.west { animation-name: balloon-west; }
+@keyframes balloon-east { from { transform: translate(-40px, 30px); } to { transform: translate(105vw, -25px); } }
+@keyframes balloon-west { from { transform: translate(105vw, 30px); } to { transform: translate(-40px, -25px); } }
+.balloon .bl-bob { animation: bl-bob 7s ease-in-out infinite alternate; }
+.balloon:not(.fly) .bl-bob { animation: none; }
+@keyframes bl-bob { to { transform: translateY(3px); } }
+.balloon .bl-lift { transition: transform 4s ease-out; }
+.balloon.burn .bl-lift { transform: translateY(-14px); }
+.balloon .bl-env { fill: #C8453B; } .balloon .bl-gore { fill: #F0C04A; }
+.balloon .bl-band { fill: none; stroke: #3D5A80; stroke-width: 2.4; }
+.balloon .bl-rope { stroke: var(--hero-ink); stroke-width: .8; opacity: .6; }
+.balloon .bl-basket { fill: #7A5230; }
+.balloon .bl-flame { fill: #FFB347; opacity: 0; }
+.balloon.burn .bl-flame { opacity: 1; animation: bl-flicker .12s steps(2) infinite; }
+@keyframes bl-flicker { to { opacity: .55; } }
+.balloon .hit { fill: transparent; pointer-events: all; cursor: pointer; }
 .birds.fly { opacity: 1; animation: fly-south 26s linear forwards; }
 .birds.fly.north { animation-name: fly-north; }
 @keyframes fly-south { from { transform: translateX(105vw); } to { transform: translateX(-130px); } }
@@ -522,6 +548,19 @@ kbd {
 .snow-angel path, .snow-angel ellipse, .snow-angel circle { fill: #C9D6E0; stroke: #A9B9C6; stroke-width: .3; }
 /* the penguin's telescope */
 .pg-scope { display: none; }
+/* kayak (summer) and chanterelle basket (autumn) */
+.pg-kayak, .pg-paddle, .pg-basket, .kayak-moored, .chanterelles { display: none; }
+.penguin.kayak .pg-kayak, .penguin.kayak .pg-paddle, .penguin.basket .pg-basket { display: inline; }
+[data-season="summer"] .kayak-moored { display: inline; }
+.kayak-moored.away { display: none !important; }
+[data-season="autumn"] .chanterelles { display: inline; }
+.pg-hull { fill: #E0703A; } .pg-rim { stroke: #2B2B2B; stroke-width: .6; stroke-linecap: round; }
+.pg-shaft { stroke: #3A3A3A; stroke-width: .45; stroke-linecap: round; } .pg-blade { stroke: #F2C14E; stroke-width: 1.1; stroke-linecap: round; }
+.pg-bk { fill: #9C7446; } .pg-bk-h { fill: none; stroke: #7A5230; stroke-width: .45; }
+.pg-cht, .cht { fill: #F0A830; }
+.pg-cht { display: none; }
+.penguin.p1 .c1, .penguin.p2 .c1, .penguin.p2 .c2, .penguin.p3 .pg-cht { display: inline; }
+.cht.picked { display: none; }
 .penguin.stargaze .pg-scope { display: inline; }
 .pg-tripod { fill: none; stroke: #8A8F94; stroke-width: .5; }
 .pg-tube rect { fill: #C9CED3; }
