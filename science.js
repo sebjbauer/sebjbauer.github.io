@@ -771,6 +771,15 @@ const show = (sceneOpts, fn, delay = 900) => () => {
   scrollTo({ top: 0, behavior: 'smooth' });
   if (fn) setTimeout(fn, delay);
 };
+// Road scenes only start on a free road. From backstage, wait until it is (a cow standing on the road
+// only leaves when a cyclist rings the bell, so send one), for up to 45 seconds.
+const roadTaken = () => roadBusy || riding || tri || mooseOut || cowOnTheRoad() || !heroVisible();
+const whenRoadFree = (fn, tries = 45) => {
+  if (!roadTaken()) return fn();
+  if (tries === 45 && heroVisible()) toast('Someone is on the road. Waiting until it’s clear…');
+  if (cowOnTheRoad() && !riding && !roadBusy) ride({ force: true });
+  if (tries > 0) setTimeout(() => whenRoadFree(fn, tries - 1), 1000);
+};
 const twoRipples = () => { ripples.add(1060, 468); setTimeout(() => ripples.add(1170, 472), 700); };
 const BACKSTAGE = [
   ['Sky and weather', [
@@ -795,11 +804,11 @@ const BACKSTAGE = [
   ]],
   ['On the road', [
     ['cyclist', show({ sky: 'day' }, () => ride({ force: true }))],
-    ['triathlon', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => triathlon(true))],
-    ['roller skier', show({ sky: 'day', season: 'summer' }, () => xcSki(true))],
-    ['cross-country skier', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => xcSki(true))],
-    ['moose', show({ sky: 'day' }, () => mooseCrossing(true))],
-    ['cow on the road', show({ sky: 'day', weather: 'clear' }, () => cowOnRoad(true))],
+    ['triathlon', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => whenRoadFree(() => triathlon(true)))],
+    ['roller skier', show({ sky: 'day', season: 'summer' }, () => whenRoadFree(() => xcSki(true)))],
+    ['cross-country skier', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => whenRoadFree(() => xcSki(true)))],
+    ['moose', show({ sky: 'day' }, () => whenRoadFree(() => mooseCrossing(true)))],
+    ['cow on the road', show({ sky: 'day', weather: 'clear' }, () => whenRoadFree(() => cowOnRoad(true)))],
   ]],
   ['In the sky', [
     ['plane', show({ sky: 'day' }, () => flyPlane(true))],
