@@ -892,8 +892,10 @@ async function showLastUpdated() {
 
 /* ---------------- GPS terminal ---------------- */
 const gps = $('#gps'), out = $('#gpsOut'), input = $('#gpsCmd');
-const history = [];
-let histIdx = 0, booted = false;
+// command history, kept between visits (the backstage password never goes in here)
+const history = (() => { try { return JSON.parse(localStorage.getItem('gpsHistory') || '[]').slice(-50); } catch { return []; } })();
+let histIdx = history.length, booted = false;
+const saveHistory = () => { try { localStorage.setItem('gpsHistory', JSON.stringify(history.slice(-50))); } catch { /* private mode */ } };
 
 function print(html, cls = '') {
   const div = document.createElement('div');
@@ -1038,10 +1040,13 @@ Break complete. Productivity +20%.`,
   hej: () => 'Hej hej!',
   servus: () => 'Servus! Griaß di.',
   'rm -rf /': () => '<span class="warn">Avalanche warning.</span> Permission denied.',
+  sudo: (arg) => (arg ? `[sudo] password for visitor: ********
+<span class="warn">visitor is not in the sudoers file.</span> Nice try. This incident will be reported to the penguin.` : 'usage: sudo &lt;command&gt;'),
+  history: () => (history.length ? history.map((c, i) => `${String(i + 1).padStart(4)}  ${esc(c)}`).join('\n') : 'No commands yet.'),
   clear: () => { out.innerHTML = ''; return null; },
   exit: () => { closeGps(); return null; },
 };
-const HIDDEN = ['ls', 'cat .secret', 'cat about.txt', 'cat trail.gpx', 'sudo hire-me', 'hej', 'servus', 'rm -rf /'];
+const HIDDEN = ['ls', 'cat .secret', 'cat about.txt', 'cat trail.gpx', 'sudo hire-me', 'sudo', 'hej', 'servus', 'rm -rf /', 'history'];
 
 // "backstage": a password-protected panel for the site owner (see science.js). Only a SHA-256
 // fingerprint of the password is stored here, never the password itself.
@@ -1064,7 +1069,8 @@ async function run(raw) {
   }
   const cmd = raw.trim().replace(/\s+/g, ' ');
   if (!cmd) return;
-  history.push(cmd); histIdx = history.length;
+  if (history.at(-1) !== cmd) history.push(cmd);
+  histIdx = history.length; saveHistory();
   print(`<b>$</b> ${esc(cmd)}`, 'cmd');
   const lower = cmd.toLowerCase();
   let fn = COMMANDS[lower], arg = '';
@@ -1111,15 +1117,40 @@ $('#gpsForm').addEventListener('submit', (e) => { e.preventDefault(); const v = 
 input.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowUp' && histIdx > 0) { input.value = history[--histIdx]; e.preventDefault(); }
   else if (e.key === 'ArrowDown') { histIdx = Math.min(history.length, histIdx + 1); input.value = history[histIdx] || ''; e.preventDefault(); }
-  else if (e.key === 'Tab') {
-    e.preventDefault();
-    const v = input.value.toLowerCase();
-    const hits = Object.keys(COMMANDS).filter((c) => c.startsWith(v) && !HIDDEN.includes(c));
-    if (hits.length === 1) input.value = hits[0] + (['waypoint', 'sky', 'goto', 'season', 'holiday'].includes(hits[0]) ? ' ' : '');
-    else if (hits.length > 1) print(hits.join('  '), 'cmd');
-  }
+  else if (e.key === 'Tab') { e.preventDefault(); complete(); }
+  else if (e.key === 'c' && e.ctrlKey) { e.preventDefault(); print(`<b>$</b> ${esc(input.value)}^C`, 'cmd'); input.value = ''; histIdx = history.length; }
+  else if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); out.innerHTML = ''; }
   else if (e.key === 'Escape') closeGps();
+  if (e.key !== 'Tab') lastTab = 0;
 });
+// Tab completion like a shell: commands, then their options (sky d → dawn day dusk). With several
+// matches it fills in what they share; a second Tab lists them.
+let lastTab = 0;
+function optionsFor(cmd) {
+  const fromHelp = HELP.flatMap(([, rows]) => rows).find(([name]) => name === cmd)?.[2];
+  const extra = {
+    goto: ['about', 'timeline', 'cv', 'education', 'publications', 'talks', 'activities', 'skills', 'contact'],
+    waypoint: SITE.cv.map((_, i) => String(i + 1)),
+    weather: typeof WEATHER_PRESETS === 'object' ? [...Object.keys(WEATHER_PRESETS), 'live'] : [],
+    show: typeof BACKSTAGE_ACTIONS === 'object' && backstageOpen() ? [...BACKSTAGE_ACTIONS.keys()] : [],
+  };
+  return fromHelp || extra[cmd] || [];
+}
+function complete() {
+  const v = input.value.toLowerCase().replace(/^\s+/, ''), sp = v.indexOf(' ');
+  const [prefix, word, pool] = sp < 0
+    ? ['', v, Object.keys(COMMANDS).filter((c) => !HIDDEN.includes(c) && !c.includes(' '))]
+    : [v.slice(0, sp + 1), v.slice(sp + 1), optionsFor(v.slice(0, sp))];
+  const hits = pool.filter((c) => c.startsWith(word));
+  if (!hits.length) return;
+  if (hits.length === 1) { input.value = prefix + hits[0] + (sp < 0 && optionsFor(hits[0]).length ? ' ' : ''); return; }
+  let common = hits[0];
+  hits.forEach((h) => { while (!h.startsWith(common)) common = common.slice(0, -1); });
+  if (common.length > word.length) { input.value = prefix + common; return; }
+  const now = Date.now();
+  if (now - lastTab < 1500) print(hits.join('  '), 'cmd'); // second Tab: show the options
+  lastTab = now;
+}
 $('#termOpen').addEventListener('click', openGps);
 $('#termClose').addEventListener('click', closeGps);
 document.addEventListener('keydown', (e) => {

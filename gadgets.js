@@ -40,6 +40,7 @@ const BADGES = [
   ['catch', 'Night catch', 'helped the angler land a fish', 'a lantern on the lake at night'],
   ['flow', 'Optimal transport', 'flowed noise into a name', 'from a Gaussian to two letters, the cheapest way'],
   ['balloon', 'Up and away', 'fired the burner of the hot-air balloon', 'calm mornings and evenings, high above the valley'],
+  ['cake', 'Birthday wishes', 'blew out the candles', 'one day in November, on the veranda'],
   ['time', 'Time traveller', 'watched a whole day go by', 'a command that speeds things up'],
 ];
 let earned = (() => { try { return JSON.parse(store.get('badges') || '[]'); } catch { return []; } })();
@@ -337,7 +338,7 @@ async function penguinRoute(steps) {
     });
     pos = to;
   }
-  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze', 'inside', 'steamy', 'kayak', 'basket', 'p1', 'p2', 'p3');
+  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze', 'inside', 'steamy', 'kayak', 'basket', 'p1', 'p2', 'p3', 'carrycake');
   earnBadge('penguin');
 }
 
@@ -539,6 +540,29 @@ const penguinKayak = () => penguinRoute([
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]);
 const calm = () => ((simulated || weatherNow)?.wind ?? 0) < 15;
+
+// 16 November (my birthday): the penguin carries a cake out onto the veranda and leaves it there for
+// the day. Click it to blow out the candles.
+const cake = $('#cake');
+const birthdayToday = () => params.has('birthday') || new Intl.DateTimeFormat('en-GB', { timeZone: TZ, month: 'numeric', day: 'numeric' }).format(new Date()) === '16/11';
+const penguinCake = () => penguinRoute([
+  { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.add('carrycake') },
+  { to: [1199, 449], ms: 900, pose: 'walk' },
+  { to: [1206.5, 449.2], ms: 1300, pose: 'walk' },
+  { to: [1206.5, 449.2], ms: 1500, pose: 'bend', tick: (k, pg) => { if (k > 0.5) { pg.classList.remove('carrycake'); cake.classList.add('show'); } } },
+  { ms: 1200, pose: 'wait' },
+  { to: [1199, 449], ms: 1100, pose: 'walk' },
+  { to: [1195, 447], ms: 700, pose: 'walk' },
+]);
+cake.querySelector('.hit').addEventListener('click', () => { cake.classList.add('out'); earnBadge('cake'); });
+function birthdayCheck() {
+  if (!birthdayToday()) { cake.classList.remove('show', 'out'); return; }
+  if (cake.classList.contains('show')) return;
+  if (penguinOut || !heroVisible()) return setTimeout(birthdayCheck, 5000); // try again once the penguin is home
+  penguinSolo(penguinCake);
+}
+setTimeout(birthdayCheck, 4000);
+setInterval(birthdayCheck, 10 * 60000); // also when the page stays open past midnight
 
 async function penguinSolo(route, force = false) {
   if (penguinOut || reduceMotion || (!force && !heroVisible())) return;

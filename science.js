@@ -794,6 +794,7 @@ const BACKSTAGE = [
     ['stargazing', show({ sky: 'night', weather: 'clear' }, () => penguinSolo(penguinStargaze, true))],
     ['kayak', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => penguinSolo(penguinKayak, true))],
     ['chanterelles', show({ sky: 'day', season: 'autumn', weather: 'clear' }, () => penguinSolo(penguinChanterelles, true))],
+    ['birthday cake', show({ sky: 'day' }, () => { cake.classList.remove('show', 'out'); penguinSolo(penguinCake, true); })],
     ['rain dance', show({ sky: 'day', season: 'summer', weather: 'rain' }, () => penguinSolo(penguinRainDance, true))],
     ['under the footer', () => { closeGps(); peekNext = 0; scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }],
   ]],

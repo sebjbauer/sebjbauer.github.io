@@ -271,7 +271,7 @@ The page scrolls to the top, stars start blinking one at a time and each blink l
 
 ## Trail badges
 
-Terminal command `badges`: shows which of the 32 badges the visitor has found, with hints for the rest. The browser remembers them.
+Terminal command `badges`: shows which of the 33 badges the visitor has found, with hints for the rest. The browser remembers them.
 
 | Badge | How to get it |
 |---|---|
@@ -300,6 +300,7 @@ Terminal command `badges`: shows which of the 32 badges the visitor has found, w
 | Peekaboo | Click the penguin that pops up under the footer |
 | Optimal transport | Run `flow` |
 | Up and away | Click the hot-air balloon |
+| Birthday wishes | Blow out the candles on the birthday cake (16 November) |
 | Night owl | Tap the owl's eyes in the forest at night |
 | Sea sparkle | Tap the lake at night (glowing plankton) |
 | Cowbell | Click a cow, or type `moo` |
@@ -328,7 +329,7 @@ Found through the terminal: `riddle` (it's in `help`) or `ls` → `riddle.txt`.
 ## The GPS terminal
 
 Open it with the **Terminal ~** link in the menu or by pressing `~`. Close with `exit`, Esc or ×.
-Tab completes commands, ↑ repeats the last one.
+Like a real shell: **Tab** completes commands and their options (`sky d` → Tab Tab lists `dawn day dusk`, `goto pu` → `goto publications`); with several matches it fills in what they share, a second Tab lists them. **↑ / ↓** go through earlier commands, which the browser remembers between visits (last 50; the backstage password is never stored); `history` lists them. **Ctrl+C** cancels the line, **Ctrl+L** clears the screen.
 
 **Listed in `help`:**
 
@@ -376,6 +377,8 @@ Tab completes commands, ↑ repeats the last one.
 | `hint` | Hint for the riddle |
 | `norrsken` | Answer to the riddle |
 | `sudo hire-me` | Fake password prompt, "Access granted", then scrolls to Contact |
+| `sudo` anything else | "visitor is not in the sudoers file. Nice try. This incident will be reported to the penguin." |
+| `history` | The commands typed so far (also remembered between visits) |
 | `hej`, `servus` | Greetings back |
 | `rm -rf /` | "Avalanche warning. Permission denied." |
 
@@ -454,6 +457,7 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 
 | What | Where / when | Preview |
 |---|---|---|
+| **Birthday cake** | On 16 November (Vienna date) the penguin carries a cake with candles out onto the veranda and leaves it there for the day; the candles flicker. Click it to blow them out (badge *Birthday wishes*). Backstage: *birthday cake*. | `?birthday` |
 | **Hot-air balloon** | Spring to autumn, on calm mornings (up to 3 h after sunrise) and evenings (the last 3 h before sunset), only when the real wind is under 12 km/h and it's dry and clear enough. It drifts slowly across the sky; click it and the burner fires and it climbs (badge *Up and away*). | `?balloon` |
 | **Cranes** | In spring the migrating V is cranes flying north (long necks, legs trailing, slower wingbeats); in autumn geese fly south. | `?birds&season=spring` |
 | **Penguin kayaking** | Summer days, dry and calm (wind under 15 km/h), once in a while at random: down the jetty into the orange kayak moored there, a paddle round the bay, and back. | `?kayak&season=summer&sky=day` |
