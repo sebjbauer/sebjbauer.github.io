@@ -91,7 +91,7 @@ function drawFavicon(isDay) {
 }
 skyHooks.push(({ isDay }) => drawFavicon(isDay));
 
-/* ---------------- real weather in Vienna ---------------- */
+/* ---------------- real weather where I am (workBase) ---------------- */
 const WEATHER_NAMES = { 0: 'clear sky', 1: 'mostly clear', 2: 'partly cloudy', 3: 'overcast', 45: 'fog', 48: 'freezing fog',
   51: 'light drizzle', 53: 'drizzle', 55: 'heavy drizzle', 56: 'freezing drizzle', 57: 'freezing drizzle',
   61: 'light rain', 63: 'rain', 65: 'heavy rain', 66: 'freezing rain', 67: 'freezing rain',

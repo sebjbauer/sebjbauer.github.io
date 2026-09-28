@@ -66,8 +66,11 @@ If a link still shows an older version, press **Cmd + Option + R** in Safari (or
 
 Everything at the top of the page follows the real conditions in **Vienna** (set by `workBase` in `script.js`).
 
+**Moving back to Stockholm:** in `script.js` change `workBase: 'at'` to `workBase: 'se'`. That one word moves everything: the time zone and clock, the live weather (and with it snow, rain, frost, ice, wind and smoke), the sun, twilight and light summer nights, the moon, the stars and their positions, light/dark mode, the location under your name, and the texts that name the city (terminal, ISS, badges). Two things in `index.html` are written out by hand and should be updated too: the page description / link-preview text ("guest researcher at AITHYRA in Vienna") and `addressLocality` in the Google data block.
+
 - **Time of day:** the sky follows the real height of the sun above (or below) the horizon for the place and day, calculated, not fixed. Full daylight above 12°, dawn and dusk colours around the horizon, and full night only once the sun is 12° below it. So twilight is short in winter and long in summer, and where the sun never sinks that far (Stockholm around midsummer, -7°) the night stays light: a deep blue sky with a glow in the north and only a few stars. Vienna gets properly dark even in June. Backstage: *light summer night* shows a Stockholm midsummer night.
-- **Sun and moon:** the sun travels across the sky during the day, the moon at night.
+- **Sun and moon:** the sun travels across the sky during the day, the moon at night. The sun climbs as high as it really does where you are: all the way up only at midsummer noon, low all day in winter (in Vienna about 65° in June, 18° in December; in Stockholm 54° and 7°).
+- **Shadows:** the cottage, the sauna and the snowman cast soft shadows from the real sun: long in the morning and evening and all winter day, short at summer noon; to the right when the sun is low on the left in the morning, towards you around noon, to the left in the evening. Faint on the water, bluish on snow, and they fade under clouds or fog. Preview: `?sky=dawn` / `?sky=dusk` on a clear day.
 - **Moon phase:** the moon shows its real shape for that night (crescent, half, gibbous, full).
 - **Stars:** they appear after sunset and some twinkle.
 - **Northern lights:** faint green light over the Swedish side of the landscape, at night only.

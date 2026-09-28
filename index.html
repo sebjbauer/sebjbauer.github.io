@@ -117,7 +117,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap"></noscript>
-  <link rel="stylesheet" href="style.css?v=20260928215045">
+  <link rel="stylesheet" href="style.css?v=20260928220326">
 </head>
 <body>
 <a class="skip-link" href="#about">Skip to content</a>
@@ -317,6 +317,11 @@
       <rect class="sauna-door" x="1333.6" y="441.6" width="3.6" height="7"/>
       <rect class="sauna-window" x="1342.6" y="441.4" width="4.4" height="3"/>
     </g>
+    <!-- shadows of the cottage, the sauna and the snowman, cast by the real sun (science.js): on the land,
+         across the deck, and faintly on the water -->
+    <clipPath id="landClip"><path d="M1158 445.4 L1307 445.4 Q1304 448.6 1297 449.9 Q1236 451.9 1171 450.5 Q1162 449 1158 445.4 Z"/><path d="M1306 445.4 L1373 445.4 Q1369 448.5 1361 449.5 L1320 449.8 Q1310 449.3 1306 445.4 Z"/><rect x="930" y="430" width="510" height="15.6"/><rect x="1172" y="446" width="46" height="4"/></clipPath>
+    <g class="shadows" clip-path="url(#landClip)"><path id="shCottage"/><path id="shSauna"/><path id="shSnowman"/></g>
+    <g class="shadows on-water" clip-path="url(#lakeClip)"><use href="#shCottage"/><use href="#shSauna"/><use href="#shSnowman"/></g>
     <!-- lamps along the path: lit after dark, with their reflections in the water -->
     <g class="path-lights">
       <g transform="translate(1221 450.0)"><path class="post" d="M0 0 V-3"/><circle class="halo" cy="-3.4" r="3"/><circle class="head" cy="-3.4" r=".75"/><path class="refl" d="M0 1.8 V6.5"/></g>
@@ -745,11 +750,11 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="notes.js?v=20260928215045"></script>
+<script src="notes.js?v=20260928220123"></script>
 <script src="cv-data.js?v=local"></script>
-<script src="script.js?v=20260928215045"></script>
-<script src="extras.js?v=20260928215045"></script>
-<script src="gadgets.js?v=20260928215045"></script>
-<script src="science.js?v=20260928215045"></script>
+<script src="script.js?v=20260928220437"></script>
+<script src="extras.js?v=20260928220123"></script>
+<script src="gadgets.js?v=20260928220123"></script>
+<script src="science.js?v=20260928220239"></script>
 </body>
 </html>

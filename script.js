@@ -9,7 +9,8 @@ const SITE = {
     'PhD Student in Bioinformatics @[Stockholm University](https://www.su.se) and @[SciLifeLab](https://www.scilifelab.se)',
     'Guest Researcher @[AITHYRA](https://aithyra.at)',
   ],
-  location: 'Vienna, Austria',
+  // location under the name: follows workBase below (set a text here to override it)
+  location: '',
   role: 'PhD student in Bioinformatics, guest researcher at AITHYRA',
   // Research keywords, shown in About (and given to Google)
   keywords: ['Single-Molecule Localization Microscopy', 'Flow Matching', 'Graph Neural Networks'],
@@ -22,12 +23,13 @@ const SITE = {
   bluesky: 'https://bsky.app/profile/sebjbauer.bsky.social',
   x: 'https://x.com/sebjbauer',
   cvPdf: 'cv.pdf',
-  // Where you live and work right now ('at' or 'se'). The clock, weather, moon,
-  // sunrise/sunset and light/dark mode all follow this place.
+  // Where you live and work right now ('at' or 'se'). Switching this one word moves everything:
+  // the clock and time zone, the real weather, sun, moon, stars, twilight, the light/dark mode,
+  // the location under your name, and the texts that name the city.
   workBase: 'at',
   places: {
-    at: { country: 'Austria', city: 'Vienna', lat: 48.21, lon: 16.37 },
-    se: { country: 'Sweden', city: 'Stockholm', lat: 59.33, lon: 18.07 },
+    at: { country: 'Austria', city: 'Vienna', lat: 48.21, lon: 16.37, tz: 'Europe/Vienna' },
+    se: { country: 'Sweden', city: 'Stockholm', lat: 59.33, lon: 18.07, tz: 'Europe/Stockholm' },
   },
   // Google Scholar profile, linked from Publications, Contact and the terminal
   scholar: 'https://scholar.google.com/citations?user=Dqq0FUYAAAAJ&hl=en',
@@ -47,7 +49,7 @@ const SITE = {
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const TZ = 'Europe/Vienna'; // same rules as Stockholm, including summer time
+const TZ = SITE.places[SITE.workBase].tz; // the time zone of the place you're at
 const base = () => SITE.places[SITE.workBase];
 const fmtCoord = (p) => `${p.lat.toFixed(2)}°N ${p.lon.toFixed(2)}°E`;
 
@@ -187,13 +189,16 @@ function paintSky() {
   const isDay = h >= sunT.rise && h < sunT.set;
   applyTheme(d);
 
-  // sun by day, moon by night; both travel along an arc on the right half
+  // sun by day, moon by night; both travel along an arc on the right half. The sun climbs as high as
+  // it really does where I am: all the way up only at midsummer noon, low all day in winter.
   const sun = $('#sun');
   const nightLen = 24 - (sunT.set - sunT.rise);
   const p = isDay ? (h - sunT.rise) / (sunT.set - sunT.rise) : (((h - sunT.set) + 24) % 24) / nightLen;
   if (sun.classList.contains('moon') === isDay) sun.classList.toggle('moon', !isDay);
-  const narrow = innerWidth < 760;
-  const left = ((narrow ? 20 : 48) + p * (narrow ? 70 : 46)).toFixed(2) + '%', top = ((narrow ? 63 : 62) - Math.sin(p * Math.PI) * (narrow ? 6 : 44)).toFixed(2) + '%';
+  const narrow = innerWidth < 760, place = skyPlace ?? base();
+  const highest = 90 - place.lat + 23.44; // the sun's height at noon on midsummer day
+  const lift = isDay ? Math.min(1, Math.max(0, sunT.alt(h) / highest)) : Math.sin(p * Math.PI);
+  const left = ((narrow ? 20 : 48) + p * (narrow ? 70 : 46)).toFixed(2) + '%', top = ((narrow ? 63 : 62) - lift * (narrow ? 6 : 44)).toFixed(2) + '%';
   if (sun.style.left !== left) sun.style.left = left;
   if (sun.style.top !== top) sun.style.top = top;
   // Near the horizon the air bends light from the lower edge more than from the upper edge,
@@ -836,7 +841,7 @@ function renderContent() {
   // [Text](url) → link
   const linkify = (t) => esc(t).replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => `<a href="${url}" target="_blank" rel="noopener">${label}</a>`);
   $('#heroLines').innerHTML = SITE.headline.map((l) => `<span>${linkify(l)}</span>`).join('');
-  $('#heroPlace').textContent = SITE.location;
+  $('#heroPlace').textContent = SITE.location || `${base().city}, ${base().country}`;
   $('#keywords').innerHTML = SITE.keywords.map((k) => `<li>${esc(k)}</li>`).join('');
   // languages from the CV: "German (native)" → "German"
   if (SITE.skills.Languages) $('#speaks').textContent = SITE.skills.Languages.map((l) => l.replace(/\s*\(.*\)/, '')).join(', ');
@@ -950,7 +955,7 @@ const HELP = [
     ['goto', 'jump to a section', ['about', 'timeline', 'cv', 'education', 'publications', 'talks', 'activities', 'skills', 'contact']],
     ['whereami', 'current position'], ['clear', 'clear the screen'], ['exit', 'close the terminal'],
   ]],
-  ['Live sky over Vienna', [
+  [`Live sky over ${SITE.places[SITE.workBase].city}`, [
     ['live', 'back to the real time, season and weather'], ['weather', 'the real weather right now'], ['sun', 'sunrise and sunset'], ['moon', "tonight's moon"], ['iss', 'where the space station is'],
     ['sky', 'change the time of day', ['dawn', 'day', 'dusk', 'night', 'live']],
     ['season', 'change the season', ['winter', 'spring', 'summer', 'autumn', 'live']],
@@ -1191,7 +1196,7 @@ function tickCoords() { $('#gpsCoords').textContent = fmtCoord(base()); }
 
 /* ---------------- colour-mode switch ---------------- */
 const MODE_INFO = {
-  auto: ['i-auto', 'automatic (follows daylight in Vienna)'],
+  auto: ['i-auto', `automatic (follows daylight in ${SITE.places[SITE.workBase].city})`],
   light: ['i-sun', 'always light'],
   dark: ['i-moon', 'always dark'],
 };

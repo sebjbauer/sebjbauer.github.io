@@ -301,6 +301,10 @@ kbd {
 [data-daylight="no"] .rocks path { fill: #3C4146; }
 [data-daylight="no"] .rocks .dark { fill: #2E3236; }
 [data-season="winter"] .rocks path { fill: #DCE2E7; }
+.shadows path { fill: var(--shadow-col, #1E2A20); opacity: var(--shadow-o, 0); }
+.shadows.on-water { opacity: .5; }
+[data-season="winter"] .shadows path { fill: #4A5F80; } /* bluish on snow */
+#shSnowman { display: none; } .snowman-shadow #shSnowman { display: inline; }
 .gravel { fill: none; stroke: #CDBF9E; stroke-width: 1.3; stroke-linecap: round; opacity: .75; }
 [data-daylight="no"] .gravel { stroke: #4A443A; }
 [data-season="winter"] .gravel { stroke: #B3AEA4; opacity: .8; } /* shovelled: a trodden, gravelly track through the snow */

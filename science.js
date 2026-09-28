@@ -677,6 +677,42 @@ function placeNorthStars({ h }) {
 skyHooks.push(placeNorthStars);
 placeNorthStars(lastSky);
 
+/* ---------------- shadows from the real sun ---------------- */
+// The cottage, the sauna and the snowman cast soft shadows. Their length follows the sun's real height
+// (long in the morning and evening and all winter day, short at summer noon); their direction follows
+// the sun as it's drawn: low on the left in the morning throws them to the right, around noon they point
+// towards you, in the evening to the left. Clouds soften them away. Each object: its footprint on the
+// ground and a few points at their height above it (landscape units).
+const SHADOW_SHAPES = {
+  shCottage: { y: 447, pts: [[1180, 0], [1210, 0], [1175, 16], [1215, 16], [1195, 30], [1203, 31], [1207, 31]] },
+  shSauna: { y: 448.6, pts: [[1331, 0], [1351, 0], [1329, 9.4], [1353, 9.4], [1341, 16], [1348, 17.2]] },
+  shSnowman: { y: 448.2, pts: [[1357.8, 0], [1366.2, 0], [1357.6, 4], [1366.4, 4], [1358.8, 10.8], [1365.2, 10.8], [1359.8, 16], [1364.2, 16], [1360.6, 21.5], [1363.4, 21.5]] },
+};
+const hull = (pts) => { // convex hull (monotone chain) of a few points
+  pts = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const half = (list) => list.reduce((h, p) => { while (h.length > 1 && cross(h[h.length - 2], h[h.length - 1], p) <= 0) h.pop(); h.push(p); return h; }, []);
+  const lower = half(pts), upper = half(pts.slice().reverse());
+  return lower.slice(0, -1).concat(upper.slice(0, -1));
+};
+function castShadows({ h, isDay, sunT }) {
+  const alt = sunT.alt(h);
+  const strength = isDay ? Math.min(1, Math.max(0, (alt - 1) / 5)) * (1 - live.overcast * 0.9) * (live.fog ? 0.2 : 1) : 0;
+  setVar('--shadow-o', (0.2 * strength).toFixed(3));
+  document.documentElement.classList.toggle('snowman-shadow', $('#snowman').classList.contains('show'));
+  if (strength <= 0) return;
+  const p = Math.min(1, Math.max(0, (h - sunT.rise) / (sunT.set - sunT.rise))), sunX = 691 + 662 * p; // where the sun is drawn (landscape x)
+  const k = Math.min(2.5, 1 / Math.tan(Math.max(3, alt) * Math.PI / 180)); // ground length per unit of height
+  for (const [id, { y, pts }] of Object.entries(SHADOW_SHAPES)) {
+    const s = Math.max(-1, Math.min(1, (pts[0][0] - sunX) / 500)); // sun to the left of it: shadow to the right, and back
+    const vx = s * k, vy = (1 - Math.abs(s)) * k * 0.3; // towards you is foreshortened: the ground is seen at a low angle
+    const ground = pts.map(([x, ht]) => [x + vx * ht, y + vy * ht]);
+    $('#' + id).setAttribute('d', 'M' + hull(ground).map(([x, gy]) => `${x.toFixed(1)} ${gy.toFixed(2)}`).join(' L') + ' Z');
+  }
+}
+skyHooks.push(castShadows);
+if (lastSky.sunT) castShadows(lastSky);
+
 /* ---------------- frost on the window ---------------- */
 // When it's really freezing where I am (-3 °C or colder, from the live weather), ice ferns grow in from
 // the corners of the "window", the way frost does on glass: straight needles that branch at 60°

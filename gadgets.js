@@ -18,7 +18,7 @@ const BADGES = [
   ['deer', 'Quiet steps', 'startled the deer', 'dusk and dawn, at the forest edge'],
   ['cyclist', 'Aero tuck', 'made the cyclist tuck', 'someone rides through the valley'],
   ['skater', 'Thin ice', 'watched the skater spin', 'when the lake freezes'],
-  ['iss', 'Space station', 'spotted the ISS over Vienna', 'a steady light that moves fast on clear nights'],
+  ['iss', 'Space station', `spotted the ISS over ${SITE.places[SITE.workBase].city}`, 'a steady light that moves fast on clear nights'],
   ['plane', 'Wanderlust', 'caught the plane to a new country', 'something flies over now and then'],
   ['triathlon', 'Swim, bike, run', 'cheered on the triathlete', 'summer days by the lake'],
   ['xc', 'Diagonal stride', 'waved at the cross-country skier', 'long skis in winter, tiny wheels the rest of the year'],
@@ -777,7 +777,7 @@ function alongRoad(el, { reverse = false, back = !reverse, speed = 70, onStep, t
 async function ride({ reverse = false, force = false } = {}) {
   if (!force && (riding || roadBusy || !heroVisible() || reduceMotion)) return;
   riding = true;
-  cyclist.dataset.gear = cyclistGear(); // dress for the real weather in Vienna
+  cyclist.dataset.gear = cyclistGear(); // dress for the real weather where I am
   cyclist.classList.remove('tuck');
   cyclist.classList.add('out');
   let at = null, prevX = null, waitingSince = 0;
@@ -1096,12 +1096,12 @@ COMMANDS.iss = async () => {
     const { elevation, dist } = lookAngles(base(), sat);
     const region = where.country_code && where.country_code !== '??' ? `over ${new Intl.DisplayNames(['en'], { type: 'region' }).of(where.country_code)}` : 'over the ocean';
     const sunlit = sat.visibility === 'daylight';
-    const status = elevation > 10 ? (sunlit && lastSky.d > 0.75 ? '<span class="ok">Visible from Vienna right now. Look up.</span>' : 'Above Vienna, but not visible (it needs to be dark here and sunlit up there).')
-      : 'Below the horizon for Vienna.';
+    const status = elevation > 10 ? (sunlit && lastSky.d > 0.75 ? `<span class="ok">Visible from ${base().city} right now. Look up.</span>` : `Above ${base().city}, but not visible (it needs to be dark here and sunlit up there).`)
+      : `Below the horizon for ${base().city}.`;
     return `International Space Station
   now ${region}, ${sat.latitude.toFixed(1)}°, ${sat.longitude.toFixed(1)}°
   ${Math.round(sat.altitude)} km up, ${Math.round(sat.velocity).toLocaleString('en')} km/h
-  ${Math.round(dist).toLocaleString('en')} km from Vienna
+  ${Math.round(dist).toLocaleString('en')} km from ${base().city}
 ${status}`;
   } catch {
     return '<span class="warn">No contact with the space station.</span> Try again later.';
