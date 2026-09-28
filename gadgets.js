@@ -1678,22 +1678,52 @@ camp.querySelector('.fire .hit').addEventListener('click', () => {
 });
 
 /* ---------------- the snowman ---------------- */
-// On cold winter days a snowman gets built bit by bit after sunrise: base, middle, head, face,
-// then hat, scarf and arms. Above 2 °C it starts to melt; above 8 °C it's gone.
+// On cold winter days (2 °C or colder) the penguin builds a snowman on the shore by the sauna: it rolls
+// the base, the middle and the head (they grow as they roll), lifts them on, then adds the face, and the
+// hat, scarf and arms. It stands for the rest of the day. Above 2 °C it starts to melt; above 8 °C it's gone.
 const snowman = $('#snowman'), snowParts = [...snowman.querySelectorAll('[data-stage]')];
-let snowPreview = null;
-function snowmanStage({ h, sunT }) {
+let snowPreview = null, snowBuilt = store.get('snowman') === today() ? 5 : 0; // how far today's snowman has got
+function snowmanStage() {
   const temp = (simulated || weatherNow)?.temp ?? 0;
-  let stage = h < sunT.rise ? 5 : Math.min(5, 1 + Math.floor((h - sunT.rise) / 1.2));
-  let melting = temp > 2;
+  let stage = snowBuilt, melting = temp > 2;
   if (snowPreview) ({ stage, melting } = snowPreview);
-  const show = snowPreview || (currentSeason() === 'winter' && temp <= 8);
+  const show = snowPreview || (currentSeason() === 'winter' && temp <= 8 && stage > 0);
   snowman.classList.toggle('show', !!show);
   snowman.classList.toggle('melting', !!melting);
   snowParts.forEach((el) => { el.style.display = +el.dataset.stage <= stage ? '' : 'none'; });
 }
 skyHooks.push(snowmanStage);
-if (lastSky.sunT) snowmanStage(lastSky);
+snowmanStage();
+const snowWeather = () => currentSeason() === 'winter' && ((simulated || weatherNow)?.temp ?? 5) <= 2 && !live.particle || live.particle === 'snow';
+const built = (n) => (k, pg) => { if (k >= 1) { snowBuilt = n; pg.classList.remove('rolling'); snowmanStage(); } };
+const rollBall = (r0, r1) => (k, pg) => { // the snowball grows as it rolls, just in front of the penguin
+  const r = r0 + (r1 - r0) * k, ball = pg.querySelector('.pg-snowball');
+  pg.classList.add('rolling');
+  ball.setAttribute('r', r.toFixed(2)); ball.setAttribute('cx', (3.4 + r).toFixed(2)); ball.setAttribute('cy', (-r).toFixed(2));
+};
+const penguinSnowman = () => penguinRoute([
+  ...outDoor,
+  { to: [1297, 449.6], ms: 4200, pose: 'walk' },
+  { to: [1328, 449.4], ms: 1700, pose: 'walk' },
+  { to: [1354.2, 448.6], ms: 5200, pose: 'walk', tick: rollBall(0.8, 4.4) },       // the base …
+  { ms: 1, pose: 'wait', tick: built(1) },
+  { to: [1333, 449.3], ms: 1500, pose: 'walk' },
+  { to: [1352, 448.7], ms: 4000, pose: 'walk', tick: rollBall(0.7, 3.3) },           // … the middle …
+  { to: [1356.6, 448.5], ms: 600, pose: 'hop', tick: (k, pg) => { rollBall(3.3, 3.3)(1, pg); built(2)(k, pg); } },
+  { to: [1339, 449.1], ms: 1300, pose: 'walk' },
+  { to: [1353.5, 448.6], ms: 2800, pose: 'walk', tick: rollBall(0.6, 2.4) },         // … and the head
+  { to: [1357.4, 448.4], ms: 700, pose: 'hop', tick: (k, pg) => { rollBall(2.4, 2.4)(1, pg); built(3)(k, pg); } },
+  { ms: 500, pose: 'wait' },
+  { to: [1357.4, 448.4], ms: 700, pose: 'hop', tick: built(4) },                      // eyes, carrot, buttons
+  { ms: 500, pose: 'wait' },
+  { to: [1357.4, 448.4], ms: 700, pose: 'hop', tick: built(5) },                      // hat, scarf and arms
+  { to: [1346, 449], ms: 1200, pose: 'walk' },
+  { ms: 1800, pose: 'wait' },                                                         // admiring it
+  { to: [1297, 449.6], ms: 2600, pose: 'walk' },
+  { to: [1220, 450.2], ms: 4200, pose: 'walk' },
+  ...homeAgain,
+]).then(() => { if (snowBuilt === 5) store.set('snowman', today()); });
+every(60, 150, () => { if (!snowBuilt && snowWeather() && lastSky.d < 0.4 && Math.random() < 0.6) penguinSolo(penguinSnowman); });
 snowman.addEventListener('click', () => {
   snowman.classList.remove('hop'); void snowman.getBoundingClientRect(); snowman.classList.add('hop');
   earnBadge('snowman');
@@ -1766,10 +1796,11 @@ if (params.has('water')) { thirstyPreview = true; boxFlowers.forEach((g) => g.cl
 if (params.has('read')) setTimeout(() => penguinSolo(penguinRead, true), 1200);
 if (params.has('selfie')) setTimeout(() => selfieOuting(true), 1200);
 if (params.has('hockey')) setTimeout(() => iceHockey(true), 1200);
-// the snowman built stage by stage, then melting (preview and backstage)
+// previews and backstage: the penguin builds one now, or a finished snowman melts
 function snowmanDemo(melted = false) {
-  let k = 0;
-  const tick = () => { k++; snowPreview = { stage: Math.min(5, k), melting: melted || k > 7 }; paintSky(); if (k < 9) setTimeout(tick, 1500); else setTimeout(() => { snowPreview = null; paintSky(); }, 6000); };
-  tick();
+  if (!melted) { snowBuilt = 0; snowPreview = null; snowmanStage(); return penguinSolo(penguinSnowman, true); }
+  snowPreview = { stage: 5, melting: false }; paintSky();
+  setTimeout(() => { snowPreview = { stage: 5, melting: true }; paintSky(); }, 1500);
+  setTimeout(() => { snowPreview = null; paintSky(); }, 12000);
 }
-if (params.has('snowman')) snowmanDemo(params.get('snowman') === 'melt');
+if (params.has('snowman')) setTimeout(() => snowmanDemo(params.get('snowman') === 'melt'), 1200);

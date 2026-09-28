@@ -861,6 +861,7 @@ const BACKSTAGE = [
   ['Around the cottage', [
     ['tent and campfire', show({ sky: 'dusk', season: 'summer', weather: 'clear' })],
     ['snowman', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => snowmanDemo(false), 300)],
+    ['melting snowman', show({ sky: 'day', season: 'winter' }, () => snowmanDemo(true), 300)],
     ['path lights', show({ sky: 'night' })],
     ['Swedish flag (6 June)', show({ sky: 'day', season: 'summer' }, () => { flagPreview = 'se'; paintSky(); }, 0)],
     ['Austrian flag (26 October)', show({ sky: 'day', season: 'autumn' }, () => { flagPreview = 'at'; paintSky(); }, 0)],

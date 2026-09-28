@@ -554,7 +554,9 @@ kbd {
 .pg-scope { display: none; }
 /* kayak (summer) and chanterelle basket (autumn) */
 .pg-kayak, .pg-paddle, .pg-basket, .kayak-moored, .chanterelles { display: none; }
-.pg-chair, .pg-shovel, .pg-rake, .pg-can, .pg-book { display: none; }
+.pg-chair, .pg-shovel, .pg-rake, .pg-can, .pg-book, .pg-snowball { display: none; }
+.penguin.rolling .pg-snowball { display: inline; }
+.pg-snowball { fill: #FAFCFD; stroke: #A9B7C4; stroke-width: .4; }
 .penguin.shovel .pg-shovel, .penguin.rake .pg-rake, .penguin.watering .pg-can, .penguin.reading .pg-chair, .penguin.reading .pg-book { display: inline; }
 .pg-chair path { fill: none; stroke: #8A6A48; stroke-width: .7; stroke-linecap: round; }
 .pg-handle { stroke: #8A6A48; stroke-width: .5; stroke-linecap: round; } .pg-blade2 { fill: #5E6A73; }
