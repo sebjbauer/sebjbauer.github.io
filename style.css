@@ -126,8 +126,10 @@ kbd {
 .sun {
   position: absolute; width: 52px; height: 52px; border-radius: 50%;
   background: var(--sun); transform: translate(-50%, -50%) scaleY(var(--squash, 1));
-  transition: left 1.5s, top 1.5s, background-color 1.5s;
+  transition: left 1.5s, top 1.5s, background-color 1.5s, opacity 3s;
 }
+.sun:not(.moon) { opacity: var(--sun-o, 1); }
+.sun.down, .sun.down::before { animation: none !important; }
 .sun.moon { width: 40px; height: 40px; background: none; transform: translate(-50%, -50%) scaleY(var(--moon-squash, 1)); opacity: var(--moon-o, 1); }
 .sun.moon.by-day .moon-lit { fill: #F4F6F8; } .sun.moon.by-day .moon-dark { fill: none; }
 .sun svg { display: block; overflow: visible; }
@@ -201,7 +203,8 @@ kbd {
 .iss::after { content: ''; position: absolute; left: 8px; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 6px 2px rgba(255, 255, 255, .5); }
 .iss.demo { transition-duration: 3.3s; }
 .iss.show { display: block; }
-[data-rainbow="yes"][data-daylight="yes"] .rainbow { opacity: .38; }
+[data-rainbow="yes"][data-daylight="yes"][data-lowsun="yes"] .rainbow { opacity: .38; }
+.rainbow g { transform: translateY(var(--rainbow-drop, 0px)); transition: transform 30s linear; } /* sinks as the sun climbs */
 .smlm { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .hero.smlm-on .starfield { opacity: calc(var(--stars) * .35); }
 .birds { position: absolute; left: 0; top: 15%; width: 66px; height: 64px; opacity: 0; pointer-events: none; will-change: transform; }
@@ -283,7 +286,7 @@ kbd {
 .hit { fill: transparent; pointer-events: all; cursor: pointer; }
 
 .skater { display: none; }
-[data-frozen="yes"] .skater { display: inline; }
+[data-frozen="yes"][data-daylight="yes"] .skater { display: inline; } /* skating by day only */
 .sk-glide { animation: glide 12s ease-in-out infinite; }
 .sk-flip { transform-box: fill-box; transform-origin: center; animation: glide-flip 12s steps(1) infinite; }
 @keyframes glide { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(268px); } } /* turns before the jetty */
@@ -978,7 +981,7 @@ span.pub-title { display: inline; }
 #profile .hiker:not(.sitting) .steam,
 html:not(.grilling) .bbq-smoke circle,
 html:not([data-smoke="on"]):not([data-cottage="on"]) .smoke circle, [data-cottage="off"] .smoke circle,
-html:not([data-frozen="yes"]) .sk-glide, html:not([data-frozen="yes"]) .sk-flip,
+html:not([data-frozen="yes"]) .sk-glide, html:not([data-frozen="yes"]) .sk-flip, [data-daylight="no"] .sk-glide, [data-daylight="no"] .sk-flip,
 html:not([data-daylight="no"]) .owl-eyes circle,
 html:not([data-holiday="christmas"]) .xmas-lights circle,
 .flagpole:not([data-flag="se"]) .flag-se, .flagpole:not([data-flag="at"]) .flag-at, .flag-vimpel { animation: none; }

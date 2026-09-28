@@ -662,7 +662,7 @@ const northDots = [...northSvg.children];
 function placeNorthStars({ h }) {
   if (lastSky.d < 0.3 && document.documentElement.dataset.night !== 'yes') return; // only matters when stars show
   const rad = Math.PI / 180, lat = base().lat * rad;
-  const when = new Date(Date.now() + (h - localHour()) * 3600e3); // the shown time (it may be simulated)
+  const when = shownDate(h); // the shown time (it may be simulated)
   const days = when.getTime() / 864e5 - 10957.5; // days since J2000
   const lst = ((18.697374558 + 24.06570982441908 * days) + base().lon / 15) % 24;
   NORTH_STARS.forEach(([ra, dec], i) => {
@@ -812,18 +812,18 @@ const show = (sceneOpts, fn, delay = 900) => () => {
 // Road scenes only start on a free road. From backstage, wait until it is (a cow standing on the road
 // only leaves when a cyclist rings the bell, so send one), for up to 45 seconds.
 const roadTaken = () => roadBusy || riding || tri || mooseOut || cowOnTheRoad() || !heroVisible();
-const whenRoadFree = (fn, tries = 45) => {
-  if (!roadTaken()) return fn();
-  if (tries === 45 && heroVisible()) toast('Someone is on the road. Waiting until it’s clear…');
+const whenRoadFree = (fn, tries = 45, alsoWait = () => false) => {
+  if (!roadTaken() && !alsoWait()) return fn();
+  if (tries === 45 && heroVisible()) toast('Someone is on the way. Waiting until it’s clear…');
   if (cowOnTheRoad() && !riding && !roadBusy) ride({ force: true });
-  if (tries > 0) setTimeout(() => whenRoadFree(fn, tries - 1), 1000);
+  if (tries > 0) setTimeout(() => whenRoadFree(fn, tries - 1, alsoWait), 1000);
 };
 const twoRipples = () => { ripples.add(1060, 468); setTimeout(() => ripples.add(1170, 472), 700); };
 const BACKSTAGE = [
   ['Sky and weather', [
     ['dawn', show({ sky: 'dawn' })], ['day', show({ sky: 'day' })], ['dusk', show({ sky: 'dusk' })], ['night', show({ sky: 'night' })],
     ['clear', show({ weather: 'clear' })], ['rain', show({ weather: 'rain' })], ['snow', show({ weather: 'snow' })], ['storm', show({ weather: 'storm' })],
-    ['fog', show({ weather: 'fog' })], ['frost', show({ weather: 'frost' })], ['rainbow', show({ weather: 'rainbow', sky: 'day' })],
+    ['fog', show({ weather: 'fog' })], ['frost', show({ weather: 'frost' })], ['rainbow', () => { const t = sunTimes(base()); show({ weather: 'rainbow' }, () => { forcedHour = t.set - 2; paintSky(); }, 0)(); }], // late afternoon: the sun has to be lower than 42°
     ['northern lights', show({ weather: 'clear' }, () => { originalNorthernLights(); setTimeout(() => selfieOuting(true), 2500); })],
     ['light summer night', () => { // Stockholm at midsummer: the sun only dips to -7°, so it never gets fully dark
       skyPlace = SITE.places.se; skyDate = new Date(new Date().getFullYear(), 5, 21, 12);
@@ -832,6 +832,19 @@ const BACKSTAGE = [
     ['Big Dipper and Pole Star', show({ sky: 'night', weather: 'clear' })],
     ['smoke in the wind', show({ sky: 'dusk', season: 'winter', weather: 'windy' })],
     ['ice from the shore', show({ sky: 'day', season: 'winter', weather: 'icing' })],
+    ['long shadows', () => { const t = sunTimes(base()); show({ weather: 'clear', season: 'summer' }, () => { forcedHour = t.rise + 1.5; paintSky(); }, 0)(); }],
+    ['day moon', () => { // find the next time the moon is well up in daylight, and show that moment
+      const place = base();
+      for (let k = 1; k < 24 * 30; k++) {
+        const when = new Date(Date.now() + k * 3600e3), t = sunTimes(place, when);
+        const parts = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: 'numeric', hourCycle: 'h23' }).formatToParts(when);
+        const h = +parts.find((x) => x.type === 'hour').value; // that hour, where I am
+        if (t.alt(h) > 15 && moonAlt(when, place) > 15 && moonPhase(when).illum > 0.3) {
+          skyDate = when; show({ weather: 'clear' }, () => { forcedHour = h; paintSky(); }, 0)();
+          return;
+        }
+      }
+    }],
     ['shooting star', show({ sky: 'night', weather: 'clear' }, shootingStar, 1500)],
     ['ISS pass', show({ sky: 'night', weather: 'clear' }, issDemo)],
     ['timelapse', show({}, () => timelapse(''))], ['timelapse year', show({}, () => timelapse('year'))],
@@ -842,7 +855,7 @@ const BACKSTAGE = [
   ]],
   ['On the road', [
     ['cyclist', show({ sky: 'day' }, () => ride({ force: true }))],
-    ['triathlon', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => whenRoadFree(() => triathlon(true)))],
+    ['triathlon', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => whenRoadFree(() => triathlon(true), 45, () => penguinOut))], // the penguin may be on the jetty
     ['roller skier', show({ sky: 'day', season: 'summer' }, () => whenRoadFree(() => xcSki(true)))],
     ['cross-country skier', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => whenRoadFree(() => xcSki(true)))],
     ['moose', show({ sky: 'day' }, () => whenRoadFree(() => mooseCrossing(true)))],

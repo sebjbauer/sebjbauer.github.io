@@ -383,23 +383,25 @@ async function penguinRoute(steps) {
   earnBadge('penguin');
 }
 
+// the skater steps off the ice while the penguin is out on it (they'd cross each other)
+const offIce = (route) => { const sk = $('#skater'); sk.classList.add('away'); return route.finally(() => { if (!hockeyOn) sk.classList.remove('away'); }); };
 // frozen lake: a belly slide across the ice
-const penguinSlide = () => penguinRoute([
+const penguinSlide = () => offIce(penguinRoute([
   { to: [1203, 458], ms: 1400, pose: 'walk' },   // out of the door, onto the ice
   { to: [1110, 463], ms: 2400, pose: 'slide' },  // belly slide (away from the jetty)
   { to: [1203, 458], ms: 6500, pose: 'walk' },   // waddle back
   { to: [1195, 447], ms: 1200, pose: 'walk' },
-]);
+]));
 
 // frozen lake: ice fishing (pimpelfiske) at a hole in the ice, until a fish bites
-const penguinFish = () => penguinRoute([
+const penguinFish = () => offIce(penguinRoute([
   { to: [1203, 458], ms: 1400, pose: 'walk' },
   { to: [1165, 463], ms: 3000, pose: 'walk' },   // the hole is well clear of the jetty
   { ms: 9000, pose: 'wait', tick: (k, pg) => { pg.classList.add('fishing'); pg.classList.toggle('caught', k > 0.72); } },
   { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.remove('fishing', 'caught') },
   { to: [1203, 458], ms: 5000, pose: 'walk' },
   { to: [1195, 447], ms: 1200, pose: 'walk' },
-]);
+]));
 
 // hot summer days: across the veranda, along the lit path, down the jetty, a jump into the lake,
 // a swim to the rocky beach left of the cottage, and back in through the door
@@ -438,7 +440,7 @@ const penguinSelfie = () => { let flashes = 0; return penguinRoute([
 ]); };
 // frozen lake: a snow angel on the ice, then a moment to admire it
 const snowAngel = $('#snowAngel');
-const penguinAngel = () => penguinRoute([
+const penguinAngel = () => offIce(penguinRoute([
   { to: [1203, 458], ms: 1400, pose: 'walk' },
   { to: [1216, 462], ms: 1500, pose: 'walk' },
   { to: [1216, 462], ms: 2600, pose: 'slide', tick: (k) => { if (k > 0.3) snowAngel.classList.add('show'); } },
@@ -446,7 +448,7 @@ const penguinAngel = () => penguinRoute([
   { ms: 1500, pose: 'wait' },
   { to: [1203, 458], ms: 2000, pose: 'walk' },
   { to: [1195, 447], ms: 1200, pose: 'walk' },
-]).then(() => setTimeout(() => snowAngel.classList.remove('show'), 60000));
+])).then(() => setTimeout(() => snowAngel.classList.remove('show'), 60000));
 
 // clear nights: a telescope on the veranda, pointed at the space station when it's passing
 let scopeAimed = 0;
@@ -723,7 +725,7 @@ async function penguinSolo(route, force = false) {
 
 const auroraVisible = () => document.documentElement.classList.contains('aurora-storm') || (lastSky.d > 0.8 && live.overcast < 0.5 && !live.particle);
 async function selfieOuting(force = false) {
-  if (penguinOut || reduceMotion || !heroVisible() || (!force && !auroraVisible())) return;
+  if (penguinOut || tri || reduceMotion || !heroVisible() || (!force && !auroraVisible())) return;
   penguinOut = true;
   await penguinSelfie();
   penguinOut = false;
@@ -893,7 +895,7 @@ async function dive() {
   await wait(350);
 }
 async function triathlon(force = false) {
-  if (tri || riding || roadBusy || cowOnTheRoad() || (!force && (!triWeather() || !heroVisible())) || reduceMotion) return;
+  if (tri || riding || roadBusy || penguinOut || cowOnTheRoad() || (!force && (!triWeather() || !heroVisible())) || reduceMotion) return; // penguinOut: it may be on the jetty
   tri = true; roadBusy = true;
   // the start: arms up at the end of the jetty, then a dive into the lake
   await dive();
@@ -969,7 +971,11 @@ function flyBalloon(force = false) {
   const goodHour = sunT && ((h > sunT.rise && h < sunT.rise + 3) || (h > sunT.set - 3 && h < sunT.set - 0.3));
   const goodWeather = (w?.wind ?? 0) < 12 && live.overcast < 0.7 && !live.particle && live.fog < 0.3;
   if (balloon.classList.contains('fly') || reduceMotion || (!force && (currentSeason() === 'winter' || !goodHour || !goodWeather || !heroVisible()))) return;
-  balloon.classList.toggle('west', Math.random() < 0.5);
+  // it can only go where the wind takes it: to the right in a westerly, to the left in an easterly,
+  // and the faster the wind, the quicker it crosses (in near calm, either way, slowly)
+  const wx = live.windX, kmh = Math.abs(wx);
+  balloon.classList.toggle('west', kmh > 1 ? wx < 0 : Math.random() < 0.5);
+  balloon.style.animationDuration = `${Math.round(Math.max(90, 230 - kmh * 12))}s`;
   balloon.style.top = ((innerWidth < 760 ? 46 : 22) + Math.random() * 8).toFixed(1) + '%'; // below the text on phones
   void balloon.getBoundingClientRect();
   balloon.classList.add('fly');
@@ -1743,7 +1749,7 @@ every(60, 150, () => { if (snowyPath() && lastSky.d < 0.45 && localHour() < 15) 
 every(120, 300, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.35) penguinSolo(penguinRake); });
 every(90, 200, () => { if (thirsty() && lastSky.d < 0.45 && !live.particle && Math.random() < 0.5) penguinSolo(penguinWater); });
 every(120, 260, () => { if (summerEvening() && Math.random() < 0.4) penguinSolo(penguinRead); });
-every(150, 320, () => { if (currentSeason() === 'summer' && lastSky.d < 0.4 && !live.particle && !live.frozen && calm() && Math.random() < 0.25) penguinSolo(penguinKayak); });
+every(150, 320, () => { if (currentSeason() === 'summer' && lastSky.d < 0.4 && !live.particle && !live.frozen && calm() && !tri && Math.random() < 0.25) penguinSolo(penguinKayak); });
 setTimeout(ski, 4000);
 every(20, 50, ski);
 setTimeout(birds, 8000);
@@ -1758,7 +1764,7 @@ every(100, 260, () => { if (Math.random() < 0.5 && !live.frozen) selfieOuting();
 every(120, 300, () => iceHockey());
 setTimeout(checkIss, 3000);
 every(45, 100, () => { if (live.frozen && !penguinOut && heroVisible() && !reduceMotion) penguinOuting(['slide', 'fish', 'angel'][Math.floor(Math.random() * 3)]); });
-every(60, 130, () => { if (hotDay() && !penguinOut && heroVisible() && !reduceMotion) penguinOuting('swim'); });
+every(60, 130, () => { if (hotDay() && !penguinOut && !tri && heroVisible() && !reduceMotion) penguinOuting('swim'); }); // not while the triathlete uses the jetty
 
 // preview helpers for FEATURES.md: ?ride, ?penguin, ?smlm
 if (params.has('ride')) setTimeout(() => ride({ force: true }), 800);

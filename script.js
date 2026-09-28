@@ -64,7 +64,7 @@ const PHASES = {
 let forcedHour = null;
 let skyPlace = null, skyDate = null; // backstage: another place and day for the sun (e.g. a Stockholm midsummer night)
 // Live conditions, filled in by extras.js from real weather data
-const live = { overcast: 0, particle: null, fog: 0, frozen: false, ice: 0 };
+const live = { overcast: 0, particle: null, fog: 0, frozen: false, ice: 0, windX: 0 };
 const skyHooks = [];
 // Only touch the page when a value really changes: on phones every change restyles the whole landscape.
 const varCache = {};
@@ -96,6 +96,14 @@ const contrast = (a, b) => { const [x, y] = [relLum(a), relLum(b)].sort((p, q) =
 // move `color` towards `ink` just enough to reach `min` contrast on `bg` (keeps the page readable at twilight)
 const readable = (color, bg, ink, min = 4.5) => { let c = color; for (let t = 0.1; contrast(c, bg) < min && t <= 1; t += 0.1) c = mix(color, ink, t); return c; };
 const fmtHour = (h) => { const m = Math.round((((h % 24) + 24) % 24) * 60); return `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
+
+// the moment the sky shows: today (or the previewed day) at the shown hour
+function shownDate(h) {
+  const base = skyDate ?? new Date();
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).formatToParts(base);
+  const there = +parts.find((p) => p.type === 'hour').value + +parts.find((p) => p.type === 'minute').value / 60;
+  return new Date(base.getTime() + (h - there) * 3600e3);
+}
 
 function localHour() {
   const parts = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).formatToParts(new Date());
@@ -161,6 +169,13 @@ function paintSky() {
     v.stars *= 1 - live.overcast; v.aurora *= 1 - live.overcast;
   }
   setVar('--cloud', mix(mix('#F7F8FA', '#9AA3AB', live.overcast), '#23272B', d));
+  // A rainbow is a 42° circle around the point opposite the sun: only possible while the sun is lower
+  // than 42°, and the lower the sun, the higher the arc (its top stands at 42° minus the sun's height).
+  const sunAlt = sunT.alt(h);
+  setData('lowsun', sunAlt > 0 && sunAlt < 42 ? 'yes' : 'no');
+  setVar('--rainbow-drop', `${(Math.max(0, Math.min(42, sunAlt)) / 42 * 300).toFixed(0)}px`);
+  // behind clouds the sun disc fades: fully visible up to half cover, gone when it's overcast, raining or foggy
+  setVar('--sun-o', (live.particle === 'rain' || live.particle === 'snow' || live.fog ? 0 : Math.max(0, Math.min(1, (0.95 - live.overcast) / 0.45))).toFixed(2));
   setVar('--fog', mix('#E6E9EC', '#1C1F22', d));
   setVar('--fog-o', live.fog);
   setVar('--sky-top', v.skyTop); setVar('--sky-bot', v.skyBot);
@@ -197,6 +212,7 @@ function paintSky() {
   const p = isDay ? (h - sunT.rise) / (sunT.set - sunT.rise) : (((h - sunT.set) + 24) % 24) / nightLen;
   const sunVis = isDay ? '' : 'hidden'; // the moon has its own element (extras.js)
   if (sun.style.visibility !== sunVis) sun.style.visibility = sunVis;
+  sun.classList.toggle('down', !isDay); // no spinning rays while it's below the horizon
   const narrow = innerWidth < 760, place = skyPlace ?? base();
   const highest = 90 - place.lat + 23.44; // the sun's height at noon on midsummer day
   const lift = isDay ? Math.min(1, Math.max(0, sunT.alt(h) / highest)) : Math.sin(p * Math.PI);
@@ -304,7 +320,7 @@ const weather = (() => {
   }
 
   function spawn(p, anywhere) {
-    p.x = Math.random() * (W + 100); p.y = anywhere ? Math.random() * H : -30 - Math.random() * 60;
+    p.x = Math.random() * (W + 200) - 100; p.y = anywhere ? Math.random() * H : -30 - Math.random() * 60; // a margin either side: the wind blows them in
     p.phase = Math.random() * 6.28;
     if (kind === 'rain' || kind === 'drizzle') {
       const heavy = kind === 'rain';
@@ -328,8 +344,10 @@ const weather = (() => {
   // light rain on a dark sky, darker blue-grey rain on a bright daytime sky
   const rainColor = (a) => `rgba(${Math.round(mix(78, 205, night))}, ${Math.round(mix(96, 214, night))}, ${Math.round(mix(118, 228, night))}, ${a})`;
 
+  // Rain slants with the real wind: the slope is the wind speed over the speed the drops fall at
+  // (about 30 km/h for rain, 12 km/h for drizzle, which therefore slants much more).
   function drawRain(dt, t) {
-    const wind = -0.16;
+    const wind = Math.max(-0.8, Math.min(0.8, live.windX / (kind === 'rain' ? 30 : 12)));
     for (let z = 0; z < 3; z++) {
       ctx.beginPath();
       for (const p of parts) {
@@ -365,7 +383,8 @@ const weather = (() => {
     else if (kind === 'snow') {
       ctx.beginPath();
       for (const p of parts) {
-        p.y += p.vy * dt; p.x += Math.sin(t / 1400 + p.phase) * 20 * dt;
+        // snow falls slowly (about 4 km/h), so even a light wind carries it far sideways
+        p.y += p.vy * dt; p.x += (Math.sin(t / 1400 + p.phase) * 20 + p.vy * Math.max(-2.5, Math.min(2.5, live.windX / 8))) * dt;
         if (p.y > H + 10) spawn(p, false);
         ctx.moveTo(p.x + p.r, p.y); ctx.arc(p.x, p.y, p.r, 0, 6.29);
       }
@@ -395,7 +414,7 @@ const weather = (() => {
       ctx.globalAlpha = 1;
     } else {
       for (const p of parts) {
-        p.y += p.vy * dt; p.x += Math.sin(t / 1400 + p.phase) * 50 * dt; p.rot += p.vr * dt;
+        p.y += p.vy * dt; p.x += (Math.sin(t / 1400 + p.phase) * 50 + p.vy * Math.max(-2, Math.min(2, live.windX / 10))) * dt; p.rot += p.vr * dt; // leaves drift with the wind
         if (p.y > H + 12) spawn(p, false);
         const a = p.rot + Math.sin(t / 700 + p.phase) * 0.6;
         ctx.setTransform(Math.cos(a) * cvScale, Math.sin(a) * cvScale, -Math.sin(a) * cvScale, Math.cos(a) * cvScale, p.x * cvScale, p.y * cvScale);

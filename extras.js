@@ -68,7 +68,7 @@ function moonPass(date, place) {
   return { rise: find(-1), set: find(1) };
 }
 skyHooks.push(({ h, isDay, d }) => {
-  const place = skyPlace ?? base(), when = new Date(Date.now() + (h - localHour()) * 3600e3);
+  const place = skyPlace ?? base(), when = shownDate(h);
   const alt = moonAlt(when, place), pass = alt > 0 ? moonPass(when, place) : null;
   moonEl.hidden = !pass;
   if (!pass) return;
@@ -81,7 +81,8 @@ skyHooks.push(({ h, isDay, d }) => {
   moonEl.style.top = ((narrow ? 63 : 62) - lift * (narrow ? 6 : 44)).toFixed(2) + '%';
   // pale by day (and only when there's enough of it to see), bright at night; clouds hide it
   const visible = d < 0.5 ? 0.75 * Math.min(1, phase.illum * 3) : 1;
-  setVar('--moon-o', (visible * (1 - live.overcast * 0.9)).toFixed(2));
+  const behindClouds = live.particle === 'rain' || live.particle === 'snow' || live.fog ? 0 : Math.max(0, Math.min(1, (0.95 - live.overcast) / 0.45));
+  setVar('--moon-o', (visible * behindClouds).toFixed(2));
   setVar('--moon-squash', (1 - 0.17 * Math.exp(-alt / 4)).toFixed(3)); // flattened near the horizon, like the sun
 });
 const moonTimes = (date, place) => { // today's moonrise and moonset, for the terminal
@@ -175,6 +176,8 @@ function applyWeather(w) {
   // chimney and sauna smoke drift downwind (we look north: wind from the west blows the smoke right)
   const kmh = w.wind ?? 5, dir = w.windDir ?? 250, push = Math.min(1, kmh / 30);
   const dx = kmh < 2 ? 0 : Math.sin((dir + 180) * Math.PI / 180) * (4 + 30 * push);
+  // the wind across the picture in km/h (+ blows to the right): rain, snow, leaves and the balloon follow it
+  live.windX = kmh < 2 ? 0 : kmh * Math.sin((dir + 180) * Math.PI / 180);
   document.documentElement.style.setProperty('--smoke-dx', dx.toFixed(1) + 'px');
   document.documentElement.style.setProperty('--smoke-dy', (-26 * (1 - 0.6 * push)).toFixed(1) + 'px');
   // a rainbow when it rained in the last hours and the sun is out again (shown by day only, see CSS)
