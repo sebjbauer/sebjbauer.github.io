@@ -358,6 +358,7 @@ Like a real shell: **Tab** completes commands and their options (`sky d` → Tab
 | `smlm` | Microscope stars (clear nights only) |
 | `badges` | Trail badges found so far |
 | `iss` | Where the space station is right now |
+| `teaching` | Courses taught and thesis students |
 | `talks` | Talks, posters and awards |
 | `timelapse` | A whole day in 20 seconds; `timelapse year` for the seasons |
 | `triathlon` | Starts a race: swim, bike, run |
@@ -397,9 +398,9 @@ Smooth on phones (which redraw up to 120 times a second): the penguin moves on a
 
 ## CV: one LaTeX file for the PDF and the website
 
-`cv/cv.tex` is the single source. On every push, GitHub compiles it into the PDF **and** reads it into the website (`cv/tex2web.py` → `cv-data.js`): Career, Education, Publications, Talks (and the map), Beyond the lab and Skills all come from it. `script.js` only keeps the hero lines, About, Now, keywords, links and Projects.
+`cv/cv.tex` is the single source. On every push, GitHub compiles it into the PDF **and** reads it into the website (`cv/tex2web.py` → `cv-data.js`): Career, Education, Publications, Talks (and the map), Teaching and supervision, Beyond the lab and Skills all come from it. `script.js` only keeps the hero lines, About, Now, keywords, links and Projects.
 
-- Which section goes where: *Education* → Education; *Research Experience* → Career; *Publications* → Publications (J = journal article, P = preprint, C = conference abstract); *Talks, Posters & Awards* and `\organised` in *Service* → Talks; *Extracurricular Activities* → Beyond the lab; the *Skills & Interests* table → Skills.
+- Which section goes where: *Education* → Education; *Research Experience* → Career; *Publications* → Publications (J = journal article, P = preprint, C = conference abstract); *Talks, Posters & Awards* and `\organised` in *Service* → Talks; *Teaching & Supervision* (`\course{2024--}{Course}`, `\thesisstudent{Year}{Student}{Level}{Title}{URL}`) → Teaching and supervision; *Extracurricular Activities* → Beyond the lab; the *Skills & Interests* table → Skills.
 - A talk and an award (or organising) with the same year and the same Event text become one entry with several roles (SMLMS 2026, AnDi).
 - Website-only extras go right after an entry and print nothing in the PDF: `\weblink{Label}{URL}`, `\web{city}{London, United Kingdom}`, `\web{url}{…}`, `\web{text}{…}` (a different text on the website), `\web{type}{Review}`, `\web{award}{…}`, `\web{section}{career}` (civilian service), `\web{months}{…}` (exact months for the route's branches, never shown), and `\webonly{…}` for whole entries (Matura, "PhD Researcher" in Career, the Master's thesis in Publications).
 - **Local preview:** `python3 cv/tex2web.py` regenerates `cv-data.js` (the local preview server runs it on start). It prints a warning for any LaTeX command it doesn't understand.

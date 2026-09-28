@@ -147,9 +147,9 @@ def cap(s):
 # ---------------------------------------------------------------- parsing
 def parse(tex):
     body = unwrap_webonly(strip_comments(tex).split(r'\begin{document}', 1)[1])
-    data = {'education': [], 'cv': [], 'publications': [], 'talks': [], 'extracurricular': [], 'skills': {}}
+    data = {'education': [], 'cv': [], 'publications': [], 'talks': [], 'teaching': [], 'supervision': [], 'extracurricular': [], 'skills': {}}
     section, pubtype, last = '', 'Journal article', None
-    token = re.compile(r'\\(section|entry|details|weblink|web|pub|talk|award|organised|activity|begin\{publist\}|begin\{tabularx\})(?![a-zA-Z])')
+    token = re.compile(r'\\(section|entry|details|weblink|web|pub|talk|award|organised|activity|course|thesisstudent|begin\{publist\}|begin\{tabularx\})(?![a-zA-Z])')
     i = 0
     while (m := token.search(body, i)):
         cmd, i = m.group(1), m.end()
@@ -196,6 +196,18 @@ def parse(tex):
             last = {'years': plain(dates), 'from': a, 'to': b, 'span': span(dates), 'title': plain(role), 'org': plain(org),
                     'place': plain(city), 'text': plain(text)}
             data['extracurricular'].append(last)
+        elif cmd == 'course':
+            (dates, title), i = args(body, i, 2)
+            d = plain(dates)
+            a = re.match(r'\d{4}', d).group(0)
+            last = {'from': a, 'to': 'now' if re.search(r'[–-]\s*$|present|now', d) else (years(dates)[1] or a), 'title': plain(title)}
+            data['teaching'].append(last)
+        elif cmd == 'thesisstudent':
+            (year, name, level, title, url), i = args(body, i, 5)
+            last = {'year': int(plain(year)[:4]), 'name': plain(name), 'level': plain(level), 'title': plain(title)}
+            if url.strip():
+                last['url'] = url.strip()
+            data['supervision'].append(last)
         elif cmd == 'weblink':
             (label, url), i = args(body, i, 2)
             last.setdefault('links', []).append([plain(label), url.strip()])
@@ -242,6 +254,8 @@ def parse(tex):
         for k in ('from', 'to', 'span'):
             w.pop(k, None)
     data['publications'].sort(key=lambda p: -p['year'])
+    data['teaching'].sort(key=lambda c: (c['to'] != 'now', -int(c['from'])))  # current courses first, then newest
+    data['supervision'].sort(key=lambda t: -t['year'])
     for k in ('cv', 'education', 'extracurricular'):
         for w in data[k]:
             w.setdefault('text', '')

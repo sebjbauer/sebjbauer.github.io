@@ -38,7 +38,7 @@ const SITE = {
   // edit cv/cv.tex, and cv/tex2web.py turns it into cv-data.js (the GitHub Action does this
   // on every push). Your own name in author lists is shown in bold:
   me: 'S. Bauer',
-  cv: [], education: [], publications: [], talks: [], extracurricular: [], skills: {},
+  cv: [], education: [], publications: [], talks: [], teaching: [], supervision: [], extracurricular: [], skills: {},
   ...window.CV_DATA,
 };
 
@@ -846,6 +846,17 @@ function renderContent() {
   $('#skillList').innerHTML = Object.entries(SITE.skills).map(([group, items]) =>
     `<dt>${esc(group)}</dt><dd>${items.map(esc).join(', ')}</dd>`).join('');
 
+  // teaching and thesis students, from cv.tex
+  $('#courseList').innerHTML = SITE.teaching.map((c) =>
+    `<li><div><span class="name">${esc(c.title)}</span><span class="where">${esc(yearSpan(c))}</span></div></li>`).join('');
+  $('#studentList').innerHTML = SITE.supervision.map((t) => {
+    const title = t.url ? `<a href="${esc(t.url)}" target="_blank" rel="noopener">“${esc(t.title)}”</a>` : `“${esc(t.title)}”`;
+    return `<li><div><span class="name">${esc(t.name)}</span><span class="desc">${esc(t.level)}: ${title}</span><span class="where">${t.year}</span></div></li>`;
+  }).join('');
+  $('#courseList').previousElementSibling.hidden = $('#courseList').hidden = !SITE.teaching.length;
+  $('#studentList').previousElementSibling.hidden = $('#studentList').hidden = !SITE.supervision.length;
+  $('#teaching').hidden = !SITE.teaching.length && !SITE.supervision.length;
+
   $('#activityList').innerHTML = SITE.extracurricular.map((a) =>
     `<li><div>
       <span class="name">${esc(a.title)}</span>
@@ -931,7 +942,7 @@ const WEATHER = { 0: 'clear', 1: 'mostly clear', 2: 'partly cloudy', 3: 'cloudy'
 const HELP = [
   ['About me', [
     ['whoami', 'who is this?'], ['route cv', 'the career trail'], ['education', 'schools and degrees'],
-    ['papers', 'publications'], ['talks', 'talks, posters and awards'], ['activities', 'swimming, triathlon, tutoring'],
+    ['papers', 'publications'], ['talks', 'talks, posters and awards'], ['teaching', 'courses and thesis students'], ['activities', 'swimming, triathlon, tutoring'],
     ['skills', 'equipment check'], ['waypoint', 'details of one career stage', () => SITE.cv.map((_, i) => String(i + 1))],
     ['contact', 'send a signal'], ['download cv', 'the official PDF'],
   ]],
@@ -1002,6 +1013,8 @@ ${esc(w.text)}`;
     `  ${p.year}  <a href="${esc(linkOf(p))}" target="_blank" rel="noopener">${esc(p.title)}</a>\n        <span class="cmd">${esc(p.type)}, ${esc(venueOf(p))}</span>`).join('\n') +
     `\nAll on <a href="${esc(SITE.scholar)}" target="_blank" rel="noopener">Google Scholar</a> and <a href="${esc(SITE.orcid)}" target="_blank" rel="noopener">ORCID</a>.`,
 
+  teaching: () => 'Teaching:\n' + SITE.teaching.map((c) => `  ${yearSpan(c).padEnd(10)} ${esc(c.title)}`).join('\n')
+    + '\n\nThesis students:\n' + SITE.supervision.map((t) => `  ${String(t.year).padEnd(10)} ${esc(t.name)} <span class="cmd">${esc(t.level)}: ${esc(t.title)}</span>`).join('\n'),
   activities: () => 'Off the clock:\n' + SITE.extracurricular.map((a) => `  ${a.years.padEnd(10)} ${esc(a.title)}${a.org ? ` <span class="cmd">${esc(a.org)}</span>` : ''}`).join('\n'),
   skills: () => 'Equipment check:\n' + Object.entries(SITE.skills).map(([g, items]) => `  [<span class="ok">✓</span>] ${esc(g)}: ${items.map(esc).join(', ')}`).join('\n'),
 
@@ -1037,7 +1050,7 @@ The sun is ${up ? 'up, so this site is in light mode' : 'down, so this site is i
   },
 
   'download cv': () => { const a = document.createElement('a'); a.href = SITE.cvPdf; a.download = ''; a.click(); return `Downloading <a href="${esc(SITE.cvPdf)}">${esc(SITE.cvPdf)}</a>…`; },
-  goto: (arg) => { if (!['about', 'timeline', 'cv', 'education', 'publications', 'talks', 'activities', 'skills', 'contact'].includes(arg)) return 'Usage: goto about | timeline | cv | education | publications | talks | activities | skills | contact'; setTimeout(() => goTo(arg), 300); return `Navigating to ${arg}…`; },
+  goto: (arg) => { if (!['about', 'timeline', 'cv', 'education', 'publications', 'talks', 'teaching', 'activities', 'skills', 'contact'].includes(arg)) return 'Usage: goto about | timeline | cv | education | publications | talks | teaching | activities | skills | contact'; setTimeout(() => goTo(arg), 300); return `Navigating to ${arg}…`; },
 
   fika: () => `Starting mandatory fika…
       ( (
@@ -1145,7 +1158,7 @@ let lastTab = 0;
 function optionsFor(cmd) {
   const fromHelp = HELP.flatMap(([, rows]) => rows).find(([name]) => name === cmd)?.[2];
   const extra = {
-    goto: ['about', 'timeline', 'cv', 'education', 'publications', 'talks', 'activities', 'skills', 'contact'],
+    goto: ['about', 'timeline', 'cv', 'education', 'publications', 'talks', 'teaching', 'activities', 'skills', 'contact'],
     waypoint: SITE.cv.map((_, i) => String(i + 1)),
     weather: typeof WEATHER_PRESETS === 'object' ? [...Object.keys(WEATHER_PRESETS), 'live'] : [],
     show: typeof BACKSTAGE_ACTIONS === 'object' && backstageOpen() ? [...BACKSTAGE_ACTIONS.keys()] : [],

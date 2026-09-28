@@ -925,6 +925,10 @@ span.pub-title { display: inline; }
 
 /* projects */
 .projects { list-style: none; padding: 0; }
+.sub-h { font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: .02em; margin: 0 0 12px; }
+.projects + .sub-h { margin-top: 36px; }
+.projects .desc a { color: inherit; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+.projects .desc a:hover { color: var(--accent); }
 .projects li { border-bottom: 1px solid var(--line); }
 .projects li:first-child > * { padding-top: 0; }
 .projects a, .projects li > div {
