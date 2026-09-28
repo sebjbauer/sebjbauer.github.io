@@ -66,7 +66,7 @@ If a link still shows an older version, press **Cmd + Option + R** in Safari (or
 
 Everything at the top of the page follows the real conditions in **Vienna** (set by `workBase` in `script.js`).
 
-**Moving back to Stockholm:** in `script.js` change `workBase: 'at'` to `workBase: 'se'`. That one word moves everything: the time zone and clock, the live weather (and with it snow, rain, frost, ice, wind and smoke), the sun, twilight and light summer nights, the moon, the stars and their positions, light/dark mode, the location under your name, and the texts that name the city (terminal, ISS, badges). Two things in `index.html` are written out by hand and should be updated too: the page description / link-preview text ("guest researcher at AITHYRA in Vienna") and `addressLocality` in the Google data block.
+**Moving back to Stockholm:** in `script.js` change `workBase: 'at'` to `workBase: 'se'`. That one word moves everything: the time zone and clock, the live weather (and with it snow, rain, frost, ice, wind and smoke), the sun, twilight and light summer nights, the moon, the stars and their positions, light/dark mode, the location under your name, and the texts that name the city (terminal, ISS, badges). Two things in `index.html` are written out by hand and should be updated too: the page description / link-preview text ("guest researcher at AITHYRA in Vienna") and `addressLocality` in the Google data block. `contact.vcf` has the city in its address and note, too.
 
 - **Time of day:** the sky follows the real height of the sun above (or below) the horizon for the place and day, calculated, not fixed. Full daylight above 12°, dawn and dusk colours around the horizon, and full night only once the sun is 12° below it. So twilight is short in winter and long in summer, and where the sun never sinks that far (Stockholm around midsummer, -7°) the night stays light: a deep blue sky with a glow in the north and only a few stars. Vienna gets properly dark even in June. Backstage: *light summer night* shows a Stockholm midsummer night.
 - **Sun and moon:** the sun travels across the sky during the day, the moon at night. The sun climbs as high as it really does where you are: all the way up only at midsummer noon, low all day in winter (in Vienna about 65° in June, 18° in December; in Stockholm 54° and 7°).
@@ -189,6 +189,8 @@ Under every publication there are two small buttons: **Copy citation** (APA styl
 ## Email
 
 Clicking **Email** in Contact opens the visitor's mail app *and* copies the address, with a short "Address copied" note, for people without a mail app.
+
+**Protected from spam bots:** the address never appears written out in the files the site publishes, so bots that scan pages and files for addresses don't find it. In `script.js` it's stored in two halves joined only when the page runs; the Google data block has no email; `contact.vcf` has no email, and "Add to contacts" adds it in the browser at the moment someone downloads the card; in `cv/cv.tex` (public on GitHub) it's split into `\emailuser` and `\emaildomain`. For people nothing changes: the link, copying, the contact card, the terminal and the PDF all show the full address. The PDF itself does contain it (a CV should), and so does the page once it has run in a browser. To change the address, edit both halves in `script.js` and in `cv.tex`.
 
 ## Talks, posters and awards
 

@@ -17,7 +17,8 @@ const SITE = {
   // One line about what you're doing right now, and when you last updated it (YYYY-MM).
   // When you last updated the About text (YYYY-MM), shown as "Updated …"
   now: { updated: '2026-09' },
-  email: 'sebastian.bauer@scilifelab.se',
+  // the email address in two halves, joined only when the page runs, so bots scanning this file don't find it
+  email: ['sebastian.bauer', 'scilifelab.se'].join(String.fromCharCode(64)),
   linkedin: 'https://www.linkedin.com/in/sebjbauer/',
   github: 'https://github.com/sebjbauer',
   bluesky: 'https://bsky.app/profile/sebjbauer.bsky.social',
@@ -879,9 +880,22 @@ function renderContent() {
     [SITE.bluesky, 'Bluesky'],
     [SITE.x, 'X (Twitter)'],
     ['cv.pdf', 'CV (PDF)'],
-    ['contact.vcf', 'Add to contacts'],
+    ['contact.vcf', 'Add to contacts'], // the email is added to the card only when it's downloaded (see below)
   ].map(([href, label]) => `<li><a href="${esc(href)}"${external(href)}${href.startsWith('mailto:') ? ` title="${esc(SITE.email)}"` : ''}>${label}${/\.(vcf|pdf)$/.test(href) ? iconDown : iconOut}</a></li>`).join('');
 
+  // "Add to contacts": the public contact.vcf has no email address in it (bots read files like that);
+  // it's added here, in the browser, at the moment someone downloads the card
+  $('#contactLinks a[href="contact.vcf"]').addEventListener('click', async (e) => {
+    e.preventDefault();
+    let card;
+    try { card = await (await fetch('contact.vcf')).text(); } catch { location.href = 'contact.vcf'; return; }
+    card = card.replace(/\r?\nTITLE:/, `\r\nEMAIL;TYPE=INTERNET,WORK:${SITE.email}\r\nTITLE:`);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([card], { type: 'text/vcard' }));
+    a.download = 'Sebastian_Bauer.vcf';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  });
   const mail = $('#contactLinks a[href^="mailto:"]');
   $('#contactLinks a[href="cv.pdf"]').setAttribute('download', 'Sebastian_Bauer_CV.pdf');
   mail.addEventListener('click', async () => {
