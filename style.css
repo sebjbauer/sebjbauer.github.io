@@ -128,7 +128,8 @@ kbd {
   background: var(--sun); transform: translate(-50%, -50%) scaleY(var(--squash, 1));
   transition: left 1.5s, top 1.5s, background-color 1.5s;
 }
-.sun.moon { width: 40px; height: 40px; background: none; }
+.sun.moon { width: 40px; height: 40px; background: none; transform: translate(-50%, -50%) scaleY(var(--moon-squash, 1)); opacity: var(--moon-o, 1); }
+.sun.moon.by-day .moon-lit { fill: #F4F6F8; } .sun.moon.by-day .moon-dark { fill: none; }
 .sun svg { display: block; overflow: visible; }
 .moon-dark { fill: rgba(233, 237, 239, .07); }
 .moon-lit { fill: var(--sun); }

@@ -41,11 +41,61 @@ function moonSvg({ p }) {
     `<path class="moon-lit" d="M0 ${-r} A${r} ${r} 0 0 ${outer} 0 ${r} A${rx} ${r} 0 0 ${term} 0 ${-r} Z"/></svg>`;
 }
 
-skyHooks.push(({ isDay }) => {
-  const sun = $('#sun');
-  const html = isDay ? '' : moonSvg(moonPhase());
-  if (sun.innerHTML !== html) sun.innerHTML = html;
+/* ---------------- the moon, where it really is ---------------- */
+// Position of the moon (low-precision lunar theory, the formulas the SunCalc library uses): it rises
+// and sets at its real times and climbs as high as it really does where I am, and when it's up in
+// daylight it shows as a pale day moon. Drawn on the same arc as the sun: across from its rising to its setting.
+const moonEl = $('#moon');
+function moonAlt(date, place) { // degrees above the horizon
+  const rad = Math.PI / 180, d = date / 864e5 - 10957.5, e = rad * 23.4397;
+  const L = rad * (218.316 + 13.176396 * d), M = rad * (134.963 + 13.064993 * d), F = rad * (93.272 + 13.22935 * d);
+  const l = L + rad * 6.289 * Math.sin(M), b = rad * 5.128 * Math.sin(F);
+  const ra = Math.atan2(Math.sin(l) * Math.cos(e) - Math.tan(b) * Math.sin(e), Math.cos(l));
+  const dec = Math.asin(Math.sin(b) * Math.cos(e) + Math.cos(b) * Math.sin(e) * Math.sin(l));
+  const H = rad * (280.16 + 360.9856235 * d) + rad * place.lon - ra, phi = rad * place.lat;
+  return Math.asin(Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H)) / rad;
+}
+// the moon's current trip across the sky: when it rose and when it will set (null if it's down)
+function moonPass(date, place) {
+  if (moonAlt(date, place) <= 0) return null;
+  const step = 10 * 60e3, find = (dir) => {
+    let t = date.getTime();
+    for (let i = 0; i < 200 && moonAlt(new Date(t + dir * step), place) > 0; i++) t += dir * step;
+    let a = t, b = t + dir * step; // refine the crossing
+    for (let i = 0; i < 12; i++) { const m = (a + b) / 2; if (moonAlt(new Date(m), place) > 0) a = m; else b = m; }
+    return new Date(a);
+  };
+  return { rise: find(-1), set: find(1) };
+}
+skyHooks.push(({ h, isDay, d }) => {
+  const place = skyPlace ?? base(), when = new Date(Date.now() + (h - localHour()) * 3600e3);
+  const alt = moonAlt(when, place), pass = alt > 0 ? moonPass(when, place) : null;
+  moonEl.hidden = !pass;
+  if (!pass) return;
+  const phase = moonPhase(when), html = moonSvg(phase);
+  if (moonEl.innerHTML !== html) moonEl.innerHTML = html;
+  moonEl.classList.toggle('by-day', d < 0.5);
+  const p = (when - pass.rise) / (pass.set - pass.rise), highest = 90 - place.lat + 28.6, lift = Math.min(1, Math.max(0, alt / highest));
+  const narrow = innerWidth < 760;
+  moonEl.style.left = ((narrow ? 20 : 48) + p * (narrow ? 70 : 46)).toFixed(2) + '%';
+  moonEl.style.top = ((narrow ? 63 : 62) - lift * (narrow ? 6 : 44)).toFixed(2) + '%';
+  // pale by day (and only when there's enough of it to see), bright at night; clouds hide it
+  const visible = d < 0.5 ? 0.75 * Math.min(1, phase.illum * 3) : 1;
+  setVar('--moon-o', (visible * (1 - live.overcast * 0.9)).toFixed(2));
+  setVar('--moon-squash', (1 - 0.17 * Math.exp(-alt / 4)).toFixed(3)); // flattened near the horizon, like the sun
 });
+const moonTimes = (date, place) => { // today's moonrise and moonset, for the terminal
+  const fmt = (t) => new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(t);
+  let rise = null, set = null, prev = moonAlt(date, place);
+  const start = new Date(date); start.setHours(0, 0, 0, 0);
+  for (let m = 10; m <= 1440; m += 10) {
+    const t = new Date(start.getTime() + m * 60e3), a = moonAlt(t, place);
+    if (m > 10 && prev <= 0 && a > 0 && !rise) rise = fmt(t);
+    if (m > 10 && prev > 0 && a <= 0 && !set) set = fmt(t);
+    prev = a;
+  }
+  return { rise, set };
+};
 
 /* ---------------- tab icon: the landscape in miniature, by day or by night ---------------- */
 // Same drawing as favicon.svg (the static icon for Google and home screens): by day a blue sky and the
@@ -432,8 +482,10 @@ COMMANDS['cat riddle.txt'] = COMMANDS.riddle;
 COMMANDS.norrsken = () => { setTimeout(northernLights, 400); return '<span class="ok">Correct.</span> Look up.'; };
 COMMANDS.moon = () => {
   const m = moonPhase();
+  const { rise, set } = moonTimes(new Date(), base()), alt = moonAlt(new Date(), base());
   return `${m.name}, ${Math.round(m.illum * 100)}% lit.
-${m.name === 'Full moon' ? 'Full moon tonight.' : `Next full moon in ${Math.round(m.daysToFull)} days.`}`;
+${m.name === 'Full moon' ? 'Full moon tonight.' : `Next full moon in ${Math.round(m.daysToFull)} days.`}
+Today in ${esc(base().city)}: ${rise ? `rises ${rise}` : 'no moonrise'}, ${set ? `sets ${set}` : 'no moonset'}. ${alt > 0 ? `Up now, ${Math.round(alt)}° above the horizon.` : 'Below the horizon now.'}`;
 };
 COMMANDS.ls = () => 'about.txt  cv.pdf  trail.gpx  riddle.txt  .secret';
 HIDDEN.push('hint', 'cat riddle.txt', 'norrsken');

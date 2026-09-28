@@ -116,12 +116,12 @@ const ripples = (() => {
   const g = $('#glints'), sun = $('#sun');
   let key = '';
   function draw({ isDay }) {
-    const moon = moonPhase(), clearSky = 1 - live.overcast;
+    const moon = moonPhase(), clearSky = 1 - live.overcast, light = isDay ? sun : $('#moon');
     const strength = live.frozen || live.fog || live.particle ? 0
-      : isDay ? clearSky : clearSky * Math.max(0, (moon.illum - 0.45) / 0.55);
+      : isDay ? clearSky : light.hidden ? 0 : clearSky * Math.max(0, (moon.illum - 0.45) / 0.55); // moonlight only while the moon is up
     // where the sun or moon stands, in landscape units
     const hb = sciHero.getBoundingClientRect(), m = sciLand.getScreenCTM();
-    const left = parseFloat(sun.style.left);
+    const left = parseFloat(light.style.left);
     let x = null;
     if (m && strength > 0.3 && !isNaN(left)) x = new DOMPoint(hb.left + (left / 100) * hb.width, 0).matrixTransform(m.inverse()).x;
     const onLake = x !== null && x > 945 && x < 1430;
@@ -697,7 +697,9 @@ const hull = (pts) => { // convex hull (monotone chain) of a few points
 };
 function castShadows({ h, isDay, sunT }) {
   const alt = sunT.alt(h);
-  const strength = isDay ? Math.min(1, Math.max(0, (alt - 1) / 5)) * (1 - live.overcast * 0.9) * (live.fog ? 0.2 : 1) : 0;
+  // the sun has to be out: full shadows up to about a quarter cloud cover, none when overcast, raining, snowing or foggy
+  const sunOut = Math.min(1, Math.max(0, (0.85 - live.overcast) / 0.6)) * (live.particle || live.fog ? 0 : 1);
+  const strength = isDay ? Math.min(1, Math.max(0, (alt - 1) / 5)) * sunOut : 0;
   setVar('--shadow-o', (0.2 * strength).toFixed(3));
   document.documentElement.classList.toggle('snowman-shadow', $('#snowman').classList.contains('show'));
   if (strength <= 0) return;

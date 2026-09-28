@@ -194,7 +194,8 @@ function paintSky() {
   const sun = $('#sun');
   const nightLen = 24 - (sunT.set - sunT.rise);
   const p = isDay ? (h - sunT.rise) / (sunT.set - sunT.rise) : (((h - sunT.set) + 24) % 24) / nightLen;
-  if (sun.classList.contains('moon') === isDay) sun.classList.toggle('moon', !isDay);
+  const sunVis = isDay ? '' : 'hidden'; // the moon has its own element (extras.js)
+  if (sun.style.visibility !== sunVis) sun.style.visibility = sunVis;
   const narrow = innerWidth < 760, place = skyPlace ?? base();
   const highest = 90 - place.lat + 23.44; // the sun's height at noon on midsummer day
   const lift = isDay ? Math.min(1, Math.max(0, sunT.alt(h) / highest)) : Math.sin(p * Math.PI);
