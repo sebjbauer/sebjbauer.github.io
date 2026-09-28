@@ -180,7 +180,7 @@ Everything pauses when the top of the page is scrolled out of view.
 
 ## Tab icon
 
-The icon in the browser tab is the landscape in miniature: blue sky and sun, a snowy Alp, green hills, the red cottage by the lake. It's drawn live: at night the sky turns dark, tonight's real moon phase and a few stars appear, and the cottage window is lit. The static versions (`favicon.svg`, `favicon.ico`, `favicon-32.png`, `icon-192.png`, and `apple-touch-icon.png` for the iPhone home screen) are the day version; Google and browsers without JavaScript use those.
+The icon in the browser tab is the landscape in miniature: blue sky and sun, a snowy Alp, green hills, the red cottage by the lake. It's drawn live: at night the sky turns dark, tonight's real moon phase and a few stars appear, and the cottage window is lit. The static versions (`favicon.svg`, `favicon.ico`, `favicon-32.png`, `icon-192.png`, and `apple-touch-icon.png` for the iPhone home screen) are the day version; Google and browsers without JavaScript use those. Safari always shows the day version: it doesn't update tab icons after the page has loaded, so the live night icon is only for Chrome, Firefox and Edge.
 
 ## Publications: copy citation and BibTeX
 

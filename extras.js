@@ -101,7 +101,11 @@ const moonTimes = (date, place) => { // today's moonrise and moonset, for the te
 // Same drawing as favicon.svg (the static icon for Google and home screens): by day a blue sky and the
 // sun, at night a dark sky with tonight's moon phase and a lit cottage window.
 let faviconKey = '';
+// Safari doesn't show icons that change after the page has loaded, so it keeps the drawn day icon
+// from the page head (favicon-32.png and friends).
+const safari = /^((?!chrome|chromium|crios|fxios|edg|android).)*safari/i.test(navigator.userAgent);
 function drawFavicon(isDay) {
+  if (safari) return;
   const m = moonPhase(), key = isDay ? 'day' : `night-${Math.round(m.p * 60)}`;
   if (key === faviconKey) return;
   faviconKey = key;
