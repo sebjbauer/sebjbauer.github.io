@@ -349,7 +349,7 @@ function setupHiker() {
 
   let pos = 0, target = stops[start.dataset.k], visible = false, raf = 0, last = 0, walkSpeed = 0.09;
   const place = (t) => {
-    const pt = trail.getPointAtLength(pos);
+    const pt = pointAt(trail, pos);
     g.setAttribute('transform', `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
     const walking = Math.abs(target - pos) > 0.5;
     g.classList.toggle('sitting', !walking && fikaTime());

@@ -68,6 +68,21 @@ const varCache = {};
 function setVar(k, v) { v = String(v); if (varCache[k] !== v) { varCache[k] = v; document.documentElement.style.setProperty(k, v); } }
 function setData(k, v) { if (document.documentElement.dataset[k] !== v) document.documentElement.dataset[k] = v; }   // extras.js hooks in here: fn({ h, d, isDay, sunT })
 
+// Points along an SVG path, for things that move along one every frame. getPointAtLength is slow on
+// phones (Safari measures the curve again on every call), so each path is sampled once, every 0.5
+// units, and later points are read from that table.
+const pathTables = new WeakMap();
+function pointAt(path, at) {
+  let t = pathTables.get(path);
+  if (!t) {
+    const len = path.getTotalLength(), n = Math.max(2, Math.ceil(len * 2)), xs = new Float32Array(n + 1), ys = new Float32Array(n + 1);
+    for (let i = 0; i <= n; i++) { const p = path.getPointAtLength((len * i) / n); xs[i] = p.x; ys[i] = p.y; }
+    t = { len, n, xs, ys }; pathTables.set(path, t);
+  }
+  const f = Math.min(t.n, Math.max(0, (at / t.len) * t.n)), i = Math.min(t.n - 1, Math.floor(f)), k = f - i;
+  return { x: t.xs[i] + (t.xs[i + 1] - t.xs[i]) * k, y: t.ys[i] + (t.ys[i + 1] - t.ys[i]) * k };
+}
+
 const hex2rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 const rgb2hex = (c) => '#' + c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
 const mix = (a, b, t) => (typeof a === 'number' ? a + (b - a) * t : rgb2hex(hex2rgb(a).map((v, i) => v + (hex2rgb(b)[i] - v) * t)));

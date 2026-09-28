@@ -212,7 +212,7 @@ function travel(el, path, ms, { from = 0, to = 1, onStep } = {}) {
     const step = (t) => {
       if (!t0) t0 = t;
       const k = Math.min(1, (t - t0) / ms), at = len * (from + (to - from) * k);
-      const p = path.getPointAtLength(at), q = path.getPointAtLength(Math.min(len, at + 1));
+      const p = pointAt(path, at), q = pointAt(path, Math.min(len, at + 1));
       onStep ? onStep(p, q, t) : el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
       if (k < 1) requestAnimationFrame(step); else done();
     };
@@ -222,6 +222,40 @@ function travel(el, path, ms, { from = 0, to = 1, onStep } = {}) {
 
 // the penguin: every 5th click on the cottage it walks out, does a loop and goes back in
 let cottageClicks = 0, penguinOut = false;
+/* ---------------- the penguin on a layer of its own ---------------- */
+// On phones, anything that moves inside the big landscape drawing makes the browser redraw all of it on
+// every frame. So the penguin lives in a small SVG of its own that is slid across the scene with a CSS
+// transform (the graphics chip does that for free); only its waddle is redrawn, in that small SVG.
+// placePenguin(x, y) takes the same landscape coordinates as before.
+const penguinEl = $('#penguin'), fxSvg = $('#landscapeFx'), SPRITE = 1.45; // drawn at the largest size it gets, then scaled down
+const pgSprite = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+pgSprite.setAttribute('class', 'sprite'); pgSprite.setAttribute('aria-hidden', 'true');
+pgSprite.setAttribute('viewBox', '-20 -24 40 32'); pgSprite.setAttribute('preserveAspectRatio', 'none');
+pgSprite.append($('#pgClip').parentNode, penguinEl); // its clip paths come along
+fxSvg.after(pgSprite);
+let spriteM = null;
+function spriteMatrix() { // landscape units → pixels in the hero (the phone view stretches x and y differently)
+  if (spriteM) return spriteM;
+  const m = fxSvg.getScreenCTM(), hero = fxSvg.parentNode.getBoundingClientRect();
+  if (!m) return { a: 1, d: 1, e: 0, f: 0 };
+  spriteM = { a: m.a, d: m.d, e: m.e - hero.left, f: m.f - hero.top };
+  const k = SPRITE;
+  Object.assign(pgSprite.style, { width: `${40 * m.a * k}px`, height: `${32 * m.d * k}px`, left: `${-20 * m.a * k}px`, top: `${-24 * m.d * k}px`, transformOrigin: `${20 * m.a * k}px ${24 * m.d * k}px` });
+  return spriteM;
+}
+addEventListener('resize', () => { spriteM = null; });
+// the front door opens while the penguin stands in the doorway, going out or coming home
+const stugaDoor = $('#stugaDoor');
+let doorTimer = 0;
+function placePenguin(x, y, scale = 1, dy = 0) {
+  const m = spriteMatrix();
+  pgSprite.style.transform = `translate3d(${(m.a * x + m.e).toFixed(1)}px, ${(m.d * (y + dy) + m.f).toFixed(1)}px, 0) scale(${(scale / SPRITE).toFixed(3)})`;
+  if (Math.hypot(x - 1195, y - 447) < 2.2) { clearTimeout(doorTimer); doorTimer = 0; stugaDoor.classList.add('open'); }
+  else if (stugaDoor.classList.contains('open') && !doorTimer) doorTimer = setTimeout(() => { stugaDoor.classList.remove('open'); doorTimer = 0; }, 450);
+}
+// back inside: close the door behind it
+new MutationObserver(() => { if (!penguinEl.classList.contains('out')) placePenguin(1195, 400); }).observe(penguinEl, { attributes: true, attributeFilter: ['class'] });
+
 const penguinLoop = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 penguinLoop.setAttribute('d', 'M1195 447 C1212 447 1236 448 1238 452 C1240 457 1218 461 1195 461 C1170 461 1150 457 1152 452 C1154 448 1178 447 1195 447');
 penguinLoop.setAttribute('fill', 'none');
@@ -247,13 +281,13 @@ async function penguinGrill() {
   const root = document.documentElement, pg = $('#penguin'), flip = pg.querySelector('.pg-flip'), waddle = pg.querySelector('.pg-waddle');
   const spatula = pg.querySelector('.pg-spatula');
   waddle.removeAttribute('clip-path'); pg.querySelector('.pg-ripple').style.opacity = 0;
-  pg.classList.add('out', 'grill');
+  spriteM = null; pg.classList.add('out', 'grill');
   const walk = (from, to, ms) => new Promise((done) => {
     let t0 = 0;
     const step = (t) => {
       if (!t0) t0 = t;
       const k = Math.min(1, (t - t0) / ms);
-      pg.setAttribute('transform', `translate(${(from + (to - from) * k).toFixed(1)} 447)`);
+      placePenguin(from + (to - from) * k, 447);
       flip.setAttribute('transform', to < from ? 'scale(-1 1)' : '');
       waddle.setAttribute('transform', `rotate(${(Math.sin(t / 90) * 9).toFixed(1)})`);
       if (k < 1) requestAnimationFrame(step); else done();
@@ -286,11 +320,11 @@ async function penguinWalk() {
   penguinOut = true;
   const pg = $('#penguin'), flip = pg.querySelector('.pg-flip'), waddle = pg.querySelector('.pg-waddle'), ripple = pg.querySelector('.pg-ripple');
   const frozen = live.frozen;
-  pg.classList.add('out');
+  spriteM = null; pg.classList.add('out');
   await travel(pg, penguinLoop, 11000, {
     onStep: (p, q, t) => {
       const onWater = p.y > 450.5 && !frozen, depth = 1 + (p.y - 447) * 0.014; // a little bigger when it comes towards you
-      pg.setAttribute('transform', `translate(${p.x.toFixed(1)} ${(p.y + (onWater ? 2.5 : 0)).toFixed(1)}) scale(${depth.toFixed(3)})`);
+      placePenguin(p.x, p.y, depth, onWater ? 2.5 : 0);
       flip.setAttribute('transform', q.x < p.x ? 'scale(-1 1)' : '');
       waddle.setAttribute('transform', onWater ? '' : `rotate(${(Math.sin(t / 90) * 9).toFixed(1)})`);
       if (onWater) waddle.setAttribute('clip-path', 'url(#pgClip)'); else waddle.removeAttribute('clip-path');
@@ -302,11 +336,14 @@ async function penguinWalk() {
   penguinOut = false;
 }
 
+// write an attribute only when it changes (every write makes the browser restyle; null removes it)
+const setAttr = (el, name, v) => { if (el.getAttribute(name) !== v) { if (v === null) el.removeAttribute(name); else el.setAttribute(name, v); } };
+let pgDrawn = 0;
 // The penguin follows a route of steps. Poses: walk (waddle), slide (belly), jump, hop, bend, swim, paddle (kayak), wait.
 async function penguinRoute(steps) {
   const pg = $('#penguin'), flip = pg.querySelector('.pg-flip'), waddle = pg.querySelector('.pg-waddle'), ripple = pg.querySelector('.pg-ripple');
   waddle.removeAttribute('clip-path'); ripple.style.opacity = 0;
-  pg.classList.add('out');
+  spriteM = null; pg.classList.add('out');
   let pos = [1195, 447], dir = 1;
   for (const s of steps) {
     const from = pos, to = s.to || pos;
@@ -316,6 +353,8 @@ async function penguinRoute(steps) {
       const step = (t) => {
         if (!t0) t0 = t;
         const k = Math.min(1, (t - t0) / s.ms);
+        if (k < 1 && t - pgDrawn < 15) { requestAnimationFrame(step); return; } // at most 60 frames a second (phones run at 120)
+        pgDrawn = t;
         const e = s.pose === 'slide' ? 1 - (1 - k) ** 2 : k; // slides slow down
         let x = from[0] + (to[0] - from[0]) * e, y = from[1] + (to[1] - from[1]) * e, pose = '';
         if (s.pose === 'walk') pose = `rotate(${(Math.sin(t / (s.fast ? 55 : 90)) * 9).toFixed(1)})`;
@@ -327,11 +366,12 @@ async function penguinRoute(steps) {
         const swimming = s.pose === 'swim', paddling = s.pose === 'paddle';
         if (paddling) { pose = `translate(0 2.9) rotate(${(Math.sin(t / 420) * 3).toFixed(1)})`; /* sitting in the cockpit */ pg.querySelector('.pg-paddle').setAttribute('transform', `rotate(${(Math.sin(t / 280) * 26).toFixed(0)} 0 -6)`); }
         pg.classList.toggle('kayak', paddling);
-        pg.setAttribute('transform', `translate(${x.toFixed(1)} ${(y + (swimming ? 2.5 : 0)).toFixed(1)}) scale(${(1 + (y - 447) * 0.014).toFixed(3)})`);
-        flip.setAttribute('transform', dir < 0 ? 'scale(-1 1)' : '');
-        waddle.setAttribute('transform', pose);
-        if (swimming || paddling) waddle.setAttribute('clip-path', `url(#${paddling ? 'pgClipKayak' : 'pgClip'})`); else waddle.removeAttribute('clip-path');
-        ripple.style.opacity = swimming ? 0.6 : 0;
+        placePenguin(x, y, 1 + (y - 447) * 0.014, swimming ? 2.5 : 0);
+        setAttr(flip, 'transform', dir < 0 ? 'scale(-1 1)' : '');
+        setAttr(waddle, 'transform', pose);
+        setAttr(waddle, 'clip-path', swimming || paddling ? `url(#${paddling ? 'pgClipKayak' : 'pgClip'})` : null);
+        const rip = swimming ? '0.6' : '0';
+        if (ripple.style.opacity !== rip) ripple.style.opacity = rip;
         if (s.tick) s.tick(k, pg);
         if (k < 1) requestAnimationFrame(step); else done();
       };
@@ -542,15 +582,6 @@ const penguinKayak = () => penguinRoute([
 ]);
 const calm = () => ((simulated || weatherNow)?.wind ?? 0) < 15;
 
-// The front door opens whenever the penguin stands in the doorway (going out or coming home).
-const stugaDoor = $('#stugaDoor'), penguinEl = $('#penguin');
-let doorTimer = 0;
-new MutationObserver(() => {
-  const m = /translate\(([\d.]+) ([\d.]+)\)/.exec(penguinEl.getAttribute('transform') || '');
-  const inDoorway = penguinEl.classList.contains('out') && m && Math.hypot(m[1] - 1195, m[2] - 447) < 2.2;
-  if (inDoorway) { clearTimeout(doorTimer); doorTimer = 0; stugaDoor.classList.add('open'); }
-  else if (stugaDoor.classList.contains('open') && !doorTimer) doorTimer = setTimeout(() => { stugaDoor.classList.remove('open'); doorTimer = 0; }, 450);
-}).observe(penguinEl, { attributes: true, attributeFilter: ['transform', 'class'] });
 
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date()); // 2026-11-16
 const outDoor = [ // out of the door, along the veranda and down the step
@@ -718,7 +749,7 @@ const snowyRoad = () => currentSeason() === 'winter' || live.particle === 'snow'
 let tracksFade = 0;
 function alongRoad(el, { reverse = false, back = !reverse, speed = 70, onStep, tracks = false } = {}) {
   const len = road.getTotalLength();
-  let pos = 0, last = 0, leg = 0, reached = 0;
+  let pos = 0, last = 0, leg = 0, reached = 0, drawnAt = 0;
   const tr = tracks && !reverse && snowyRoad() ? $('#tracks') : null; // tyre or ski tracks, drawn as the figure goes
   if (tr) { clearTimeout(tracksFade); tr.style.strokeDasharray = `${len} ${len}`; tr.style.strokeDashoffset = len; tr.classList.add('on'); }
   return new Promise((done) => {
@@ -729,10 +760,13 @@ function alongRoad(el, { reverse = false, back = !reverse, speed = 70, onStep, t
       const towardsLake = reverse ? leg === 1 : leg === 0;
       const d = Math.min(len, pos), at = towardsLake ? d : len - d;
       if (tr && at > reached) { reached = at; tr.style.strokeDashoffset = len - reached; }
-      const p = road.getPointAtLength(at), q = road.getPointAtLength(Math.min(len, at + 2));
-      const angle = Math.atan2(q.y - p.y, q.x - p.x) * 180 / Math.PI;
-      el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${angle.toFixed(1)})${towardsLake ? '' : ' scale(-1 1)'}`);
-      if (onStep) onStep(t, p);
+      const p = pointAt(road, at), q = pointAt(road, Math.min(len, at + 2));
+      if (t - drawnAt >= 15 || pos >= len) { // at most 60 frames a second (phones run at 120)
+        drawnAt = t;
+        const angle = Math.atan2(q.y - p.y, q.x - p.x) * 180 / Math.PI;
+        el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${angle.toFixed(1)})${towardsLake ? '' : ' scale(-1 1)'}`);
+        if (onStep) onStep(t, p);
+      }
       if (pos < len) requestAnimationFrame(step);
       else { if (tr) { tr.classList.remove('on'); tracksFade = setTimeout(() => { tr.style.strokeDasharray = ''; }, 21000); } done(); }
     };
@@ -1271,6 +1305,8 @@ const herd = [[395, 447], [462, 455], [548, 444]].map(([x, y], i) => {
   return { el, flip: el.querySelector('.cow-flip'), head: el.querySelector('.head'), back: el.querySelector('.legs.back'), front: el.querySelector('.legs.front'),
     x, y, tx: x, ty: y, dir: i === 1 ? -1 : 1, walking: false, until: performance.now() + 2000 + Math.random() * 6000, busy: false };
 });
+// now and then a cow swishes its tail
+every(3, 8, () => { if (!heroVisible() || reduceMotion) return; const c = herd[Math.floor(Math.random() * herd.length)].el; c.classList.add('swish'); setTimeout(() => c.classList.remove('swish'), 1000); });
 function drawCow(c, t = 0) {
   const s = 0.95 + (c.y - 440) * 0.012; // a little bigger closer to us
   c.el.setAttribute('transform', `translate(${c.x.toFixed(1)} ${c.y.toFixed(1)}) scale(${(s * c.dir).toFixed(3)} ${s.toFixed(3)})`);
@@ -1440,6 +1476,8 @@ setInterval(() => {
 /* ---------------- the owl ---------------- */
 // At night two eyes blink in the Swedish forest. Tap them and the owl flies off (back in 2 minutes).
 const owl = $('#owl');
+// the owl blinks every few seconds (only when it's out)
+every(4, 8, () => { if (getComputedStyle(owl).display === 'none' || !heroVisible()) return; owl.classList.add('blink'); setTimeout(() => owl.classList.remove('blink'), 160); });
 owl.querySelector('.hit').addEventListener('click', async () => {
   if (owl.classList.contains('flying') || owl.classList.contains('gone') || reduceMotion) return;
   owl.classList.add('flying');
@@ -1458,6 +1496,15 @@ owl.querySelector('.hit').addEventListener('click', async () => {
 /* ---------------- night fishing ---------------- */
 // On mild nights (not in winter, not in rain or fog) a rowing boat with a lantern drifts on the lake.
 const rowboat = $('#rowboat');
+// the boat drifts slowly and rocks on the water: a few updates a second are plenty for movements this slow
+const rbDrift = rowboat.querySelector('.rb-drift'), rbRock = rowboat.querySelector('.rb-rock');
+setInterval(() => {
+  if (!rowboat.classList.contains('show') || !heroVisible() || reduceMotion) return;
+  const t = performance.now() / 1000, u = (1 - Math.cos((t / 110) * Math.PI)) / 2; // 0 → 1 → 0 over 220 s, eased like before
+  const x = u < 0.5 ? -40 + 60 * (u * 2) : 20 + 70 * ((u - 0.5) * 2), y = u < 0.5 ? 1.5 * u * 2 : 1.5 - 2.5 * ((u - 0.5) * 2);
+  rbDrift.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(2)})`);
+  rbRock.style.transform = `rotate(${(Math.sin((t / 5) * Math.PI) * 1.6).toFixed(2)}deg)`;
+}, 200);
 const boatState = () => rowboat.classList.toggle('show', params.has('boat') ||
   (lastSky.d > 0.7 && currentSeason() !== 'winter' && !live.frozen && !live.particle && !live.fog));
 skyHooks.push(boatState);

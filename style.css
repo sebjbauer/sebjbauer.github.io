@@ -332,9 +332,10 @@ kbd {
 #cows.cold .cow .scarf { display: inline; }
 .cow.sleep .legs { display: none; }
 .cow.sleep .cow-body { transform: translateY(2.4px); }
-.cow .tail { transform-box: fill-box; transform-origin: top; animation: swish 7s ease-in-out infinite; }
+.cow .tail { transform-box: fill-box; transform-origin: top; }
+.cow.swish .tail { animation: swish .9s ease-in-out; } /* now and then, started by gadgets.js (no endless loop to redraw) */
 .cow:nth-child(2) .tail { animation-delay: -2.3s; } .cow:nth-child(3) .tail { animation-delay: -4.6s; }
-@keyframes swish { 0%, 80%, 100% { transform: rotate(0); } 86% { transform: rotate(28deg); } 92% { transform: rotate(-18deg); } }
+@keyframes swish { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(28deg); } 65% { transform: rotate(-18deg); } }
 [data-daylight="no"] .cow .body, [data-daylight="no"] .cow .face { fill: #A9ADB1; }
 /* the UFO */
 .ufo { display: none; }
@@ -406,6 +407,8 @@ kbd {
 .fish.show { display: inline; }
 .fish path { fill: var(--figure); }
 .cyclist, .skier, .penguin { display: none; }
+/* the penguin's own small layer, slid across the scene by gadgets.js (placePenguin) */
+.sprite { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; will-change: transform; }
 .cyclist.out, .skier.out, .penguin.out { display: inline; }
 .cyclist .tucked { display: none; }
 .cyclist.tuck .tucked { display: inline; }
@@ -534,9 +537,9 @@ kbd {
 /* owl */
 .owl { display: none; }
 [data-daylight="no"] .owl { display: inline; }
-.owl-eyes circle { fill: #F2D45C; animation: owl-blink 6s steps(1) infinite; }
+.owl-eyes circle { fill: #F2D45C; }
+.owl.blink .owl-eyes circle { opacity: 0; } /* a blink every few seconds, from gadgets.js */
 .owl-eyes circle + circle { animation-delay: 0s; }
-@keyframes owl-blink { 0%, 93%, 97%, 100% { opacity: 1; } 94%, 96% { opacity: 0; } }
 .owl-bird { display: none; }
 .owl.flying .owl-bird { display: inline; }
 .owl.flying .owl-eyes, .owl.gone .owl-eyes { display: none; }
@@ -580,9 +583,9 @@ kbd {
 .cake.show, .penguin.carrycake .pg-cake { display: inline; }
 .cake-plate ellipse { fill: #E9E6DF; } .cake-body { fill: #F3E3C3; } .cake-icing { fill: #E98AA5; }
 .cake-candles path { stroke: #7FB3E0; stroke-width: .3; }
-.cake-flames ellipse { fill: #FFC24A; transform-box: fill-box; transform-origin: 50% 100%; animation: cake-flicker .5s ease-in-out infinite alternate; }
+.cake-flames ellipse { fill: #FFC24A; transform-box: fill-box; transform-origin: 50% 100%; }
+.cake.show:not(.out) .cake-flames ellipse, .penguin.carrycake .cake-flames ellipse { animation: cake-flicker .5s ease-in-out infinite alternate; }
 .cake.out .cake-flames { display: none; }
-.cake:not(.show) .cake-flames ellipse { animation: none; }
 @keyframes cake-flicker { to { transform: scaleY(.75) skewX(6deg); } }
 .cake .hit { fill: transparent; pointer-events: all; cursor: pointer; }
 .penguin.stargaze .pg-scope { display: inline; }
@@ -591,10 +594,8 @@ kbd {
 /* night fishing */
 .rowboat { display: none; }
 .rowboat.show { display: inline; }
-.rb-drift { animation: rb-drift 110s ease-in-out infinite alternate; }
-@keyframes rb-drift { from { transform: translate(-40px, 0); } 50% { transform: translate(20px, 1.5px); } to { transform: translate(90px, -1px); } }
-.rb-rock { transform-box: fill-box; transform-origin: 50% 90%; animation: rb-rock 5s ease-in-out infinite alternate; }
-@keyframes rb-rock { from { transform: rotate(-1.6deg); } to { transform: rotate(1.6deg); } }
+/* the rowboat's drift and rocking: moved by gadgets.js a few times a second (slow, so no need for 60 frames) */
+.rb-rock { transform-box: fill-box; transform-origin: 50% 90%; }
 .rb-hull { fill: #5C3E27; }
 .rb-plank { fill: none; stroke: #43301F; stroke-width: .35; }
 .rb-rim { stroke: #8A6441; stroke-width: .7; stroke-linecap: round; }

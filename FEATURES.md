@@ -385,7 +385,7 @@ Like a real shell: **Tab** completes commands and their options (`sky d` → Tab
 
 ## Speed
 
-The web fonts load without holding up the first paint (for a split second the text shows in a system font), and the portrait is 560 px and 37 KB (it's shown at up to about 280 px).
+Smooth on phones (which redraw up to 120 times a second): the penguin moves on a small layer of its own that the graphics chip slides across the scene, instead of inside the big landscape drawing; the penguin and the figures on the road redraw at most 60 times a second, cows, ducks and the chairlift 16 to 30 times; points along the road and paths are looked up in a table made once instead of measured every frame; and nothing loops endlessly in the landscape when it isn't needed (cow tails swish and the owl blinks now and then, the rowboat drifts with a few updates a second, hidden candles don't flicker). The web fonts load without holding up the first paint (for a split second the text shows in a system font), and the portrait is 560 px and 37 KB (it's shown at up to about 280 px).
 
 ## Quality (checked 24 September 2026)
 
