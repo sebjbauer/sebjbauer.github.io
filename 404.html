@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Trail not found · Sebastian Bauer</title>
+  <meta name="robots" content="noindex">
+  <!-- GitHub Pages shows this page for every address that doesn't exist. Everything is inline, and
+       all links start with "/", so it works at any depth (e.g. /old/page). -->
+  <link rel="icon" href="/favicon-32.png?v=2" sizes="32x32" type="image/png">
+  <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600&family=Martian+Mono:wght@400&display=swap" media="print" onload="this.media='all'">
+  <!-- visitor statistics (no cookies): broken links show up as "404/…" in the dashboard -->
+  <script>window.goatcounter = { path: () => '404' + location.pathname };</script>
+  <script data-goatcounter="https://sebjbauer.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+  <style>
+    :root {
+      --sky-top: #9CC3DE; --sky-bot: #EEF4F7; --ice: #F7FAFB; --ice-far: #E3ECF1; --ridge: #D5E0E7;
+      --mount: #A9BCC9; --mount-far: #C3D2DC; --mount-snow: #F4F8FA;
+      --text: #111111; --muted: #4E5A62; --accent: #B8520F; --line: rgba(17, 17, 17, .18);
+      --print: #7F97A8; --stars: 0;
+      --sans: 'Familjen Grotesk', 'Helvetica Neue', Arial, sans-serif; --mono: 'Martian Mono', ui-monospace, Menlo, monospace;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) { /* polar night */
+      :root {
+        --sky-top: #050A14; --sky-bot: #1A2A3A; --ice: #2A3743; --ice-far: #223040; --ridge: #34424E;
+        --mount: #1E2B38; --mount-far: #263545; --mount-snow: #7D8FA0;
+        --text: #EDEDED; --muted: #A9B4BC; --accent: #F2A15A; --line: rgba(237, 237, 237, .22);
+        --print: #121B24; --stars: 1; color-scheme: dark;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body { background: var(--ice); color: var(--text); font-family: var(--sans); overflow: hidden; }
+    .sky { position: fixed; inset: 0; background: linear-gradient(var(--sky-top), var(--sky-bot) 55%, var(--sky-bot)); }
+    .scene { position: fixed; left: 0; right: 0; bottom: 0; width: 100%; height: 62%; display: block; }
+    .stars { opacity: var(--stars); }
+    .text { position: relative; z-index: 1; padding: max(28px, env(safe-area-inset-top)) 24px 0; max-width: 560px; margin-left: max(0px, calc((100vw - 1100px) / 2)); }
+    .home { font-weight: 600; font-size: 17px; color: var(--text); text-decoration: none; letter-spacing: -.01em; }
+    h1 { font-family: var(--mono); font-weight: 400; font-size: 13px; letter-spacing: .12em; color: var(--muted); margin: 11vh 0 10px; }
+    .lead { font-size: clamp(30px, 6vw, 46px); font-weight: 600; letter-spacing: -.02em; line-height: 1.08; margin: 0 0 14px; }
+    .sub { font-size: 16px; line-height: 1.55; color: var(--muted); margin: 0 0 22px; max-width: 30em; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; font-size: 15px; }
+    .btn { display: inline-block; padding: 9px 16px; border-radius: 999px; background: var(--text); color: var(--ice); text-decoration: none; font-weight: 500; }
+    .actions a:not(.btn) { color: var(--text); text-underline-offset: 3px; text-decoration-color: var(--line); }
+    .actions a:not(.btn):hover { text-decoration-color: currentColor; }
+    /* the scene */
+    .pg-black { fill: #15181B; } .pg-white { fill: #F4F4F2; } .pg-orange { fill: #EE9A2E; }
+    #walker { cursor: pointer; }
+    .print { fill: var(--print); opacity: .45; }
+    @media (max-width: 600px) { h1 { margin-top: 8vh; } }
+  </style>
+</head>
+<body>
+  <div class="sky"></div>
+  <main class="text">
+    <a class="home" href="/">Sebastian Bauer</a>
+    <h1>404 · TRAIL NOT FOUND</h1>
+    <p class="lead">This trail doesn’t exist.</p>
+    <p class="sub">One penguin left the colony and is walking towards the mountains. Nobody knows why. You don’t have to follow it.</p>
+    <p class="actions">
+      <a class="btn" href="/">← Back to the start</a>
+      <a href="/#publications">Publications</a>
+      <a href="/#talks">Talks</a>
+      <a href="/cv.pdf">CV</a>
+    </p>
+  </main>
+
+  <svg class="scene" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs>
+      <!-- the penguin from the cottage, facing right -->
+      <g id="pg">
+        <ellipse class="pg-black" cx="0" cy="-5.2" rx="3.4" ry="5.2"/><ellipse class="pg-white" cx="1" cy="-4.8" rx="2.1" ry="3.9"/>
+        <circle class="pg-black" cx="0.4" cy="-10.6" r="2.7"/><circle class="pg-white" cx="1.5" cy="-11.2" r="0.55"/>
+        <path class="pg-orange" d="M2.8 -10.8 l2.2 0.6 -2.2 0.5Z"/><path class="pg-black" d="M-2.8 -7.4 q-1.9 3.2 -0.4 5.3 q0.8 -2.6 0.4 -5.3Z"/>
+        <ellipse class="pg-orange" cx="-0.9" cy="0" rx="1.4" ry="0.55"/><ellipse class="pg-orange" cx="1.5" cy="0" rx="1.4" ry="0.55"/>
+      </g>
+    </defs>
+    <g class="stars" fill="#fff"><circle cx="120" cy="40" r="1"/><circle cx="310" cy="90" r=".8"/><circle cx="520" cy="30" r="1.1"/><circle cx="690" cy="110" r=".7"/><circle cx="860" cy="55" r="1"/><circle cx="1010" cy="120" r=".8"/><circle cx="1130" cy="35" r="1.1"/><circle cx="410" cy="150" r=".6"/><circle cx="950" cy="180" r=".7"/></g>
+    <!-- mountains on the horizon, far away -->
+    <path fill="var(--mount-far)" d="M560 262 L640 214 L690 236 L760 186 L820 226 L880 200 L960 244 L1040 206 L1120 238 L1200 222 V262 Z"/>
+    <path fill="var(--mount)" d="M700 262 L770 224 L805 238 L850 208 L905 246 L950 228 L1010 262 Z"/>
+    <path fill="var(--mount-snow)" d="M760 186 L772 196 L766 200 L752 194 Z M1040 206 L1051 214 L1040 216 L1030 213 Z M850 208 L861 218 L852 220 L842 217 Z M640 214 L650 221 L640 223 L631 220 Z"/>
+    <!-- the ice: flat all the way to the horizon, with a few wind ridges -->
+    <rect x="0" y="262" width="1200" height="200" fill="var(--ice)"/>
+    <rect x="0" y="262" width="1200" height="14" fill="var(--ice-far)"/>
+    <g fill="none" stroke="var(--ridge)" stroke-width="1.2" stroke-linecap="round">
+      <path d="M40 300 q60 -3 140 0"/><path d="M520 290 q50 -2 110 0"/><path d="M980 305 q70 -3 160 1"/><path d="M300 350 q80 -4 190 0"/><path d="M760 360 q70 -3 170 1"/><path d="M90 420 q90 -4 230 0"/><path d="M620 430 q100 -4 250 0"/>
+    </g>
+    <!-- the colony, busy with itself -->
+    <g id="colony"></g>
+    <g id="prints"></g>
+    <use href="#pg" id="walker"/>
+  </svg>
+
+  <script>
+    // The colony: small penguins standing about on the left, nearer ones bigger.
+    const NS = 'http://www.w3.org/2000/svg', colony = document.getElementById('colony');
+    let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const birds = Array.from({ length: 34 }, () => { const y = 330 + rnd() * 95; return { x: 30 + rnd() * 300 + (y - 330) * 0.6, y }; }).sort((a, b) => a.y - b.y);
+    birds.forEach(({ x, y }) => {
+      const u = document.createElementNS(NS, 'use'), s = 1.3 + (y - 330) / 95 * 1.4;
+      u.setAttribute('href', '#pg');
+      u.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(rnd() < 0.5 ? -s : s).toFixed(2)} ${s.toFixed(2)})`);
+      colony.appendChild(u);
+    });
+
+    // The one that leaves: from the edge of the colony towards the mountains. It slows down and
+    // shrinks with the distance, so it never quite gets there. Footprints stay behind it.
+    const walker = document.getElementById('walker'), prints = document.getElementById('prints');
+    const from = { x: 420, y: 410, s: 3.2 }, to = { x: 700, y: 266, s: 0.35 };
+    // phones (portrait): show the whole scene across the width instead of cropping it
+    const scene = document.querySelector('.scene');
+    const fit = () => {
+      const narrow = innerWidth / innerHeight < 1.1;
+      scene.setAttribute('viewBox', narrow ? '0 150 760 310' : '0 0 1200 460');
+      scene.setAttribute('preserveAspectRatio', narrow ? 'xMinYMax meet' : 'xMidYMax slice');
+    };
+    fit(); addEventListener('resize', fit);
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let t = 0, last = 0, drawn = 0, paused = 0, look = 0, lastPrint = null, foot = 0;
+    const place = (p, sway, flip) => {
+      const x = from.x + (to.x - from.x) * p, y = from.y + (to.y - from.y) * p, s = from.s + (to.s - from.s) * p;
+      walker.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${(flip ? -s : s).toFixed(3)} ${s.toFixed(3)}) rotate(${sway.toFixed(1)})`);
+      return { x, y, s };
+    };
+    function frame(now) {
+      if (now - drawn < 33) { requestAnimationFrame(frame); return; } // 30 frames a second is plenty
+      drawn = now;
+      const dt = last ? Math.min(1000, now - last) : 16; last = now; // real time, so the pace is right even when frames are slow
+      if (paused > now) { place(1 - Math.exp(-t / 45000), 0, look > now); requestAnimationFrame(frame); return; }
+      t += dt;
+      const p = 1 - Math.exp(-t / 45000); // fast at first, then slower and slower
+      const pos = place(p, Math.sin(t / 110) * 8, false);
+      if (!lastPrint || Math.hypot(pos.x - lastPrint.x, pos.y - lastPrint.y) > 3.2 * pos.s) {
+        foot ^= 1;
+        const e = document.createElementNS(NS, 'ellipse');
+        e.setAttribute('class', 'print');
+        e.setAttribute('cx', (pos.x - 1.5 * pos.s).toFixed(1)); e.setAttribute('cy', (pos.y + (foot ? -0.4 : 0.4) * pos.s).toFixed(1));
+        e.setAttribute('rx', (0.9 * pos.s).toFixed(2)); e.setAttribute('ry', (0.3 * pos.s).toFixed(2));
+        prints.appendChild(e); lastPrint = pos;
+        if (prints.childElementCount > 160) prints.firstChild.remove();
+      }
+      if (p < 0.995) requestAnimationFrame(frame);
+    }
+    if (reduce) place(0.45, 0, false);
+    else { place(0, 0, false); setTimeout(() => requestAnimationFrame(frame), 900); }
+    // Tap it: it stops, looks back at you for a moment, and then carries on anyway.
+    walker.addEventListener('click', () => {
+      if (reduce || paused > performance.now()) return;
+      const now = performance.now();
+      paused = now + 2600; look = now + 1900;
+    });
+  </script>
+</body>
+</html>

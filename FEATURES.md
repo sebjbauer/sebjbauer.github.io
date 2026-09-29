@@ -197,6 +197,12 @@ Above the papers: a map with my pin in Stockholm (orange) and a green pin for ev
 - **Settings** at the top of `cv/coauthors.py`: my base (`HOME`, now Stockholm), the merge distance (`MERGE_KM`), and `MAX_AUTHORS` (papers with more than 40 authors are left out so a big consortium paper doesn't flood the map).
 - **Locally:** `python3 cv/coauthors.py` (the preview server runs it on start). `coauthors.json` is generated, so it's in .gitignore like cv-data.js.
 
+## The 404 page (`404.html`)
+
+Any address on the site that doesn't exist shows this page instead of GitHub's plain error. A white ice plain under a wide sky (polar night in dark mode), mountains on the horizon, a penguin colony on the left, and one penguin that has left the colony and walks towards the mountains, alone (a nod to the lone penguin from Werner Herzog's *Encounters at the End of the World*). It slows down and shrinks with the distance, leaving footprints, and never quite arrives. Tap it and it stops, looks back at you for a moment, and carries on anyway. Text: "This trail doesn't exist", with links back to the start, Publications, Talks and the CV. On phones the whole scene fits the width.
+
+The page is standalone (its own styles, no site scripts) and all links start with `/`, so it works at any depth. GoatCounter counts it as `404/<the missing address>`, so broken links show up in the dashboard. Preview locally: `/404.html` (the local server doesn't show it for missing pages; GitHub Pages does).
+
 ## Email
 
 Clicking **Email** in Contact opens the visitor's mail app *and* copies the address, with a short "Address copied" note, for people without a mail app.
