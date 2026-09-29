@@ -1039,6 +1039,7 @@ const BACKSTAGE = [
   ['Seasons and holidays', [
     ['winter', show({ season: 'winter' })], ['spring', show({ season: 'spring' })], ['summer', show({ season: 'summer' })], ['autumn', show({ season: 'autumn' })],
     ['christmas', show({}, () => COMMANDS.holiday('christmas'), 0)], ['easter', show({}, () => COMMANDS.holiday('easter'), 0)], ['midsommar', show({}, () => COMMANDS.holiday('midsommar'), 0)],
+    ['World Penguin Day (25 April)', show({ sky: 'day', season: 'spring', weather: 'clear' }, () => { penguinDayPreview = true; paintSky(); tickClock(); penguinSolo(penguinGreet, true); }, 600)],
   ]],
   ['On the road', [
     ['cyclist', show({ sky: 'day' }, () => ride({ force: true }))],
@@ -1065,6 +1066,7 @@ const BACKSTAGE = [
     ['night fishing', show({ sky: 'night', season: 'summer', weather: 'clear' })],
     ['ice skater', show({ sky: 'day', season: 'winter', weather: 'frost' })],
     ['ice hockey', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => iceHockey(true))],
+    ['beaver', show({ sky: 'dusk', season: 'autumn', weather: 'clear' }, () => beaverSwim(true), 1200)],
   ]],
   ['The penguin', [
     ['walk', show({}, () => penguinSolo(penguinWalk, true))],
@@ -1079,13 +1081,8 @@ const BACKSTAGE = [
     ['kayak', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => penguinSolo(penguinKayak, true))],
     ['blueberries', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => { berryPreview = true; paintSky(); penguinSolo(penguinBlueberries, true); })],
     ['footprints in the snow', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => penguinSolo(penguinStroll, true))],
-    ['hare or fox tracks', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => { trackPreview = true; drawTracks(); }, 300)],
-    ['beaver', show({ sky: 'dusk', season: 'autumn', weather: 'clear' }, () => beaverSwim(true), 1200)],
-    ['World Penguin Day (25 April)', show({ sky: 'day', season: 'spring', weather: 'clear' }, () => { penguinDayPreview = true; paintSky(); tickClock(); penguinSolo(penguinGreet, true); }, 600)],
     ['sunglasses (high UV)', show({ sky: 'day', season: 'summer', weather: 'sunny' }, () => penguinSolo(penguinStroll, true))],
-    ['blueberry pie', show({ sky: 'day', season: 'summer' }, () => bakePie(0), 900)],
     ['chopping wood', show({ sky: 'day', season: 'autumn', weather: 'clear' }, () => { choppedLogs = 0; woodPreview = 0.5; updateWoodpile(); penguinSolo(penguinChop, true); })],
-    ['woodpile through the winter', () => { const levels = [1, 0.8, 0.6, 0.4, 0.2]; let i = 0; show({ sky: 'day', season: 'winter' }, () => { const tick = () => { woodPreview = levels[i++]; choppedLogs = 0; updateWoodpile(); if (i < levels.length) setTimeout(tick, 1500); }; tick(); }, 600)(); }],
     ['chanterelles', show({ sky: 'day', season: 'autumn', weather: 'clear' }, () => penguinSolo(penguinChanterelles, true))],
     ['shovelling snow', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => { pathSnowPreview = true; setData('pathsnow', 'yes'); penguinSolo(penguinShovel, true); })],
     ['raking leaves', show({ sky: 'day', season: 'autumn', weather: 'clear' }, () => penguinSolo(penguinRake, true))],
@@ -1104,6 +1101,7 @@ const BACKSTAGE = [
     ['deer', show({ sky: 'dusk' })],
     ['owl', show({ sky: 'night' })],
     ['fireflies', show({ sky: 'night', season: 'summer', weather: 'clear' })],
+    ['hare or fox tracks', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => { trackPreview = true; drawTracks(); }, 300)],
   ]],
   ['Around the cottage', [
     ['tent and campfire', show({ sky: 'dusk', season: 'summer', weather: 'clear' })],
@@ -1113,6 +1111,8 @@ const BACKSTAGE = [
     ['Swedish flag (6 June)', show({ sky: 'day', season: 'summer' }, () => { flagPreview = 'se'; paintSky(); }, 0)],
     ['Austrian flag (26 October)', show({ sky: 'day', season: 'autumn' }, () => { flagPreview = 'at'; paintSky(); }, 0)],
     ['stove and smoke', show({ sky: 'dusk', season: 'winter' }, () => { document.documentElement.dataset.cottage = 'on'; }, 0)],
+    ['woodpile through the winter', () => { const levels = [1, 0.8, 0.6, 0.4, 0.2]; let i = 0; show({ sky: 'day', season: 'winter' }, () => { const tick = () => { woodPreview = levels[i++]; choppedLogs = 0; updateWoodpile(); if (i < levels.length) setTimeout(tick, 1500); }; tick(); }, 600)(); }],
+    ['blueberry pie', show({ sky: 'day', season: 'summer' }, () => bakePie(0), 900)],
   ]],
   ['The hiker', [
     ['walk the trail', () => { goTo('timeline'); setTimeout(() => selectEntry('job-0'), 900); setTimeout(() => selectEntry(`job-${SITE.cv.length - 1}`), 6000); }],
@@ -1122,6 +1122,8 @@ const BACKSTAGE = [
   ]],
   ['The page', [
     ['screensaver', () => { closeGps(); scrollTo({ top: 0 }); setTimeout(() => document.documentElement.classList.add('screensaver'), 1500); }],
+    ['co-author network over time', () => { goTo('publications'); setTimeout(() => { const b = $('#coPlay'); if (b && !b.hidden && !b.classList.contains('on')) b.click(); }, 1400); }],
+    ['lost penguin (404 page)', () => { closeGps(); open('/404.html', '_blank', 'noopener'); }],
   ]],
   ['Science', [
     ['microscope', show({ sky: 'night', weather: 'clear' }, () => { if (!smlmRunning && !lifeRunning) smlmShow(); })],
