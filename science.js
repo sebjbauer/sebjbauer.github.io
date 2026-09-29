@@ -793,6 +793,58 @@ if (params.has('life')) setTimeout(() => (lastSky.d >= 0.75 ? lifeShow() : toast
 if (params.has('descend')) setTimeout(() => { $('#timeline').scrollIntoView(); setTimeout(descend, 800); }, 900);
 if (params.has('ripples')) setTimeout(() => { ripples.add(1060, 468); setTimeout(() => ripples.add(1170, 472), 700); }, 1000);
 
+/* ---------------- the beaver ---------------- */
+// A lodge of sticks and mud on the far shore. It grows through the autumn (beavers build and
+// plaster it before the winter), with a raft of branches beside it from October to March (the
+// winter food, stuck in the mud under the ice), snow on top in winter, and on very cold days a thin
+// wisp of warm air from the vent at the top. Around sunset and sunrise the beaver swims out. The
+// wake behind it opens at 19.5° on each side: Kelvin's angle, the same for a duck, a beaver or a
+// ship, at any speed. At the end it slaps its tail on the water and dives.
+const lodge = $('#beaverLodge'), lodgeGrow = lodge.querySelector('.bl-grow');
+const beaver = $('#beaver'), bvWake = beaver.querySelector('.bv-wake-g'), bvBody = beaver.querySelector('.bv-body');
+function lodgeState() {
+  const [, m, d] = shownDate(12).toLocaleDateString('en-CA', { timeZone: TZ }).split('-').map(Number);
+  const season = currentSeason();
+  let size = forcedSeason ? { winter: 1, spring: 1, summer: 0.72, autumn: 0.88 }[season]
+    : m === 7 || m === 8 ? 0.72 : m >= 9 && m <= 11 ? 0.72 + 0.28 * Math.min(1, ((m - 9) * 30.5 + d) / 91) : 1;
+  setAttr(lodgeGrow, 'transform', `scale(${size.toFixed(3)})`);
+  const cacheTime = forcedSeason ? season === 'winter' || season === 'autumn' : m >= 10 || m <= 3;
+  lodge.classList.toggle('cache', cacheTime && !live.frozen);
+  setData('lodgesteam', season === 'winter' && ((simulated || weatherNow)?.temp ?? 0) <= -8 ? 'yes' : 'no');
+}
+skyHooks.push(lodgeState); lodgeState();
+let beaverOut = false;
+const beaverHour = () => { const { h, sunT } = lastSky; return !!sunT && (Math.abs(h - sunT.set - 0.5) < 1 || Math.abs(h - sunT.rise + 0.3) < 0.7); };
+function beaverSwim(force = false) {
+  if (beaverOut || reduceMotion || live.ice > 0) return;
+  if (!force && (!beaverHour() || !heroVisible())) return;
+  beaverOut = true;
+  beaver.classList.toggle('branch', currentSeason() === 'autumn');
+  // from the lodge out into the bay and along, on a gentle curve (clear of the rowing boat)
+  const p0 = [1082, 452.8], p1 = [1030 + Math.random() * 40, 463 + Math.random() * 5], p2 = [1055 + Math.random() * 35, 468 + Math.random() * 3];
+  const at = (t) => [0, 1].map((i) => (1 - t) ** 2 * p0[i] + 2 * (1 - t) * t * p1[i] + t * t * p2[i]);
+  const T = 16000, t0 = performance.now();
+  let drawn = 0;
+  ripples.add(p0[0], p0[1], 0.3, 0.6);
+  beaver.classList.add('out');
+  const frame = (now) => {
+    if (now - drawn < 33) { requestAnimationFrame(frame); return; } // 30 frames a second
+    drawn = now;
+    const t = Math.min(1, (now - t0) / T), [x, y] = at(t), [x2, y2] = at(Math.min(1, t + 0.01));
+    const ground = Math.atan2((y2 - y) / 0.45, x2 - x) * 180 / Math.PI; // direction on the water (the lake is seen flattened)
+    beaver.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+    bvWake.setAttribute('transform', `scale(1 .45) rotate(${ground.toFixed(1)})`);
+    bvBody.setAttribute('transform', x2 < x ? 'scale(-1 1)' : '');
+    if (t < 1) { requestAnimationFrame(frame); return; }
+    ripples.add(x, y, 0.8, 1.2); // the tail slap
+    beaver.classList.remove('out');
+    beaverOut = false;
+  };
+  requestAnimationFrame(frame);
+}
+every(40, 110, () => beaverSwim());
+if (params.has('beaver')) setTimeout(() => beaverSwim(true), 1200);
+
 /* ---------------- equation of the day ---------------- */
 // Terminal "equation of the day": one equation a day, as LaTeX, taking turns between famous ones,
 // physics, machine learning and biology. Everyone sees the same one on the same day (my date).
@@ -1026,8 +1078,11 @@ const BACKSTAGE = [
     ['stargazing', show({ sky: 'night', weather: 'clear' }, () => penguinSolo(penguinStargaze, true))],
     ['kayak', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => penguinSolo(penguinKayak, true))],
     ['blueberries', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => { berryPreview = true; paintSky(); penguinSolo(penguinBlueberries, true); })],
-    ['footprints in the snow', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => penguinSolo(penguinSnowWalk, true))],
+    ['footprints in the snow', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => penguinSolo(penguinStroll, true))],
     ['hare or fox tracks', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => { trackPreview = true; drawTracks(); }, 300)],
+    ['beaver', show({ sky: 'dusk', season: 'autumn', weather: 'clear' }, () => beaverSwim(true), 1200)],
+    ['World Penguin Day (25 April)', show({ sky: 'day', season: 'spring', weather: 'clear' }, () => { penguinDayPreview = true; paintSky(); tickClock(); penguinSolo(penguinGreet, true); }, 600)],
+    ['sunglasses (high UV)', show({ sky: 'day', season: 'summer', weather: 'sunny' }, () => penguinSolo(penguinStroll, true))],
     ['blueberry pie', show({ sky: 'day', season: 'summer' }, () => bakePie(0), 900)],
     ['chopping wood', show({ sky: 'day', season: 'autumn', weather: 'clear' }, () => { choppedLogs = 0; woodPreview = 0.5; updateWoodpile(); penguinSolo(penguinChop, true); })],
     ['woodpile through the winter', () => { const levels = [1, 0.8, 0.6, 0.4, 0.2]; let i = 0; show({ sky: 'day', season: 'winter' }, () => { const tick = () => { woodPreview = levels[i++]; choppedLogs = 0; updateWoodpile(); if (i < levels.length) setTimeout(tick, 1500); }; tick(); }, 600)(); }],
@@ -1102,11 +1157,11 @@ HIDDEN.push('backstage', 'show');
 /* ---------------- live: back to the real sky ---------------- */
 // "live" resets everything that can be simulated (time of day, season, weather, holiday, the
 // fractal forest). While anything is simulated, a "live" button shows in the terminal's header.
-const simulating = () => forcedHour !== null || !!skyPlace || !!flagPreview || forcedSeason !== null || !!simulated || !!forcedHoliday || fractalOn || !!snowPreview || berryPreview || woodPreview !== null || trackPreview;
+const simulating = () => forcedHour !== null || !!skyPlace || !!flagPreview || forcedSeason !== null || !!simulated || !!forcedHoliday || fractalOn || !!snowPreview || berryPreview || woodPreview !== null || trackPreview || penguinDayPreview;
 COMMANDS.live = () => {
   const was = simulating();
   COMMANDS.season('live'); COMMANDS.holiday('live'); COMMANDS.sky('live');
-  fractalForest(false); snowPreview = null; berryPreview = false; woodPreview = null; trackPreview = false; skyPlace = skyDate = null; flagPreview = null;
+  fractalForest(false); snowPreview = null; berryPreview = false; woodPreview = null; trackPreview = false; penguinDayPreview = false; skyPlace = skyDate = null; flagPreview = null;
   COMMANDS.weather('live'); // fetches the real weather (async)
   paintSky(); updateLiveButton();
   return was ? `Back to live: the real time, season and weather in ${esc(base().city)}.` : `Already live: this is the real sky over ${esc(base().city)}.`;

@@ -161,12 +161,14 @@ const WEATHER_PRESETS = {
   forecast: { code: 3, cloud: 80, temp: 12, rainSoon: true }, // dry now, rain expected soon
   icing: { code: 0, cloud: 20, temp: -4, ice: 0.45 },          // a few cold days: ice creeping out from the shore
   windy: { code: 2, cloud: 40, temp: 6, wind: 28, windDir: 250 }, // strong westerly: smoke streams to the right
+  sunny: { code: 0, cloud: 5, temp: 27, uv: 7.5 },              // high UV: the penguin wears sunglasses
 };
 let weatherNow = null, simulated = null, stormTimer = 0;
 
 function applyWeather(w) {
   const c = w.code;
   live.overcast = Math.min(1, w.cloud / 100);
+  setData('uv', (w.uv ?? 0) >= 6 ? 'high' : 'low'); // UV index 6+ ("high" on the WHO scale): sunglasses on
   live.fog = c === 45 || c === 48 ? 1 : 0;
   // The lake freezes over gradually, from the last week of temperatures (ice 0…1, see pastDays).
   // Presets without that history freeze at once below 0 °C, like before.
@@ -223,14 +225,14 @@ async function fetchWeather() {
   if (simulated) return;
   const p = base();
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m&hourly=precipitation,precipitation_probability,snowfall&past_hours=24&forecast_hours=6&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&past_days=7&forecast_days=1&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,uv_index&hourly=precipitation,precipitation_probability,snowfall&past_hours=24&forecast_hours=6&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&past_days=7&forecast_days=1&timezone=auto`;
     const { current, hourly, daily } = await (await fetch(url)).json();
     // the hourly lists hold the 24 past hours, then the next 6
     const hours = (key) => (hourly?.[key] || []).map((v) => v || 0);
     const pastRain = hours('precipitation').slice(21, 24).reduce((a, b) => a + b, 0);
     const chance = Math.max(0, ...hours('precipitation_probability').slice(24));
     const snow24 = hours('snowfall').slice(0, 24).reduce((a, b) => a + b, 0); // cm of fresh snow in the last day
-    weatherNow = { code: current.weather_code, cloud: current.cloud_cover, temp: current.temperature_2m, wind: current.wind_speed_10m, windDir: current.wind_direction_10m,
+    weatherNow = { code: current.weather_code, cloud: current.cloud_cover, temp: current.temperature_2m, wind: current.wind_speed_10m, windDir: current.wind_direction_10m, uv: current.uv_index,
       recentRain: pastRain >= 0.2, rainSoon: chance >= 60, snow24, ...pastDays(daily, current.temperature_2m) };
     applyWeather(weatherNow);
   } catch { /* offline: keep the clear default */ }
@@ -248,7 +250,7 @@ COMMANDS.weather = async (arg) => {
   const w = weatherNow;
   return `Live weather in ${esc(base().city)}:
   ${Math.round(w.temp)}°C, ${WEATHER_NAMES[w.code] || 'unknown'}
-  clouds ${w.cloud}%, wind ${Math.round(w.wind)} km/h${w.rainSoon ? '\n  rain likely in the next hours' : ''}
+  clouds ${w.cloud}%, wind ${Math.round(w.wind)} km/h${w.uv != null ? `, UV index ${w.uv.toFixed(1)}${w.uv >= 6 ? ' (high: the penguin wears sunglasses)' : ''}` : ''}${w.rainSoon ? '\n  rain likely in the next hours' : ''}
 The sky on this page shows the same.`;
 };
 

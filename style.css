@@ -588,6 +588,26 @@ kbd {
 .pg-cht { display: none; }
 .penguin.p1 .c1, .penguin.p2 .c1, .penguin.p2 .c2, .penguin.p3 .pg-cht { display: inline; }
 .cht.picked { display: none; }
+/* sunglasses when the UV index is 6 or more (extras.js) */
+.pg-shades { display: none; }
+[data-uv="high"] .penguin .pg-shades { display: inline; }
+.pg-lens { fill: #121417; stroke: #3E5A74; stroke-width: .12; } .pg-arm { stroke: #121417; stroke-width: .28; stroke-linecap: round; }
+/* World Penguin Day visitors */
+.visitors { display: none; }
+[data-penguinday="yes"] .visitors { display: inline; }
+/* the beaver lodge and the beaver (science.js) */
+.bl-mound { fill: #5B4330; } .bl-sticks, .bl-cache path { fill: none; stroke: #36271B; stroke-width: .35; stroke-linecap: round; }
+.bl-cache path { stroke: #4A3626; }
+.bl-cache, .bl-snow, .bl-steam { display: none; }
+.beaver-lodge.cache .bl-cache { display: inline; }
+[data-season="winter"] .bl-snow { display: inline; } .bl-snow { fill: var(--snow); }
+[data-lodgesteam="yes"] .bl-steam { display: inline; } .bl-steam { fill: none; stroke: rgba(255, 255, 255, .45); stroke-width: .3; stroke-linecap: round; }
+.beaver { display: none; }
+.beaver.out { display: inline; }
+.bv-back { fill: #3F2E21; } .bv-head { fill: #5A4230; } .bv-ear, .bv-eye { fill: #1E1510; }
+.bv-wake { fill: none; stroke: rgba(255, 255, 255, .5); stroke-width: .25; stroke-linecap: round; }
+.bv-branch { fill: none; stroke: #6B8F3A; stroke-width: .3; stroke-linecap: round; display: none; }
+.beaver.branch .bv-branch { display: inline; }
 /* footprints and animal tracks in the snow (gadgets.js) */
 .prints ellipse { fill: #5A7489; opacity: .45; }
 .animal-tracks ellipse { opacity: .35; }

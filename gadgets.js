@@ -595,7 +595,7 @@ function updateWoodpile() {
   const shown = Math.min(woodLogs.length, Math.round(woodLevel() * woodLogs.length) + choppedLogs);
   woodLogs.forEach((l, i) => l.classList.toggle('gone', i >= shown));
 }
-skyHooks.push(updateWoodpile);
+skyHooks.push(updateWoodpile); updateWoodpile();
 const blockAxe = $('#blockAxe'), splitLog = $('#splitLog'), halves = splitLog.querySelectorAll('.half');
 const chopSwing = (k, pg) => { // raise the axe, bring it down, and the log splits in two
   const a = k < 0.6 ? -125 * Math.sin(k / 0.6 * Math.PI / 2) : k < 0.72 ? -125 + 143 * (k - 0.6) / 0.12 : 18;
@@ -632,7 +632,8 @@ const penguinChop = () => penguinRoute([
 const blueberryBushes = [...document.querySelectorAll('#blueberries .bb-bush')];
 let berryPreview = false;
 const berryTime = () => berryPreview || (currentSeason() === 'summer' && (forcedSeason === 'summer' || [7, 8].includes(+new Intl.DateTimeFormat('en-GB', { timeZone: TZ, month: 'numeric' }).format(shownDate(12)))));
-skyHooks.push(() => { document.documentElement.dataset.berries = berryTime() ? 'yes' : 'no'; });
+const berryState = () => { document.documentElement.dataset.berries = berryTime() ? 'yes' : 'no'; };
+skyHooks.push(berryState); berryState();
 const pickBerries = (n) => (k, pg) => { if (k >= 1) { blueberryBushes[n - 1].classList.add('picked'); pg.classList.remove('b1', 'b2'); pg.classList.add(`b${n}`); } };
 const penguinBlueberries = () => penguinRoute([
   { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.add('pail') },
@@ -764,9 +765,9 @@ function drawTracks() {
     for (let s = 0.3; s < len; s += 0.95) { const [x, y] = at(s); put(x, y, 0.28, 0.13); }
   }
 }
-skyHooks.push(drawTracks);
-// winter days: a short walk in the snow, off the path to the forest edge and down to the shore
-const penguinSnowWalk = () => penguinRoute([
+skyHooks.push(drawTracks); drawTracks();
+// a short walk: off the path to the forest edge and down to the shore (in winter, through the snow)
+const penguinStroll = () => penguinRoute([
   ...outDoor,
   { to: [1246, 450.3], ms: 2600, pose: 'walk' },
   { to: [1252, 447.4], ms: 1500, pose: 'walk' },
@@ -777,6 +778,39 @@ const penguinSnowWalk = () => penguinRoute([
   { to: [1220, 450.2], ms: 5200, pose: 'walk' },
   ...homeAgain,
 ]);
+
+/* ---------------- World Penguin Day (25 April) ---------------- */
+// The colony from the 404 page comes to visit for the day: eight penguins stand about on the grass,
+// the path and the jetty, one hops now and then, and the cottage penguin comes out to greet them.
+let penguinDayPreview = false;
+const penguinDay = () => penguinDayPreview || params.has('penguinday') || new Intl.DateTimeFormat('en-GB', { timeZone: TZ, month: 'numeric', day: 'numeric' }).format(new Date()) === '25/04';
+const visitorsG = $('#visitors');
+[[1244.5, 449.4, 1], [1249, 448.3, -1], [1253.2, 450.1, 1], [1261.5, 448.4, -1], [1266, 450.2, 1], [1279.5, 448.7, 1], [1284.6, 450.3, -1], [1302.6, 454, -1]].forEach(([x, y, dir]) => {
+  const s = 0.86 * (1 + (y - 447) * 0.014);
+  visitorsG.insertAdjacentHTML('beforeend', `<g transform="translate(${x} ${y}) scale(${(dir * s).toFixed(3)} ${s.toFixed(3)})"><g class="pgv"><use href="#pgMini"/></g></g>`);
+});
+const visitorBodies = [...visitorsG.querySelectorAll('.pgv')];
+const penguinDayState = () => setData('penguinday', penguinDay() ? 'yes' : 'no');
+skyHooks.push(penguinDayState); penguinDayState(); tickClock();
+every(2, 5, () => { // a little hop, one at a time
+  if (!penguinDay() || !heroVisible() || reduceMotion) return;
+  visitorBodies[Math.floor(Math.random() * visitorBodies.length)].animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-2.2px)' }, { transform: 'translateY(0)' }], { duration: 380, easing: 'ease-out' });
+});
+const penguinGreet = () => penguinRoute([
+  ...outDoor,
+  { to: [1240.5, 450.3], ms: 1500, pose: 'walk' },
+  { ms: 500, pose: 'hop' },
+  { to: [1257.5, 450.5], ms: 2400, pose: 'walk' },
+  { ms: 900, pose: 'wait' },
+  { ms: 450, pose: 'hop' },
+  { to: [1272.5, 449.9], ms: 2000, pose: 'walk' },
+  { ms: 1400, pose: 'wait' },
+  { ms: 450, pose: 'hop' },
+  { to: [1220, 450.2], ms: 5200, pose: 'walk' },
+  ...homeAgain,
+]);
+const greetBefore = specialGreeting;
+specialGreeting = () => (penguinDay() ? 'Happy World Penguin Day!' : greetBefore());
 
 // Autumn: the leaves on the grass are raked into a pile, and then, of course, jumped into.
 const leafEls = [...document.querySelectorAll('#leaves .lf')], leafPile = $('#leafPile');
@@ -2019,7 +2053,8 @@ every(200, 480, () => flyBalloon());
 every(100, 240, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.4) penguinSolo(penguinChanterelles); });
 every(100, 240, () => { if (berryTime() && lastSky.d < 0.45 && !live.particle && Math.random() < 0.4) penguinSolo(penguinBlueberries); });
 every(120, 300, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.35) penguinSolo(penguinChop); });
-every(150, 320, () => { if (snowGround() && lastSky.d < 0.45 && live.particle !== 'rain' && Math.random() < 0.3) penguinSolo(penguinSnowWalk); });
+every(45, 120, () => { if (penguinDay() && lastSky.d < 0.5 && !live.particle && Math.random() < 0.6) penguinSolo(penguinGreet); });
+every(150, 320, () => { if (snowGround() && lastSky.d < 0.45 && live.particle !== 'rain' && Math.random() < 0.3) penguinSolo(penguinStroll); });
 every(60, 150, () => { if (snowyPath() && lastSky.d < 0.45 && localHour() < 15) penguinSolo(penguinShovel); });
 every(120, 300, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.35) penguinSolo(penguinRake); });
 every(90, 200, () => { if (thirsty() && lastSky.d < 0.45 && !live.particle && Math.random() < 0.5) penguinSolo(penguinWater); });
@@ -2072,6 +2107,7 @@ if (params.has('kayak')) setTimeout(() => penguinSolo(penguinKayak, true), 1200)
 if (params.has('blueberries')) { berryPreview = true; paintSky(); setTimeout(() => penguinSolo(penguinBlueberries, true), 1200); }
 if (params.has('chop')) setTimeout(() => penguinSolo(penguinChop, true), 1200);
 if (params.has('pie')) bakePie(800);
+if (params.has('penguinday')) setTimeout(() => penguinSolo(penguinGreet, true), 1500);
 if (params.has('tracks')) { trackPreview = true; drawTracks(); }
 if (params.has('chanterelles')) setTimeout(() => penguinSolo(penguinChanterelles, true), 1200);
 if (params.has('balloon')) setTimeout(() => flyBalloon(true), 1000);
