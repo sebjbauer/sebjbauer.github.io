@@ -1000,6 +1000,8 @@ const HELP = [
     ['smlm', 'point the microscope at the stars (clear nights)'], ['life', "Conway's Game of Life in the stars (clear nights)"],
     ['descend', 'the hiker tries gradient descent'], ['fractal', 'grow the forest as fractals (again to undo)'],
     ['flow', 'from a Gaussian to my initials, by optimal transport'],
+    ['equation of the day', 'a new equation every day, in LaTeX'],
+    ['psf', 'the point spread function of a microscope', ['640 1.4', '561 1.4', '488 1.2', '405 0.5']],
   ]],
   ['Just for fun', [
     ['triathlon', 'start a race: swim, bike, run'], ['riddle', 'for the curious'], ['fika', 'mandatory break'], ['badges', "what you've discovered so far"],

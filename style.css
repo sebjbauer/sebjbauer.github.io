@@ -1028,6 +1028,7 @@ html:not([data-holiday="christmas"]) .xmas-lights circle,
 .gps-out .h-opt { color: var(--muted); }
 .gps-out .h-cmd:hover, .gps-out .h-opt:hover { text-decoration: underline; text-underline-offset: 3px; }
 .gps-out .h-opt:hover { color: var(--text); }
+.gps-out .psf { display: block; line-height: 1.2; margin: 10px 0 4px; }
 .gps-out .h-tip { white-space: normal; color: var(--muted); margin-top: 2px; }
 
 /* ---------- responsive ---------- */
@@ -1144,3 +1145,4 @@ html:not([data-holiday="christmas"]) .xmas-lights circle,
   .footer::after { content: 'sebjbauer.github.io'; }
   * { transition: none !important; animation: none !important; }
 }
+

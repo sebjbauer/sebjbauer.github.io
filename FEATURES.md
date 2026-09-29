@@ -278,7 +278,7 @@ The page scrolls to the top, stars start blinking one at a time and each blink l
 
 ## Trail badges
 
-Terminal command `badges`: shows which of the 33 badges the visitor has found, with hints for the rest. The browser remembers them.
+Terminal command `badges`: shows which of the 35 badges the visitor has found, with hints for the rest. The browser remembers them.
 
 | Badge | How to get it |
 |---|---|
@@ -314,6 +314,8 @@ Terminal command `badges`: shows which of the 33 badges the visitor has found, w
 | Face-off | Click a hockey player on the frozen lake |
 | Löyly | Tap the sauna while it's heated (a big puff of steam) |
 | Night catch | Click the rowing boat at night (the angler lands a fish) |
+| Chalk talk | Run `equation of the day` |
+| Airy disk | Run `psf` |
 | Time traveller | Run `timelapse` |
 
 ## Add to contacts
@@ -465,6 +467,8 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 | **Flowers sleep** | Spring flowers close at night and open in the morning (nyctinasty). | `?season=spring&sky=night` |
 | **Jumping fish** | Summer dawn and dusk: a fish jumps now and then, with ripples where it leaves and re-enters the water. | `?fish` (every 4 s) |
 | **Synchronous fireflies** | Summer nights: every flash nudges nearby fireflies' inner clocks forward (Mirollo–Strogatz), so within a minute they blink in sync. | `?season=summer&sky=night` |
+| **Equation of the day** | Terminal `equation of the day` (or just `equation`): one equation a day, printed as LaTeX (`\[ … \]`, ready to copy), with its name, topic and a one-sentence explanation. The same for every visitor (Vienna date); the topics take turns: famous, physics, machine learning, biology (46 in all, in `EQUATIONS` in science.js; add or change rows there, as `[name, LaTeX, explanation]`). `equation random` gives a random one. Badge *Chalk talk*. | terminal |
+| **Point spread function** | Terminal `psf 640 1.4` (wavelength in nm, NA): draws the Airy disk of a point of light, to scale (always 2 µm wide, so a low NA gives a visibly bigger blur), in the colour of that wavelength, on a log scale so the rings show. Below: Abbe limit, Rayleigh radius, FWHM, Gaussian σ and the axial size, with the immersion medium guessed from the NA (air, water, oil). The Airy pattern is computed from the Bessel function J₁ in the browser. `psf` alone uses 640 nm and NA 1.4. Badge *Airy disk*. | terminal |
 
 ## More landscape life
 

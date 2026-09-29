@@ -41,6 +41,8 @@ const BADGES = [
   ['flow', 'Optimal transport', 'flowed noise into a name', 'from a Gaussian to two letters, the cheapest way'],
   ['balloon', 'Up and away', 'fired the burner of the hot-air balloon', 'calm mornings and evenings, high above the valley'],
   ['cake', 'Birthday wishes', 'blew out the candles', 'one day in November, on the veranda'],
+  ['equation', 'Chalk talk', 'asked for the equation of the day', 'a new one every day, in LaTeX'],
+  ['psf', 'Airy disk', 'drew a point spread function', 'a command for microscopists'],
   ['time', 'Time traveller', 'watched a whole day go by', 'a command that speeds things up'],
 ];
 let earned = (() => { try { return JSON.parse(store.get('badges') || '[]'); } catch { return []; } })();

@@ -793,6 +793,141 @@ if (params.has('life')) setTimeout(() => (lastSky.d >= 0.75 ? lifeShow() : toast
 if (params.has('descend')) setTimeout(() => { $('#timeline').scrollIntoView(); setTimeout(descend, 800); }, 900);
 if (params.has('ripples')) setTimeout(() => { ripples.add(1060, 468); setTimeout(() => ripples.add(1170, 472), 700); }, 1000);
 
+/* ---------------- equation of the day ---------------- */
+// Terminal "equation of the day": one equation a day, as LaTeX, taking turns between famous ones,
+// physics, machine learning and biology. Everyone sees the same one on the same day (my date).
+// Add or change rows as [name, LaTeX, one-sentence explanation].
+const L = String.raw;
+const EQUATIONS = {
+  famous: [
+    ["Euler's identity", L`e^{i\pi} + 1 = 0`, 'Five fundamental numbers (e, i, π, 1 and 0) in one short line.'],
+    ['Pythagoras', L`a^2 + b^2 = c^2`, 'In a right triangle, the squares on the two short sides add up to the square on the long side.'],
+    ["Bayes' theorem", L`P(A \mid B) = \frac{P(B \mid A)\, P(A)}{P(B)}`, 'How to update a belief when new evidence comes in.'],
+    ['Fourier transform', L`\hat{f}(\xi) = \int_{-\infty}^{\infty} f(x)\, e^{-2\pi i \xi x}\, dx`, 'Any signal is a sum of waves; this finds how much of each frequency it contains.'],
+    ['Gaussian integral', L`\int_{-\infty}^{\infty} e^{-x^2}\, dx = \sqrt{\pi}`, 'The reason π appears in the normal distribution.'],
+    ["Euler's polyhedron formula", L`V - E + F = 2`, 'Vertices minus edges plus faces is 2 for every convex polyhedron: a cube has 8 − 12 + 6.'],
+    ['Golden ratio', L`\varphi = \frac{1 + \sqrt{5}}{2}`, 'The ratio a/b that equals (a + b)/a, about 1.618.'],
+    ['Central limit theorem', L`\sqrt{n}\,\left(\bar{X}_n - \mu\right) \xrightarrow{d} \mathcal{N}(0, \sigma^2)`, 'Averages of many independent samples become Gaussian, whatever the original distribution.'],
+  ],
+  physics: [
+    ['Mass–energy equivalence', L`E = mc^2`, 'A little mass is a lot of energy: one gram equals about 25 GWh.'],
+    ["Newton's second law", L`\mathbf{F} = m\mathbf{a}`, 'Force is mass times acceleration.'],
+    ['Schrödinger equation', L`i\hbar \frac{\partial \psi}{\partial t} = \hat{H} \psi`, 'How a quantum state changes in time.'],
+    ['Heisenberg uncertainty', L`\Delta x \, \Delta p \geq \frac{\hbar}{2}`, 'Position and momentum can never both be known exactly.'],
+    ['Planck–Einstein relation', L`E = h\nu`, 'The energy of one photon is set by its frequency: a 640 nm photon carries about 1.9 eV.'],
+    ["Boltzmann's entropy", L`S = k_B \ln W`, 'Entropy counts the microscopic arrangements W that look the same from outside. It is carved on his gravestone.'],
+    ['Maxwell–Faraday law', L`\nabla \times \mathbf{E} = -\frac{\partial \mathbf{B}}{\partial t}`, 'A changing magnetic field creates an electric field: the principle behind every generator.'],
+    ["Snell's law", L`n_1 \sin\theta_1 = n_2 \sin\theta_2`, 'Light bends when it enters another medium. Immersion oil matches the glass, so steep rays still reach the objective.'],
+    ['Abbe diffraction limit', L`d = \frac{\lambda}{2\,\mathrm{NA}}`, 'The smallest distance a conventional light microscope can resolve: about 200 nm for visible light. Try psf.'],
+    ['Localisation precision', L`\sigma_{\mathrm{loc}} \approx \frac{\sigma_{\mathrm{PSF}}}{\sqrt{N}}`, 'Collect N photons from one molecule and you can find its centre √N times more precisely than the blur is wide.'],
+    ['Wave equation', L`\frac{\partial^2 u}{\partial t^2} = c^2 \nabla^2 u`, 'Sound, light and ripples on the lake all follow it.'],
+    ['Ideal gas law', L`pV = nRT`, 'Pressure, volume and temperature of a gas, tied together.'],
+    ['Stokes–Einstein relation', L`D = \frac{k_B T}{6 \pi \eta r}`, 'How fast a particle diffuses: small and warm is fast, big and in a viscous liquid is slow.'],
+    ['Beer–Lambert law', L`A = \varepsilon\, c\, l`, 'Absorbance grows with concentration and path length: the basis of every photometer.'],
+  ],
+  'machine learning': [
+    ['Gradient descent', L`\theta \leftarrow \theta - \eta\, \nabla_\theta \mathcal{L}(\theta)`, 'Take small steps downhill on the loss. The hiker tries it with the command descend.'],
+    ['Softmax', L`\sigma(\mathbf{z})_i = \frac{e^{z_i}}{\sum_j e^{z_j}}`, 'Turns any list of scores into probabilities that add up to one.'],
+    ['Cross-entropy', L`H(p, q) = -\sum_x p(x) \log q(x)`, 'The loss behind almost every classifier.'],
+    ['Attention', L`\mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V`, 'The heart of the transformer, from "Attention is all you need" (2017).'],
+    ['Backpropagation', L`\frac{\partial \mathcal{L}}{\partial x} = \frac{\partial \mathcal{L}}{\partial y} \, \frac{\partial y}{\partial x}`, 'Training a network is the chain rule, applied layer by layer from the output back.'],
+    ['Evidence lower bound', L`\log p(x) \geq \mathbb{E}_{q(z \mid x)}\big[\log p(x \mid z)\big] - D_{\mathrm{KL}}\big(q(z \mid x) \,\|\, p(z)\big)`, 'What a variational autoencoder maximises.'],
+    ['Kullback–Leibler divergence', L`D_{\mathrm{KL}}(P \,\|\, Q) = \sum_x P(x) \log \frac{P(x)}{Q(x)}`, 'How much information is lost when Q is used to approximate P.'],
+    ['ReLU', L`\mathrm{ReLU}(x) = \max(0, x)`, 'The simplest nonlinearity, and still one of the most used.'],
+    ['Optimal transport', L`W_2^2(\mu, \nu) = \min_{T_\# \mu = \nu} \int \lVert x - T(x) \rVert^2 \, d\mu(x)`, 'The cheapest way to move one distribution onto another. See it with the command flow.'],
+    ['Diffusion models', L`x_t = \sqrt{\bar{\alpha}_t}\, x_0 + \sqrt{1 - \bar{\alpha}_t}\, \varepsilon, \quad \varepsilon \sim \mathcal{N}(0, I)`, 'Noise is added step by step; the model learns to take it away again.'],
+    ['Message passing', L`h_v' = \phi\Big(h_v, \sum_{u \in \mathcal{N}(v)} \psi(h_u)\Big)`, 'Each node updates itself from its neighbours: the idea behind graph neural networks.'],
+    ['Least squares', L`\hat{\beta} = (X^\top X)^{-1} X^\top y`, 'The best straight line through the data, in one line.'],
+  ],
+  biology: [
+    ['Michaelis–Menten', L`v = \frac{V_{\max} [S]}{K_m + [S]}`, 'How fast an enzyme works: it speeds up with more substrate, until it is saturated.'],
+    ['Hardy–Weinberg', L`p^2 + 2pq + q^2 = 1`, 'Allele frequencies stay the same from generation to generation, unless something changes them.'],
+    ['Logistic growth', L`\frac{dN}{dt} = rN\left(1 - \frac{N}{K}\right)`, 'A population grows fast at first, then levels off at the carrying capacity K.'],
+    ['Lotka–Volterra', L`\frac{dx}{dt} = \alpha x - \beta x y, \quad \frac{dy}{dt} = \delta x y - \gamma y`, 'Prey grow and predators eat them, so both populations go up and down in cycles.'],
+    ['Hill equation', L`\theta = \frac{[L]^n}{K_d^n + [L]^n}`, 'Cooperative binding: haemoglobin picks up oxygen with n ≈ 2.8.'],
+    ['Nernst equation', L`E = \frac{RT}{zF} \ln \frac{[X]_{\mathrm{out}}}{[X]_{\mathrm{in}}}`, 'The voltage an ion gradient makes across a membrane: about −90 mV for potassium in muscle.'],
+    ['Henderson–Hasselbalch', L`\mathrm{pH} = \mathrm{p}K_a + \log_{10} \frac{[\mathrm{A}^-]}{[\mathrm{HA}]}`, 'How buffers hold the pH steady.'],
+    ["Fick's law", L`J = -D \frac{\partial c}{\partial x}`, 'Molecules flow from high to low concentration.'],
+    ['Gibbs free energy', L`\Delta G = \Delta H - T \Delta S`, 'A reaction runs by itself when ΔG is negative; the same balance decides how a protein folds.'],
+    ['FRET efficiency', L`E = \frac{1}{1 + (r / R_0)^6}`, 'A molecular ruler: energy transfer between two dyes drops steeply over a few nanometres.'],
+    ['Fluorescence decay', L`I(t) = I_0\, e^{-t/\tau}`, 'Fluorophores glow for a few nanoseconds; the lifetime τ tells them apart.'],
+    ['SIR model', L`\frac{dI}{dt} = \beta S I - \gamma I`, 'An epidemic grows while each case infects more than one other person.'],
+  ],
+};
+const EQ_TOPICS = Object.keys(EQUATIONS);
+// the day number where I am, so the whole world sees the same equation on the same day
+const eqDay = () => { const [y, m, d] = new Date().toLocaleDateString('en-CA', { timeZone: TZ }).split('-').map(Number); return Math.floor(Date.UTC(y, m - 1, d) / 864e5); };
+function equationOfDay(day = eqDay()) {
+  const topic = EQ_TOPICS[day % EQ_TOPICS.length], list = EQUATIONS[topic];
+  const [name, tex, note] = list[Math.floor(day / EQ_TOPICS.length) % list.length];
+  return { topic, name, tex, note };
+}
+COMMANDS['equation of the day'] = (arg) => {
+  const random = arg === 'random', eq = equationOfDay(random ? Math.floor(Math.random() * 1e4) : eqDay());
+  earnBadge('equation');
+  const when = new Date().toLocaleDateString('en-GB', { timeZone: TZ, day: 'numeric', month: 'long' });
+  return `${random ? 'A random equation' : `Equation of the day, ${when}`} <span class="cmd">(${esc(eq.topic)})</span>
+${esc(eq.name)}
+
+<span class="warn">\\[ ${esc(eq.tex)} \\]</span>
+
+${esc(eq.note)}`;
+};
+COMMANDS.equation = (arg) => COMMANDS['equation of the day'](arg === 'random' ? 'random' : '');
+COMMANDS['equation random'] = () => COMMANDS['equation of the day']('random');
+HIDDEN.push('equation random');
+
+/* ---------------- psf: the point spread function of a microscope ---------------- */
+// "psf 640 1.4" draws the Airy pattern of a point of light at that wavelength (nm) and numerical
+// aperture, to scale (the picture is always 2 µm wide), in the colour of the light, with the limits.
+const besselJ1 = (x) => { let s = 0; const n = 64; for (let k = 0; k < n; k++) { const t = (k + 0.5) * Math.PI / n; s += Math.cos(t - x * Math.sin(t)); } return s / n; };
+const airy = (v) => (v < 1e-6 ? 1 : (2 * besselJ1(v) / v) ** 2);
+// wavelength to an approximate RGB colour (after Dan Bruton), kept bright enough for the dark terminal
+function waveColour(nm) {
+  let r = 0, g = 0, b = 0;
+  if (nm >= 380 && nm < 440) { r = (440 - nm) / 60; b = 1; } else if (nm < 490) { g = (nm - 440) / 50; b = 1; } else if (nm < 510) { g = 1; b = (510 - nm) / 20; }
+  else if (nm < 580) { r = (nm - 510) / 70; g = 1; } else if (nm < 645) { r = 1; g = (645 - nm) / 65; } else if (nm <= 750) r = 1;
+  if (nm < 380 || nm > 750) return '#BDBDB8';
+  const lift = (c) => Math.round(255 * (0.25 + 0.75 * c)); // no pure black channels: readable on #0E0E0E
+  return `rgb(${lift(r)}, ${lift(g)}, ${lift(b)})`;
+}
+const colourName = (nm) => (nm < 380 ? 'ultraviolet' : nm < 450 ? 'violet' : nm < 495 ? 'blue' : nm < 570 ? 'green' : nm < 590 ? 'yellow' : nm < 620 ? 'orange' : nm <= 750 ? 'red' : 'infrared');
+COMMANDS.psf = (arg) => {
+  const [lam = 640, na = 1.4] = (arg || '').split(/[\s,]+/).filter(Boolean).map((x) => parseFloat(x.replace(/[^\d.]/g, '')));
+  if (!(lam >= 200 && lam <= 1500)) return 'Usage: psf &lt;wavelength in nm&gt; &lt;NA&gt;, for example <b class="warn">psf 640 1.4</b> (wavelength 200 to 1500 nm).';
+  if (!(na > 0 && na <= 1.7)) return 'The numerical aperture is NA = n · sin θ, so it can’t be larger than the refractive index of the immersion medium. The best objectives reach about 1.7.';
+  const [medium, n] = na <= 0.95 ? ['air', 1] : na <= 1.33 ? ['water', 1.33] : na <= 1.52 ? ['oil', 1.518] : ['high-index oil', 1.78];
+  const COLS = 33, ROWS = 17, cx = 2000 / COLS, cy = cx * 2, // a character is about half as wide as a line of the picture is high
+    ramp = ' .:-=+*#%@', rows = [];
+  for (let j = 0; j < ROWS; j++) {
+    let line = '';
+    for (let i = 0; i < COLS; i++) {
+      let I = 0;
+      for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) {
+        const x = (i - (COLS - 1) / 2 + (a - 1) / 3) * cx, y = (j - (ROWS - 1) / 2 + (b - 1) / 3) * cy;
+        I += airy(2 * Math.PI * na * Math.hypot(x, y) / lam) / 9;
+      }
+      const k = Math.max(0, Math.min(1, 1 + Math.log10(Math.max(I, 1e-9)) / 3)); // log scale, so the faint rings show
+      line += ramp[Math.round(k * (ramp.length - 1))];
+    }
+    rows.push(line);
+  }
+  while (rows.length > 1 && !rows[0].trim() && !rows.at(-1).trim()) { rows.shift(); rows.pop(); } // drop empty rows (the scale bar is horizontal)
+  earnBadge('psf');
+  const nmr = (v) => `${Math.round(v)} nm`.padStart(8);
+  const label = '2 µm', pad = (COLS - 2 - label.length) / 2;
+  return `Point spread function
+λ = ${lam} nm (${colourName(lam)}) · NA ${na} · ${medium}, n = ${n}
+<span class="psf" style="color:${waveColour(lam)}">${rows.join('\n')}</span>├${'─'.repeat(Math.floor(pad))}${label}${'─'.repeat(Math.ceil(pad))}┤
+
+  Abbe limit     λ / 2NA    ${nmr(lam / (2 * na))}
+  Rayleigh       0.61 λ/NA  ${nmr(0.61 * lam / na)}  <span class="cmd">first dark ring</span>
+  FWHM           0.51 λ/NA  ${nmr(0.51 * lam / na)}  <span class="cmd">width of the spot</span>
+  Gaussian σ     0.21 λ/NA  ${nmr(0.21 * lam / na)}
+  Axial (Abbe)   2λn / NA²  ${nmr(2 * lam * n / na ** 2)}  <span class="cmd">depth of the spot</span>
+${arg ? '' : '\n<span class="cmd">Try your own: psf &lt;wavelength in nm&gt; &lt;NA&gt;, e.g.</span> <b class="warn">psf 488 0.5</b>'}`;
+};
+
 /* ---------------- backstage: every animation on demand (password protected) ---------------- */
 // Type "backstage" in the terminal, then the password. A panel lists every animation and scene;
 // tap one to see it right away (the sky, season or weather it needs is set first).
