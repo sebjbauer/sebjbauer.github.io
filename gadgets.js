@@ -370,6 +370,7 @@ async function penguinRoute(steps) {
         if (paddling) { pose = `translate(0 2.9) rotate(${(Math.sin(t / 420) * 3).toFixed(1)})`; /* sitting in the cockpit */ pg.querySelector('.pg-paddle').setAttribute('transform', `rotate(${(Math.sin(t / 280) * 26).toFixed(0)} 0 -6)`); }
         pg.classList.toggle('kayak', paddling);
         placePenguin(x, y, 1 + (y - 447) * 0.014, swimming ? 2.5 : 0);
+        if (s.pose === 'walk') stepPrint(x, y, pg); else if (s.pose !== 'wait') lastPrint = null;
         setAttr(flip, 'transform', dir < 0 ? 'scale(-1 1)' : '');
         setAttr(waddle, 'transform', pose);
         setAttr(waddle, 'clip-path', swimming || paddling ? `url(#${paddling ? 'pgClipKayak' : 'pgClip'})` : null);
@@ -710,7 +711,72 @@ const penguinShovel = () => penguinRoute([
   { ms: 1200, pose: 'wait' },
   { to: [1220, 450.2], ms: 4200, pose: 'walk' },
   ...homeAgain,
-]).then(() => { store.set('shoveled', today()); pathSnowPreview = false; setData('pathsnow', 'no'); pathSnow.style.strokeDasharray = ''; });
+]).then(() => { store.set('shoveled', today()); pathSnowPreview = false; setData('pathsnow', 'no'); pathSnow.style.strokeDasharray = ''; [...document.querySelectorAll('.prints ellipse')].forEach((e) => { if (onPath(+e.getAttribute('cx'), +e.getAttribute('cy'))) e.remove(); }); });
+
+/* ---------------- footprints in the snow ---------------- */
+// In winter the ground is snow, and the penguin leaves a trail of footprints wherever it walks on
+// it (not on the veranda, the ice, or a path that has been shovelled). They slowly fade: within a
+// few minutes while it's snowing, in about 40 minutes otherwise. After a fresh snowfall, the
+// tracks of a hare or a fox cross the path from the forest to the lake (a different one each day).
+const SVGNS = 'http://www.w3.org/2000/svg';
+const printsG = document.createElementNS(SVGNS, 'g'), tracksG = document.createElementNS(SVGNS, 'g');
+printsG.setAttribute('class', 'prints'); tracksG.setAttribute('class', 'prints animal-tracks');
+pathSnow.after(tracksG, printsG);
+const snowGround = () => currentSeason() === 'winter';
+const onPath = (x, y) => x >= 1216 && x <= 1297 && y >= 448.9;
+const snowAt = (x, y) => snowGround() && y <= 451.6 && !(x > 1171 && x < 1217.5 && y < 449.8) && (!onPath(x, y) || snowyPath());
+let lastPrint = null, printFoot = 0, trackPreview = false;
+const dot = (g, x, y, rx, ry) => { const e = document.createElementNS(SVGNS, 'ellipse'); e.setAttribute('cx', x.toFixed(2)); e.setAttribute('cy', y.toFixed(2)); e.setAttribute('rx', rx); e.setAttribute('ry', ry); g.appendChild(e); return e; };
+function stepPrint(x, y, pg) {
+  if (pg.classList.contains('shovel') || !snowAt(x, y)) { lastPrint = null; return; }
+  if (!lastPrint) { lastPrint = [x, y]; return; }
+  if (Math.hypot(x - lastPrint[0], y - lastPrint[1]) < 1.1) return;
+  lastPrint = [x, y];
+  printFoot ^= 1; // left, right, left …
+  const e = dot(printsG, x + (printFoot ? 0.3 : -0.3), y + (printFoot ? -0.2 : 0.2), 0.42, 0.16);
+  e.dataset.t = Date.now();
+  if (printsG.childElementCount > 240) printsG.firstChild.remove();
+}
+// fade the footprints (a slow timer, and only while there are any)
+setInterval(() => {
+  if (!printsG.firstChild) return;
+  const life = (live.particle === 'snow' ? 4 : 40) * 60000, now = Date.now();
+  [...printsG.children].forEach((e) => {
+    const left = 1 - (now - e.dataset.t) / life;
+    if (left <= 0 || !snowAt(+e.getAttribute('cx'), +e.getAttribute('cy'))) e.remove(); else e.style.opacity = (0.45 * left).toFixed(2);
+  });
+}, 15000);
+function drawTracks() {
+  tracksG.replaceChildren();
+  if (!snowGround()) printsG.replaceChildren(); // the snow is gone, and the footprints with it
+  if (!snowGround() || !(trackPreview || ((simulated || weatherNow)?.snow24 ?? 0) >= 1)) return;
+  const day = Math.floor(Date.now() / 864e5), hare = day % 2 === 0;
+  const x0 = 1244 + (day * 37) % 36, [dx, dy] = [8, 5.4], len = Math.hypot(dx, dy), ux = dx / len, uy = dy / len;
+  const at = (s) => [x0 + ux * s, 446 + uy * s];
+  const put = (x, y, rx, ry) => { if (snowAt(x, y)) dot(tracksG, x, y, rx, ry); };
+  if (hare) { // hind feet land side by side in front of the front feet, which land one after the other
+    for (let s = 0.5; s < len; s += 2.2) {
+      const [hx, hy] = at(s + 0.9), [f1x, f1y] = at(s), [f2x, f2y] = at(s - 0.5);
+      put(hx - 0.25, hy - 0.22, 0.46, 0.14); put(hx + 0.25, hy + 0.22, 0.46, 0.14);
+      put(f1x, f1y, 0.22, 0.12); put(f2x, f2y, 0.22, 0.12);
+    }
+  } else { // a fox walks in a neat straight line, hind paws stepping into the front paws' prints
+    for (let s = 0.3; s < len; s += 0.95) { const [x, y] = at(s); put(x, y, 0.28, 0.13); }
+  }
+}
+skyHooks.push(drawTracks);
+// winter days: a short walk in the snow, off the path to the forest edge and down to the shore
+const penguinSnowWalk = () => penguinRoute([
+  ...outDoor,
+  { to: [1246, 450.3], ms: 2600, pose: 'walk' },
+  { to: [1252, 447.4], ms: 1500, pose: 'walk' },
+  { to: [1268, 446.9], ms: 3200, pose: 'walk' },
+  { ms: 1500, pose: 'wait' },
+  { to: [1276, 450.9], ms: 1800, pose: 'walk' },
+  { ms: 1200, pose: 'wait' },
+  { to: [1220, 450.2], ms: 5200, pose: 'walk' },
+  ...homeAgain,
+]);
 
 // Autumn: the leaves on the grass are raked into a pile, and then, of course, jumped into.
 const leafEls = [...document.querySelectorAll('#leaves .lf')], leafPile = $('#leafPile');
@@ -1349,9 +1415,9 @@ async function renderCoauthorMap() {
     });
     const [hx, hy] = [pins.find((q) => q.p.home).x, pins.find((q) => q.p.home).y];
     // arcs from my pin to every other one, all bending the same way
-    const arcs = pins.filter((q) => !q.p.home).map(({ x, y }, i) => {
+    const arcs = pins.filter((q) => !q.p.home).map(({ p, x, y }) => {
       const mx = (hx + x) / 2, my = (hy + y) / 2, dx = x - hx, dy = y - hy;
-      return `<path class="co-line" d="M${hx.toFixed(2)} ${hy.toFixed(2)} Q${(mx - dy * 0.2).toFixed(2)} ${(my + dx * 0.2).toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)}"/>`;
+      return `<path class="co-line" data-i="${data.places.indexOf(p)}" pathLength="1" d="M${hx.toFixed(2)} ${hy.toFixed(2)} Q${(mx - dy * 0.2).toFixed(2)} ${(my + dx * 0.2).toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)}"/>`;
     }).join('');
     const place = labelPlacer({ x0, y0, w, h }, pins, fs);
     const people = (p) => p.people.map((q) => q.name);
@@ -1372,6 +1438,7 @@ async function renderCoauthorMap() {
     $('#coMap').hidden = false;
     let chosen = null;
     const choose = (i) => {
+      stopPlay();
       chosen = chosen === i ? null : i;
       const p = data.places[chosen];
       svg.querySelectorAll('.co-pin').forEach((pin) => pin.classList.toggle('active', +pin.dataset.i === chosen));
@@ -1381,6 +1448,41 @@ async function renderCoauthorMap() {
       const names = p.people.map((q) => `${esc(q.name)}${q.papers.length > 1 ? ` <span class="co-n">×${q.papers.length}</span>` : ''}`).join(', ');
       cap.innerHTML = `<b>${esc(p.name)}</b>${p.home ? ' · my base' : ''} · ${esc(p.institutions.join(', '))}<br>${names} · ${shared.size} paper${shared.size > 1 ? 's' : ''} together, highlighted below`;
     };
+    // ▶ the network over time: my pin first, then year by year each place's arc is drawn and its
+    // pin appears, in the year of the first paper with someone there. Only when asked for; it
+    // changes nothing outside the map, and a tap anywhere on the map stops it.
+    const yearOf = (papers) => Math.min(...papers.map((i) => +SITE.publications[i]?.year || Infinity));
+    const firstYear = new Map(data.places.map((p, i) => [i, Math.min(...p.people.map((q) => yearOf(q.papers)))]));
+    const personYear = new Map();
+    places.forEach((p) => p.people.forEach((q) => personYear.set(q.name, Math.min(personYear.get(q.name) ?? Infinity, yearOf(q.papers)))));
+    const years = [...new Set([...personYear.values()].filter(Number.isFinite))].sort();
+    const play = $('#coPlay'), playLabel = play.textContent;
+    let timers = [];
+    function stopPlay() {
+      if (!timers.length) return;
+      timers.forEach(clearTimeout); timers = [];
+      svg.querySelectorAll('.hid').forEach((el) => el.classList.remove('hid'));
+      play.textContent = playLabel; play.classList.remove('on'); cap.textContent = summary;
+    }
+    function startPlay() {
+      if (chosen !== null) choose(chosen); // clear a selection first
+      svg.classList.add('instant');
+      svg.querySelectorAll('.co-line, .co-pin:not(.home)').forEach((el) => el.classList.add('hid'));
+      svg.getBoundingClientRect(); // apply the hidden state before the transitions start
+      svg.classList.remove('instant');
+      play.classList.add('on');
+      const papersBy = (y) => new Set(SITE.publications.map((p, i) => (+p.year <= y && places.some((pl) => pl.people.some((q) => q.papers.includes(i))) ? i : -1)).filter((i) => i >= 0)).size;
+      years.forEach((y, k) => timers.push(setTimeout(() => {
+        svg.querySelectorAll('.hid').forEach((el) => { if (firstYear.get(+el.dataset.i) <= y) el.classList.remove('hid'); });
+        const people = [...personYear.values()].filter((v) => v <= y).length;
+        play.textContent = `■ ${y}`;
+        cap.textContent = `${y} · ${people} co-author${people > 1 ? 's' : ''} · ${papersBy(y)} paper${papersBy(y) > 1 ? 's' : ''}`;
+      }, 400 + k * 1400)));
+      timers.push(setTimeout(() => { timers = [1]; stopPlay(); }, 400 + years.length * 1400 + 1800));
+    }
+    play.hidden = years.length < 2;
+    play.addEventListener('click', (e) => { e.stopPropagation(); if (timers.length) stopPlay(); else startPlay(); });
+    svg.addEventListener('click', () => stopPlay(), true);
     svg.querySelectorAll('.co-pin').forEach((pin) => {
       pin.addEventListener('click', () => choose(+pin.dataset.i));
       pin.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(+pin.dataset.i); } });
@@ -1917,6 +2019,7 @@ every(200, 480, () => flyBalloon());
 every(100, 240, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.4) penguinSolo(penguinChanterelles); });
 every(100, 240, () => { if (berryTime() && lastSky.d < 0.45 && !live.particle && Math.random() < 0.4) penguinSolo(penguinBlueberries); });
 every(120, 300, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.35) penguinSolo(penguinChop); });
+every(150, 320, () => { if (snowGround() && lastSky.d < 0.45 && live.particle !== 'rain' && Math.random() < 0.3) penguinSolo(penguinSnowWalk); });
 every(60, 150, () => { if (snowyPath() && lastSky.d < 0.45 && localHour() < 15) penguinSolo(penguinShovel); });
 every(120, 300, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.35) penguinSolo(penguinRake); });
 every(90, 200, () => { if (thirsty() && lastSky.d < 0.45 && !live.particle && Math.random() < 0.5) penguinSolo(penguinWater); });
@@ -1969,6 +2072,7 @@ if (params.has('kayak')) setTimeout(() => penguinSolo(penguinKayak, true), 1200)
 if (params.has('blueberries')) { berryPreview = true; paintSky(); setTimeout(() => penguinSolo(penguinBlueberries, true), 1200); }
 if (params.has('chop')) setTimeout(() => penguinSolo(penguinChop, true), 1200);
 if (params.has('pie')) bakePie(800);
+if (params.has('tracks')) { trackPreview = true; drawTracks(); }
 if (params.has('chanterelles')) setTimeout(() => penguinSolo(penguinChanterelles, true), 1200);
 if (params.has('balloon')) setTimeout(() => flyBalloon(true), 1000);
 if (params.has('shovel')) { pathSnowPreview = true; setData('pathsnow', 'yes'); setTimeout(() => penguinSolo(penguinShovel, true), 1500); }

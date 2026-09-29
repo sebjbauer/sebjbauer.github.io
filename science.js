@@ -1026,6 +1026,8 @@ const BACKSTAGE = [
     ['stargazing', show({ sky: 'night', weather: 'clear' }, () => penguinSolo(penguinStargaze, true))],
     ['kayak', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => penguinSolo(penguinKayak, true))],
     ['blueberries', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => { berryPreview = true; paintSky(); penguinSolo(penguinBlueberries, true); })],
+    ['footprints in the snow', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => penguinSolo(penguinSnowWalk, true))],
+    ['hare or fox tracks', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => { trackPreview = true; drawTracks(); }, 300)],
     ['blueberry pie', show({ sky: 'day', season: 'summer' }, () => bakePie(0), 900)],
     ['chopping wood', show({ sky: 'day', season: 'autumn', weather: 'clear' }, () => { choppedLogs = 0; woodPreview = 0.5; updateWoodpile(); penguinSolo(penguinChop, true); })],
     ['woodpile through the winter', () => { const levels = [1, 0.8, 0.6, 0.4, 0.2]; let i = 0; show({ sky: 'day', season: 'winter' }, () => { const tick = () => { woodPreview = levels[i++]; choppedLogs = 0; updateWoodpile(); if (i < levels.length) setTimeout(tick, 1500); }; tick(); }, 600)(); }],
@@ -1100,11 +1102,11 @@ HIDDEN.push('backstage', 'show');
 /* ---------------- live: back to the real sky ---------------- */
 // "live" resets everything that can be simulated (time of day, season, weather, holiday, the
 // fractal forest). While anything is simulated, a "live" button shows in the terminal's header.
-const simulating = () => forcedHour !== null || !!skyPlace || !!flagPreview || forcedSeason !== null || !!simulated || !!forcedHoliday || fractalOn || !!snowPreview || berryPreview || woodPreview !== null;
+const simulating = () => forcedHour !== null || !!skyPlace || !!flagPreview || forcedSeason !== null || !!simulated || !!forcedHoliday || fractalOn || !!snowPreview || berryPreview || woodPreview !== null || trackPreview;
 COMMANDS.live = () => {
   const was = simulating();
   COMMANDS.season('live'); COMMANDS.holiday('live'); COMMANDS.sky('live');
-  fractalForest(false); snowPreview = null; berryPreview = false; woodPreview = null; skyPlace = skyDate = null; flagPreview = null;
+  fractalForest(false); snowPreview = null; berryPreview = false; woodPreview = null; trackPreview = false; skyPlace = skyDate = null; flagPreview = null;
   COMMANDS.weather('live'); // fetches the real weather (async)
   paintSky(); updateLiveButton();
   return was ? `Back to live: the real time, season and weather in ${esc(base().city)}.` : `Already live: this is the real sky over ${esc(base().city)}.`;

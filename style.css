@@ -588,6 +588,9 @@ kbd {
 .pg-cht { display: none; }
 .penguin.p1 .c1, .penguin.p2 .c1, .penguin.p2 .c2, .penguin.p3 .pg-cht { display: inline; }
 .cht.picked { display: none; }
+/* footprints and animal tracks in the snow (gadgets.js) */
+.prints ellipse { fill: #5A7489; opacity: .45; }
+.animal-tracks ellipse { opacity: .35; }
 /* blueberries (July and August) and the penguin's pail */
 .blueberries, .pg-pail, .pg-pb { display: none; }
 [data-berries="yes"] .blueberries { display: inline; }
@@ -954,6 +957,15 @@ span.pub-title { display: inline; }
 #talkList li:hover { background: var(--raised); }
 /* co-author map in Publications: my pin in Stockholm, faint arcs to every co-author's city */
 .co-line { fill: none; stroke: var(--accent); stroke-opacity: .35; stroke-width: .12; stroke-linecap: round; }
+.co-map { position: relative; }
+.co-play { position: absolute; top: 8px; left: 8px; font: 11px var(--mono); color: var(--muted); background: color-mix(in srgb, var(--bg) 80%, transparent); border: 1px solid var(--line-strong); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.co-play:hover, .co-play.on { color: var(--accent); border-color: currentColor; }
+.co-line { stroke-dasharray: 1; stroke-dashoffset: 0; transition: stroke-dashoffset .9s ease-in-out; }
+.co-line.hid { stroke-dashoffset: 1; }
+.co-pin { transition: opacity .45s .7s; }
+.co-pin.hid { opacity: 0; transition: none; }
+#coMapSvg.instant .co-line, #coMapSvg.instant .co-pin { transition: none; }
+@media (prefers-reduced-motion: reduce) { .co-line, .co-pin { transition: none; } }
 .co-pin { cursor: pointer; outline: none; }
 .co-pin .dot { fill: var(--edu); }
 .co-pin .halo { fill: var(--edu); opacity: .18; transition: opacity .2s; }
