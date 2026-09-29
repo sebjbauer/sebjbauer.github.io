@@ -588,6 +588,12 @@ kbd {
 .pg-cht { display: none; }
 .penguin.p1 .c1, .penguin.p2 .c1, .penguin.p2 .c2, .penguin.p3 .pg-cht { display: inline; }
 .cht.picked { display: none; }
+/* tap targets for the penguin's jobs */
+.tap-leaves, .tap-pathsnow { display: none; }
+[data-season="autumn"] .tap-leaves { display: inline; }
+[data-pathsnow="yes"] .tap-pathsnow { display: inline; }
+.hit-stroke { fill: none; stroke: transparent; stroke-width: 3; pointer-events: stroke; cursor: pointer; }
+.visitors use { pointer-events: all; cursor: pointer; }
 /* sunglasses when the UV index is 6 or more (extras.js) */
 .pg-shades { display: none; }
 [data-uv="high"] .penguin .pg-shades { display: inline; }
@@ -988,9 +994,9 @@ span.pub-title { display: inline; }
 @media (prefers-reduced-motion: reduce) { .co-line, .co-pin { transition: none; } }
 .co-pin { cursor: pointer; outline: none; }
 .co-pin .dot { fill: var(--edu); }
-.co-pin .halo { fill: var(--edu); opacity: .18; transition: opacity .2s; }
+.co-pin .halo { fill: var(--edu); opacity: .14; transition: opacity .2s; }
 .co-pin.home .dot, .co-pin.home .halo { fill: var(--accent); }
-.co-pin.home .dot { stroke: var(--bg); stroke-width: .18; }
+.co-pin .dot { stroke: var(--bg); stroke-width: .12; } /* a thin outline keeps touching pins apart */
 .co-pin:hover .halo, .co-pin:focus-visible .halo { opacity: .38; }
 .co-pin.active .halo { opacity: .55; }
 .co-pin text { fill: var(--text); font-family: var(--sans); font-weight: 500; paint-order: stroke; stroke: var(--bg); stroke-width: .35; }

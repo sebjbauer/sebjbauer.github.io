@@ -152,6 +152,12 @@ Based on the date in Vienna.
 - **Career and Education routes:** both are the same dotted vertical route, newest at the top (orange waypoints for jobs, green for degrees). A job that starts while another is still going (the AITHYRA guest position during the PhD) branches off the route to the side; if it ends while the other goes on, it curves back into the route. The branches are placed with the months from `cv.tex` (or `\web{months}{Sep 2016 -- Jun 2017}` for entries with only years), but the website only shows years. Clicking an entry fills its waypoint and colours its stretch of the route.
 - **The hiker:** a small figure with an orange backpack walks along the trail to the latest job when the Career section comes into view. Hovering over or clicking any marker makes them walk there.
 
+- **Tap the landscape, the penguin does the job:** tapping a thing sends the penguin (if it's not out already):
+  - **Sauna:** a whole sauna session. When the lake is frozen (or mostly), the cold plunge is through the hole in the ice; otherwise it walks to the jetty, jumps off the end, swims round the moored kayak and climbs out by the sauna (straight from the shore while a triathlon has the jetty). Tapping during the session gives a big puff of steam (badge *Löyly*).
+  - **Woodpile or chopping block:** chops wood. **Blueberry bushes** (July–August): picks them. **Chanterelles** (autumn): picks them. **Autumn leaves:** rakes them (and jumps in). **Window boxes:** waters them. **Moored kayak** (summer, open water, no triathlon): a paddle. **Grill:** a barbecue. **Snowy path:** shovels it.
+  - **Beaver lodge:** the beaver swims out (open water only; badge *Busy beaver*). **Pie on the sill:** a slice disappears. **Visiting penguins** (World Penguin Day): the one you tap hops.
+  - Five different jobs: badge *Errand runner*.
+
 ## Life in the landscape
 
 | What | When |
@@ -295,7 +301,7 @@ The page scrolls to the top, stars start blinking one at a time and each blink l
 
 ## Trail badges
 
-Terminal command `badges`: shows which of the 35 badges the visitor has found, with hints for the rest. The browser remembers them.
+Terminal command `badges`: shows which of the 37 badges the visitor has found, with hints for the rest. The browser remembers them.
 
 | Badge | How to get it |
 |---|---|
@@ -329,7 +335,9 @@ Terminal command `badges`: shows which of the 35 badges the visitor has found, w
 | Sea sparkle | Tap the lake at night (glowing plankton) |
 | Cowbell | Click a cow, or type `moo` |
 | Face-off | Click a hockey player on the frozen lake |
-| Löyly | Tap the sauna while it's heated (a big puff of steam) |
+| Löyly | Tap the sauna during a sauna session (a big puff of steam) |
+| Errand runner | Send the penguin on five different jobs by tapping things (sauna, woodpile, grill, kayak, …) |
+| Busy beaver | Tap the beaver lodge on the far shore (open water) |
 | Night catch | Click the rowing boat at night (the angler lands a fish) |
 | Chalk talk | Run `equation of the day` |
 | Airy disk | Run `psf` |

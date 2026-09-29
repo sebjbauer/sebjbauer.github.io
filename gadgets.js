@@ -43,6 +43,8 @@ const BADGES = [
   ['cake', 'Birthday wishes', 'blew out the candles', 'one day in November, on the veranda'],
   ['equation', 'Chalk talk', 'asked for the equation of the day', 'a new one every day, in LaTeX'],
   ['psf', 'Airy disk', 'drew a point spread function', 'a command for microscopists'],
+  ['errands', 'Errand runner', 'sent the penguin on five different jobs', 'tap things around the cottage'],
+  ['beaver', 'Busy beaver', 'sent the beaver for a swim', 'its home is on the far shore'],
   ['time', 'Time traveller', 'watched a whole day go by', 'a command that speeds things up'],
 ];
 let earned = (() => { try { return JSON.parse(store.get('badges') || '[]'); } catch { return []; } })();
@@ -508,11 +510,44 @@ skyHooks.push(saunaState);
 saunaState();
 const hide = (on) => (k, pg) => pg.classList.toggle('inside', on);
 $('.sauna-hit').addEventListener('click', () => {
+  if (!saunaSession && !penguinOut) { errand('sauna', penguinSauna); return; } // tap: the penguin goes for a sauna
   if (!sauna.classList.contains('on')) return;
   saunaSmoke.classList.add('burst');
   setTimeout(() => saunaSmoke.classList.remove('burst'), 2400);
   earnBadge('sauna');
 });
+// the cold plunge between two rounds in the sauna: through the hole in the ice when the lake is
+// frozen; otherwise off the end of the jetty, a swim round the moored kayak and out onto the shore
+// by the sauna (or straight from the shore while a triathlon has the jetty)
+const saunaPlunge = () => {
+  if (live.ice >= 0.5) return [
+    { to: [1345, 461.2], ms: 1100, pose: 'walk', fast: true }, // out and straight to the hole in the ice
+    { to: [1345, 463.4], ms: 450, pose: 'jump', tick: (k) => { if (k >= 1) { splash.setAttribute('transform', 'translate(1345 462.6)'); splash.classList.remove('go'); void splash.getBoundingClientRect(); splash.classList.add('go'); } } },
+    { ms: 1300, pose: 'wait', tick: hide(true) },             // under the ice for a moment
+    { ms: 1, pose: 'wait', tick: hide(false) },
+    { to: [1341, 460], ms: 500, pose: 'hop' },                // brrr, out
+    { to: [1335, 449.1], ms: 1100, pose: 'walk', fast: true }, // back into the heat
+  ];
+  const splashAt = (x, y) => (k) => { if (k >= 1) { splash.setAttribute('transform', `translate(${x} ${y})`); splash.classList.remove('go'); void splash.getBoundingClientRect(); splash.classList.add('go'); } };
+  if (tri) return [
+    { to: [1333, 451], ms: 500, pose: 'walk', fast: true },
+    { to: [1331, 457], ms: 450, pose: 'jump', tick: splashAt(1331, 456.5) },
+    { ms: 1600, pose: 'swim' },
+    { to: [1331, 450.4], ms: 600, pose: 'hop' },
+    { to: [1335, 449.1], ms: 700, pose: 'walk', fast: true },
+  ];
+  return [
+    { to: [1297, 449.6], ms: 1500, pose: 'walk', fast: true },  // along the shore to the jetty
+    { to: [1302, 471], ms: 1300, pose: 'walk', fast: true },    // down the jetty
+    { to: [1307, 481], ms: 650, pose: 'jump', tick: splashAt(1307, 480.5) }, // and in!
+    { to: [1318, 487], ms: 1800, pose: 'swim' },                 // round the kayak …
+    { to: [1335, 479], ms: 2200, pose: 'swim' },
+    { to: [1334, 462], ms: 2600, pose: 'swim' },
+    { to: [1331, 455.5], ms: 1200, pose: 'swim' },
+    { to: [1331, 450.4], ms: 600, pose: 'hop' },                 // … and out by the sauna
+    { to: [1335, 449.1], ms: 800, pose: 'walk', fast: true },  // back into the heat
+  ];
+};
 const penguinSauna = () => {
   saunaSession = true; saunaState();
   return penguinRoute([
@@ -524,12 +559,7 @@ const penguinSauna = () => {
     { ms: 400, pose: 'wait', tick: hide(true) },              // in
     { ms: 7000, pose: 'wait' },
     { ms: 400, pose: 'wait', tick: (k, pg) => { pg.classList.remove('inside'); pg.classList.add('steamy'); } },
-    { to: [1345, 461.2], ms: 1100, pose: 'walk', fast: true }, // out and straight to the hole in the ice
-    { to: [1345, 463.4], ms: 450, pose: 'jump', tick: (k) => { if (k >= 1) { splash.setAttribute('transform', 'translate(1345 462.6)'); splash.classList.remove('go'); void splash.getBoundingClientRect(); splash.classList.add('go'); } } },
-    { ms: 1300, pose: 'wait', tick: hide(true) },             // under the ice for a moment
-    { ms: 1, pose: 'wait', tick: hide(false) },
-    { to: [1341, 460], ms: 500, pose: 'hop' },                // brrr, out
-    { to: [1335, 449.1], ms: 1100, pose: 'walk', fast: true }, // back into the heat
+    ...saunaPlunge(),
     { ms: 400, pose: 'wait', tick: hide(true) },
     { ms: 5000, pose: 'wait' },
     { ms: 400, pose: 'wait', tick: hide(false) },
@@ -779,6 +809,31 @@ const penguinStroll = () => penguinRoute([
   ...homeAgain,
 ]);
 
+/* ---------------- tap the landscape ---------------- */
+// Tapping a thing sends the penguin to do the job that goes with it (if it isn't busy already):
+// the sauna, the woodpile or chopping block, the blueberries, the chanterelles, the autumn leaves,
+// the window boxes, the moored kayak, the grill, a snowy path. The beaver lodge sends the beaver
+// out, the pie loses a slice, and a visiting penguin hops. Five different jobs: badge "Errand runner".
+function errand(name, route) {
+  if (penguinOut || reduceMotion) return;
+  penguinSolo(route, true);
+  const done = new Set(JSON.parse(store.get('errands') || '[]')); done.add(name);
+  store.set('errands', JSON.stringify([...done]));
+  if (done.size >= 5) earnBadge('errands');
+}
+const onTap = (el, fn) => el && el.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
+onTap($('#woodHit'), () => errand('wood', penguinChop));
+onTap($('#blockHit'), () => errand('wood', penguinChop));
+onTap($('#blueberries .hit'), () => errand('berries', penguinBlueberries));
+onTap($('#chanterelles .hit'), () => errand('mushrooms', penguinChanterelles));
+onTap($('#leavesHit'), () => errand('leaves', penguinRake));
+onTap($('#winboxHit'), () => errand('flowers', penguinWater));
+onTap($('#kayakMoored .hit'), () => { if (!tri && !live.frozen) errand('kayak', penguinKayak); });
+onTap($('#grillHit'), () => errand('grill', penguinGrill));
+onTap($('#pathSnowHit'), () => { if (snowyPath()) errand('shovel', penguinShovel); });
+onTap($('#pie .hit'), () => pie.classList.add('bitten'));
+onTap($('#beaverLodge .hit'), () => { if (!live.ice) { beaverSwim(true); earnBadge('beaver'); } });
+
 /* ---------------- World Penguin Day (25 April) ---------------- */
 // The colony from the 404 page comes to visit for the day: eight penguins stand about on the grass,
 // the path and the jetty, one hops now and then, and the cottage penguin comes out to greet them.
@@ -790,6 +845,7 @@ const visitorsG = $('#visitors');
   visitorsG.insertAdjacentHTML('beforeend', `<g transform="translate(${x} ${y}) scale(${(dir * s).toFixed(3)} ${s.toFixed(3)})"><g class="pgv"><use href="#pgMini"/></g></g>`);
 });
 const visitorBodies = [...visitorsG.querySelectorAll('.pgv')];
+visitorBodies.forEach((b) => b.addEventListener('click', () => b.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-3px)' }, { transform: 'translateY(0)' }], { duration: 420, easing: 'ease-out' })));
 const penguinDayState = () => setData('penguinday', penguinDay() ? 'yes' : 'no');
 skyHooks.push(penguinDayState); penguinDayState(); tickClock();
 every(2, 5, () => { // a little hop, one at a time
@@ -1445,7 +1501,7 @@ async function renderCoauthorMap() {
     const r = w * 0.009, fs = w * 0.022;
     const pins = places.map((p) => {
       const [x, y] = project([p.lon, p.lat]);
-      return { p, x, y, size: p.home ? r * 1.9 : r * (0.9 + 0.3 * Math.sqrt(p.people.length)) };
+      return { p, x, y, size: p.home ? r * 0.95 : r * (0.5 + 0.17 * Math.sqrt(p.people.length)) };
     });
     const [hx, hy] = [pins.find((q) => q.p.home).x, pins.find((q) => q.p.home).y];
     // arcs from my pin to every other one, all bending the same way
@@ -1455,13 +1511,15 @@ async function renderCoauthorMap() {
     }).join('');
     const place = labelPlacer({ x0, y0, w, h }, pins, fs);
     const people = (p) => p.people.map((q) => q.name);
+    // labels are placed biggest first; the pins are then drawn biggest first too, so a small pin
+    // right next to a big one (Uppsala by Stockholm) sits on top and stays visible
     const pinsSvg = pins.sort((a, b) => (b.p.home ? 1 : 0) - (a.p.home ? 1 : 0) || b.p.people.length - a.p.people.length).map(({ p, x, y, size }, i) => {
       const n = p.people.length;
       const title = `${p.name}${p.home ? ' (my base)' : ''}\n${p.institutions.join(', ')}\n${n} co-author${n > 1 ? 's' : ''}: ${people(p).join(', ')}`;
       return `<g class="co-pin${p.home ? ' home' : ''}" data-i="${data.places.indexOf(p)}" tabindex="0" role="button" aria-label="${esc(`${p.name}: ${n} co-author${n > 1 ? 's' : ''}`)}"><title>${esc(title)}</title>
-        <circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${(size * 2.2).toFixed(2)}" class="halo"/><circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${size.toFixed(2)}" class="dot"/>
+        <circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${(size * 1.9).toFixed(2)}" class="halo"/><circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${size.toFixed(2)}" class="dot"/>
         ${place(p.name, x, y, size)}</g>`;
-    }).reverse().join(''); // my pin is drawn last, on top
+    }).join('');
     const svg = $('#coMapSvg'), cap = $('#coCap');
     svg.setAttribute('viewBox', `${x0.toFixed(2)} ${y0.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`);
     svg.innerHTML = `<path class="land" d="${land}"/>${arcs}${pinsSvg}`;
