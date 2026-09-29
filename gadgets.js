@@ -1236,6 +1236,49 @@ function landRings(topo) {
   return geoms.flatMap((geo) => (geo.type === 'Polygon' ? geo.arcs.map(ring) : geo.arcs.flatMap((poly) => poly.map(ring))));
 }
 
+// the world outline, fetched once for both maps
+let worldTopo = null;
+const loadWorld = () => (worldTopo ||= fetch(WORLD_URL).then((r) => r.json()));
+// an equirectangular view that fits all points (at least roughly the size of Europe), 2.4:1
+function mapView(points) {
+  const lat0 = points.reduce((s, p) => s + p.lat, 0) / points.length, k = Math.cos(lat0 * Math.PI / 180);
+  const project = ([lon, lat]) => [lon * k, -lat];
+  const xs = points.map((p) => project([p.lon, p.lat])[0]), ys = points.map((p) => project([p.lon, p.lat])[1]);
+  let [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  let w = Math.max((x1 - x0) * 1.5, 40 * k), h = Math.max((y1 - y0) * 1.5, 18);
+  if (w / h < 2.4) w = h * 2.4; else h = w / 2.4;
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  return { project, x0: cx - w / 2, y0: cy - h / 2, w, h };
+}
+const landPath = (topo, project) => landRings(topo).map((r) => {
+  let d = '', prev = null;
+  r.forEach((pt) => { const [x, y] = project(pt); d += (prev == null || Math.abs(pt[0] - prev) > 180 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2); prev = pt[0]; });
+  return d + 'Z';
+}).join('');
+// Labels: each tries four spots (right, left, above, below) and takes the first one that fits
+// inside the map and hits neither another label nor any pin.
+function labelPlacer({ x0, y0, w, h }, pins, fs) {
+  const blocked = pins.map(({ x, y, size }) => ({ x0: x - size * 2.2, x1: x + size * 2.2, y0: y - size * 2.2, y1: y + size * 2.2 }));
+  const hits = (b) => blocked.some((q) => b.x0 < q.x1 && b.x1 > q.x0 && b.y0 < q.y1 && b.y1 > q.y0);
+  const inside = (b) => b.x0 >= x0 && b.x1 <= x0 + w && b.y0 >= y0 && b.y1 <= y0 + h;
+  return (label, x, y, size) => {
+    const lw = label.length * fs * 0.56, hh = fs * 0.62;
+    // right, left, above, below; if all are taken (two pins very close), the same a bit further out
+    const spots = [1, 1.8, 2.8].flatMap((far) => {
+      const gap = size * 2.4 * far;
+      return [
+        { x: x + gap, y: y + fs * 0.35, anchor: 'start', box: { x0: x + gap, x1: x + gap + lw, y0: y - hh, y1: y + hh } },
+        { x: x - gap, y: y + fs * 0.35, anchor: 'end', box: { x0: x - gap - lw, x1: x - gap, y0: y - hh, y1: y + hh } },
+        { x, y: y - gap - fs * 0.25, anchor: 'middle', box: { x0: x - lw / 2, x1: x + lw / 2, y0: y - gap - hh * 2, y1: y - gap } },
+        { x, y: y + gap + fs * 0.95, anchor: 'middle', box: { x0: x - lw / 2, x1: x + lw / 2, y0: y + gap, y1: y + gap + hh * 2 } },
+      ];
+    });
+    const spot = spots.find((sp) => inside(sp.box) && !hits(sp.box)) || spots.find((sp) => inside(sp.box)) || spots[0];
+    blocked.push(spot.box);
+    return `<text x="${spot.x.toFixed(2)}" y="${spot.y.toFixed(2)}" font-size="${fs.toFixed(2)}" text-anchor="${spot.anchor}">${esc(label)}</text>`;
+  };
+}
+
 async function renderTalkMap() {
   const places = SITE.talks.filter((t) => t.city || (t.lat != null && t.lon != null));
   if (!places.length) return;
@@ -1248,44 +1291,17 @@ async function renderTalkMap() {
     const idsOf = (p) => p.events.map((e) => SITE.talks.indexOf(e)).join(' ');
     const list = Object.values(pins);
 
-    // an equirectangular view that fits all pins (at least roughly the size of Europe), 2.4:1
-    const lat0 = list.reduce((s, p) => s + p.pos.lat, 0) / list.length, k = Math.cos(lat0 * Math.PI / 180);
-    const project = ([lon, lat]) => [lon * k, -lat];
-    const xs = list.map((p) => project([p.pos.lon, p.pos.lat])[0]), ys = list.map((p) => project([p.pos.lon, p.pos.lat])[1]);
-    let [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-    let w = Math.max((x1 - x0) * 1.5, 40 * k), h = Math.max((y1 - y0) * 1.5, 18);
-    if (w / h < 2.4) w = h * 2.4; else h = w / 2.4;
-    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-    x0 = cx - w / 2; y0 = cy - h / 2;
-
-    const topo = await (await fetch(WORLD_URL)).json();
-    const land = landRings(topo).map((r) => {
-      let d = '', prev = null;
-      r.forEach((pt) => { const [x, y] = project(pt); d += (prev == null || Math.abs(pt[0] - prev) > 180 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2); prev = pt[0]; });
-      return d + 'Z';
-    }).join('');
+    const { project, x0, y0, w, h } = mapView(list.map((p) => p.pos));
+    const land = landPath(await loadWorld(), project);
     const r = w * 0.009, fs = w * 0.022;
-    // Each label tries four spots (right, left, above, below) and takes the first one that fits
-    // inside the map and hits neither another label nor any pin.
     const pinsXY = list.map((p) => ({ p, xy: project([p.pos.lon, p.pos.lat]), size: r * (1 + 0.35 * (p.events.length - 1)) }));
-    const blocked = pinsXY.map(({ xy: [x, y], size }) => ({ x0: x - size * 2.2, x1: x + size * 2.2, y0: y - size * 2.2, y1: y + size * 2.2 }));
-    const hits = (b) => blocked.some((q) => b.x0 < q.x1 && b.x1 > q.x0 && b.y0 < q.y1 && b.y1 > q.y0);
-    const inside = (b) => b.x0 >= x0 && b.x1 <= x0 + w && b.y0 >= y0 && b.y1 <= y0 + h; // stays within the map
+    const place = labelPlacer({ x0, y0, w, h }, pinsXY.map(({ xy: [x, y], size }) => ({ x, y, size })), fs);
     const pinsSvg = pinsXY.sort((a, b) => b.p.events.length - a.p.events.length || a.xy[0] - b.xy[0]).map(({ p, xy: [x, y], size }) => {
       const title = p.events.flatMap((e) => rolesOf(e).map((r) => `${e.year} · ${r.type}: ${r.title}`)).join('\n');
       const label = p.name ? `${p.name}${p.events.length > 1 ? ` ×${p.events.length}` : ''}` : '';
-      const lw = label.length * fs * 0.56, gap = size * 2.4, hh = fs * 0.62;
-      const spots = [
-        { x: x + gap, y: y + fs * 0.35, anchor: 'start', box: { x0: x + gap, x1: x + gap + lw, y0: y - hh, y1: y + hh } },
-        { x: x - gap, y: y + fs * 0.35, anchor: 'end', box: { x0: x - gap - lw, x1: x - gap, y0: y - hh, y1: y + hh } },
-        { x, y: y - gap - fs * 0.25, anchor: 'middle', box: { x0: x - lw / 2, x1: x + lw / 2, y0: y - gap - hh * 2, y1: y - gap } },
-        { x, y: y + gap + fs * 0.95, anchor: 'middle', box: { x0: x - lw / 2, x1: x + lw / 2, y0: y + gap, y1: y + gap + hh * 2 } },
-      ];
-      const spot = label ? (spots.find((s) => inside(s.box) && !hits(s.box)) || spots.find((s) => inside(s.box)) || spots[0]) : null;
-      if (spot) blocked.push(spot.box);
       return `<g class="map-pin" data-t="${idsOf(p)}" tabindex="0" role="button" aria-label="${esc(`${p.name}: ${p.events.length} ${p.events.length > 1 ? 'entries' : 'entry'}, highlight in the list`)}"><title>${esc(p.name ? `${p.name}\n` : '')}${esc(title)}</title>
         <circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${(size * 2.2).toFixed(2)}" class="halo"/><circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${size.toFixed(2)}"/>
-        ${spot ? `<text x="${spot.x.toFixed(2)}" y="${spot.y.toFixed(2)}" font-size="${fs.toFixed(2)}" text-anchor="${spot.anchor}">${esc(label)}</text>` : ''}</g>`;
+        ${label ? place(label, x, y, size) : ''}</g>`;
     }).join('');
     const svg = $('#talkMapSvg');
     svg.setAttribute('viewBox', `${x0.toFixed(2)} ${y0.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`);
@@ -1312,6 +1328,66 @@ $('#talkList').addEventListener('click', (e) => {
 });
 // only load the map data when the Talks section comes near the screen
 new IntersectionObserver(([e], obs) => { if (e.isIntersecting) { obs.disconnect(); renderTalkMap(); } }, { rootMargin: '400px' }).observe($('#talks'));
+
+/* ---------------- co-author map (Publications) ---------------- */
+// My pin in Stockholm, and a pin for every place where at least one co-author was when we wrote a
+// paper together, joined to mine by a faint arc. The data (coauthors.json) is made from the papers
+// in cv.tex and OpenAlex by cv/coauthors.py, on every push and once a week. Tap a pin: the caption
+// names the institutions and people there, and the papers we share light up in the list.
+async function renderCoauthorMap() {
+  try {
+    const data = await (await fetch('coauthors.json', { cache: 'no-cache' })).json();
+    const places = data.places.filter((p) => p.home || p.people.length);
+    const home = places.find((p) => p.home);
+    if (!home || places.length < 2) return;
+    const { project, x0, y0, w, h } = mapView(places);
+    const land = landPath(await loadWorld(), project);
+    const r = w * 0.009, fs = w * 0.022;
+    const pins = places.map((p) => {
+      const [x, y] = project([p.lon, p.lat]);
+      return { p, x, y, size: p.home ? r * 1.9 : r * (0.9 + 0.3 * Math.sqrt(p.people.length)) };
+    });
+    const [hx, hy] = [pins.find((q) => q.p.home).x, pins.find((q) => q.p.home).y];
+    // arcs from my pin to every other one, all bending the same way
+    const arcs = pins.filter((q) => !q.p.home).map(({ x, y }, i) => {
+      const mx = (hx + x) / 2, my = (hy + y) / 2, dx = x - hx, dy = y - hy;
+      return `<path class="co-line" d="M${hx.toFixed(2)} ${hy.toFixed(2)} Q${(mx - dy * 0.2).toFixed(2)} ${(my + dx * 0.2).toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)}"/>`;
+    }).join('');
+    const place = labelPlacer({ x0, y0, w, h }, pins, fs);
+    const people = (p) => p.people.map((q) => q.name);
+    const pinsSvg = pins.sort((a, b) => (b.p.home ? 1 : 0) - (a.p.home ? 1 : 0) || b.p.people.length - a.p.people.length).map(({ p, x, y, size }, i) => {
+      const n = p.people.length;
+      const title = `${p.name}${p.home ? ' (my base)' : ''}\n${p.institutions.join(', ')}\n${n} co-author${n > 1 ? 's' : ''}: ${people(p).join(', ')}`;
+      return `<g class="co-pin${p.home ? ' home' : ''}" data-i="${data.places.indexOf(p)}" tabindex="0" role="button" aria-label="${esc(`${p.name}: ${n} co-author${n > 1 ? 's' : ''}`)}"><title>${esc(title)}</title>
+        <circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${(size * 2.2).toFixed(2)}" class="halo"/><circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${size.toFixed(2)}" class="dot"/>
+        ${place(p.name, x, y, size)}</g>`;
+    }).reverse().join(''); // my pin is drawn last, on top
+    const svg = $('#coMapSvg'), cap = $('#coCap');
+    svg.setAttribute('viewBox', `${x0.toFixed(2)} ${y0.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`);
+    svg.innerHTML = `<path class="land" d="${land}"/>${arcs}${pinsSvg}`;
+    const everyone = new Set(places.flatMap(people)), institutions = new Set(places.flatMap((p) => p.institutions));
+    const countries = new Set(places.map((p) => p.country).filter(Boolean));
+    const summary = `${everyone.size} co-authors · ${institutions.size} institutions · ${countries.size} ${countries.size > 1 ? 'countries' : 'country'}`;
+    cap.textContent = summary;
+    $('#coMap').hidden = false;
+    let chosen = null;
+    const choose = (i) => {
+      chosen = chosen === i ? null : i;
+      const p = data.places[chosen];
+      svg.querySelectorAll('.co-pin').forEach((pin) => pin.classList.toggle('active', +pin.dataset.i === chosen));
+      const shared = new Set(p ? p.people.flatMap((q) => q.papers) : []);
+      document.querySelectorAll('#pubList li[data-p]').forEach((li) => li.classList.toggle('co-active', shared.has(+li.dataset.p)));
+      if (!p) { cap.textContent = summary; return; }
+      const names = p.people.map((q) => `${esc(q.name)}${q.papers.length > 1 ? ` <span class="co-n">×${q.papers.length}</span>` : ''}`).join(', ');
+      cap.innerHTML = `<b>${esc(p.name)}</b>${p.home ? ' · my base' : ''} · ${esc(p.institutions.join(', '))}<br>${names} · ${shared.size} paper${shared.size > 1 ? 's' : ''} together, highlighted below`;
+    };
+    svg.querySelectorAll('.co-pin').forEach((pin) => {
+      pin.addEventListener('click', () => choose(+pin.dataset.i));
+      pin.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(+pin.dataset.i); } });
+    });
+  } catch { /* offline or no data yet: no map, the list works as before */ }
+}
+new IntersectionObserver(([e], obs) => { if (e.isIntersecting) { obs.disconnect(); renderCoauthorMap(); } }, { rootMargin: '400px' }).observe($('#publications'));
 
 /* ---------------- time-lapse ---------------- */
 // `timelapse`: a whole day in 20 seconds. `timelapse year`: the four seasons in 20 seconds.

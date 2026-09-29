@@ -13,3 +13,5 @@ cv/cv.pdf
 /cv.pdf
 # generated from cv/cv.tex by cv/tex2web.py (the GitHub Action does this on every push)
 cv-data.js
+# made by cv/coauthors.py from the papers in cv.tex and OpenAlex (the GitHub Action does this too)
+coauthors.json

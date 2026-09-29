@@ -186,6 +186,16 @@ The icon in the browser tab is the landscape in miniature: blue sky and sun, a s
 
 Under every publication there are two small buttons: **Copy citation** (APA style, e.g. "Edwards, S., …, & Brismar, H. (2026). Title. Nano Letters, 26(4), 1321–1326. https://doi.org/…") and **BibTeX**. Both copy to the clipboard and show "Copied". They're built from the fields in `publications` in `script.js` (journal, volume, issue, pages, doi), so new papers get them automatically.
 
+## Co-author map (Publications)
+
+Above the papers: a map with my pin in Stockholm (orange) and a green pin for every city where at least one co-author was when we wrote a paper together, each joined to Stockholm by a faint arc. Bigger pins mean more co-authors there. Below the map: "26 co-authors · 9 institutions · 3 countries". Tap or click a pin: the caption lists the institutions and the co-authors there (×3 = three papers together), and those papers light up in the list below. Tap again to clear. Hovering a pin (desktop) shows the same as a tooltip.
+
+- **Where the data comes from:** `cv/coauthors.py` takes the papers with a DOI from cv.tex (via cv-data.js), looks each up in OpenAlex (free, no key), and writes `coauthors.json`. Only papers in cv.tex count, because OpenAlex mixes other people called Sebastian Bauer into my ORCID.
+- **Places:** each co-author counts at the institution(s) given on our paper (where they were then). Institutions less than 25 km apart share a pin, so SciLifeLab/KI in Solna and KTH count as Stockholm. Co-authors in Stockholm belong to my pin.
+- **When it updates:** the GitHub Action runs the script on every push and every Monday morning (a scheduled run), so a new paper and its co-authors appear by themselves within a week of being in OpenAlex (usually a few days after publication). If OpenAlex can't be reached, the map is simply left out of that build. Note: GitHub pauses scheduled runs after 60 days without any push; any push starts them again.
+- **Settings** at the top of `cv/coauthors.py`: my base (`HOME`, now Stockholm), the merge distance (`MERGE_KM`), and `MAX_AUTHORS` (papers with more than 40 authors are left out so a big consortium paper doesn't flood the map).
+- **Locally:** `python3 cv/coauthors.py` (the preview server runs it on start). `coauthors.json` is generated, so it's in .gitignore like cv-data.js.
+
 ## Email
 
 Clicking **Email** in Contact opens the visitor's mail app *and* copies the address, with a short "Address copied" note, for people without a mail app.
