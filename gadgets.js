@@ -364,6 +364,7 @@ async function penguinRoute(steps) {
         if (s.pose === 'jump') { y -= Math.sin(Math.PI * k) * 9; pose = `rotate(${(20 + 70 * k).toFixed(0)})`; }
         if (s.pose === 'hop') y -= Math.sin(Math.PI * k) * 4;
         if (s.pose === 'read') pose = 'translate(0 1.3) rotate(-5)'; // sitting on the veranda chair
+        if (s.pose === 'chop') pose = `rotate(${(k < 0.6 ? -6 * k / 0.6 : k < 0.72 ? -6 + 16 * (k - 0.6) / 0.12 : 10 - 10 * Math.min(1, (k - 0.72) / 0.28)).toFixed(1)})`; // lean back, then into the swing
         if (s.pose === 'bend') pose = `rotate(${(Math.sin(Math.PI * k) * 42).toFixed(0)})`; // down to pick something up, and back
         const swimming = s.pose === 'swim', paddling = s.pose === 'paddle';
         if (paddling) { pose = `translate(0 2.9) rotate(${(Math.sin(t / 420) * 3).toFixed(1)})`; /* sitting in the cockpit */ pg.querySelector('.pg-paddle').setAttribute('transform', `rotate(${(Math.sin(t / 280) * 26).toFixed(0)} 0 -6)`); }
@@ -381,7 +382,7 @@ async function penguinRoute(steps) {
     });
     pos = to;
   }
-  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze', 'inside', 'steamy', 'kayak', 'basket', 'p1', 'p2', 'p3', 'carrycake', 'shovel', 'rake', 'watering', 'pouring', 'reading', 'pageturn');
+  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze', 'inside', 'steamy', 'kayak', 'basket', 'p1', 'p2', 'p3', 'pail', 'b1', 'b2', 'b3', 'axe', 'carrylogs', 'carrycake', 'shovel', 'rake', 'watering', 'pouring', 'reading', 'pageturn');
   earnBadge('penguin');
 }
 
@@ -560,6 +561,97 @@ const penguinChanterelles = () => penguinRoute([
   { to: [1199, 449], ms: 1200, pose: 'walk' },
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]).then(() => setTimeout(() => chanterelles.forEach((c) => c.classList.remove('picked')), 10 * 60000)); // they grow back
+
+// after the berry picking: a blueberry pie cools on the window sill. It steams for 10 minutes,
+// after half an hour a slice is gone, and after an hour the rest.
+const pie = $('#pie');
+let pieTimers = [];
+function bakePie(delay = 20000) {
+  pieTimers.forEach(clearTimeout);
+  pie.classList.remove('show', 'hot', 'bitten');
+  pieTimers = [
+    setTimeout(() => pie.classList.add('show', 'hot'), delay),
+    setTimeout(() => pie.classList.remove('hot'), delay + 10 * 60000),
+    setTimeout(() => pie.classList.add('bitten'), delay + 30 * 60000),
+    setTimeout(() => pie.classList.remove('show', 'bitten'), delay + 60 * 60000),
+  ];
+}
+
+// Firewood against the cottage wall. It goes down through the heating season (October to April),
+// stays low in summer, and is restocked in September. In autumn the penguin chops some more.
+const woodLogs = [...document.querySelectorAll('#woodpile .log')];
+let choppedLogs = 0, woodPreview = null;
+function woodLevel() {
+  if (woodPreview !== null) return woodPreview;
+  if (forcedSeason) return { winter: 0.55, spring: 0.3, summer: 0.2, autumn: 0.85 }[forcedSeason];
+  const [y, m, d] = shownDate(12).toLocaleDateString('en-CA', { timeZone: TZ }).split('-').map(Number);
+  if (m === 9) return 0.2 + 0.8 * (d - 1) / 29;                         // restocking
+  if (m >= 5 && m <= 8) return 0.2;                                      // summer: only a little left
+  const since = (Date.UTC(y, m - 1, d) - Date.UTC(m >= 10 ? y : y - 1, 9, 1)) / 864e5;
+  return 1 - 0.8 * since / 212;                                          // 1 October to 30 April
+}
+function updateWoodpile() {
+  const shown = Math.min(woodLogs.length, Math.round(woodLevel() * woodLogs.length) + choppedLogs);
+  woodLogs.forEach((l, i) => l.classList.toggle('gone', i >= shown));
+}
+skyHooks.push(updateWoodpile);
+const blockAxe = $('#blockAxe'), splitLog = $('#splitLog'), halves = splitLog.querySelectorAll('.half');
+const chopSwing = (k, pg) => { // raise the axe, bring it down, and the log splits in two
+  const a = k < 0.6 ? -125 * Math.sin(k / 0.6 * Math.PI / 2) : k < 0.72 ? -125 + 143 * (k - 0.6) / 0.12 : 18;
+  pg.querySelector('.pg-axe').setAttribute('transform', `rotate(${a.toFixed(0)} 1.2 -6.8)`);
+  const f = k < 0.72 ? 0 : Math.min(1, (k - 0.72) / 0.12);
+  halves[0].setAttribute('transform', f ? `rotate(${(-80 * f).toFixed(0)} -.6 0)` : '');
+  halves[1].setAttribute('transform', f ? `rotate(${(80 * f).toFixed(0)} .6 0)` : '');
+};
+const chopOne = () => [
+  { ms: 500, pose: 'wait', tick: (k, pg) => { if (k >= 1) { halves.forEach((h) => h.removeAttribute('transform')); splitLog.classList.add('show'); } } },
+  { ms: 1500, pose: 'chop', tick: chopSwing },
+  { ms: 700, pose: 'wait', tick: (k) => { if (k >= 1) splitLog.classList.remove('show'); } },
+];
+const penguinChop = () => penguinRoute([
+  { to: [1199, 449], ms: 800, pose: 'walk' },
+  { to: [1216, 449.3], ms: 1200, pose: 'walk' },
+  { to: [1220, 450.2], ms: 350, pose: 'hop' },
+  { to: [1223.4, 449.7], ms: 700, pose: 'walk' },
+  { to: [1223.4, 449.7], ms: 900, pose: 'bend', tick: (k, pg) => { if (k > 0.5) { blockAxe.classList.add('taken'); pg.classList.add('axe'); } } }, // pull the axe out of the block
+  { to: [1218.3, 449.9], ms: 1000, pose: 'walk' },
+  { to: [1218.4, 449.9], ms: 150, pose: 'walk' },                          // turn to face the block
+  ...chopOne(), ...chopOne(), ...chopOne(),
+  { to: [1223.4, 449.7], ms: 900, pose: 'walk', tick: (k, pg) => { if (k >= 1) { pg.querySelector('.pg-axe').removeAttribute('transform'); pg.classList.remove('axe'); blockAxe.classList.remove('taken'); } } },
+  { to: [1223.4, 449.7], ms: 1200, pose: 'bend', tick: (k, pg) => { if (k > 0.5) pg.classList.add('carrylogs'); } }, // gather the split wood
+  { to: [1219.6, 449.5], ms: 900, pose: 'walk' },
+  { to: [1219.6, 449.5], ms: 1400, pose: 'bend', tick: (k, pg) => { if (k > 0.5 && pg.classList.contains('carrylogs')) { pg.classList.remove('carrylogs'); choppedLogs += 3; updateWoodpile(); } } }, // onto the pile
+  { to: [1220, 450.2], ms: 300, pose: 'walk' },
+  { to: [1216, 449.3], ms: 350, pose: 'hop' },
+  { to: [1199, 449], ms: 1200, pose: 'walk' },
+  { to: [1195, 447], ms: 700, pose: 'walk' },
+]);
+
+// July and August: blueberries at the forest edge, picked into a pail (the berries grow back)
+const blueberryBushes = [...document.querySelectorAll('#blueberries .bb-bush')];
+let berryPreview = false;
+const berryTime = () => berryPreview || (currentSeason() === 'summer' && (forcedSeason === 'summer' || [7, 8].includes(+new Intl.DateTimeFormat('en-GB', { timeZone: TZ, month: 'numeric' }).format(shownDate(12)))));
+skyHooks.push(() => { document.documentElement.dataset.berries = berryTime() ? 'yes' : 'no'; });
+const pickBerries = (n) => (k, pg) => { if (k >= 1) { blueberryBushes[n - 1].classList.add('picked'); pg.classList.remove('b1', 'b2'); pg.classList.add(`b${n}`); } };
+const penguinBlueberries = () => penguinRoute([
+  { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.add('pail') },
+  { to: [1199, 449], ms: 800, pose: 'walk' },
+  { to: [1216, 449.3], ms: 1200, pose: 'walk' },
+  { to: [1220, 450.2], ms: 350, pose: 'hop' },
+  { to: [1243, 450], ms: 1700, pose: 'walk' },
+  { to: [1245.6, 447.9], ms: 800, pose: 'walk' },                  // off the path, to the bushes
+  { to: [1245.6, 447.9], ms: 2000, pose: 'bend', tick: pickBerries(1) },
+  { to: [1249.8, 448.2], ms: 800, pose: 'walk' },
+  { to: [1249.8, 448.2], ms: 2000, pose: 'bend', tick: pickBerries(2) },
+  { to: [1253.9, 447.8], ms: 800, pose: 'walk' },
+  { to: [1253.9, 447.8], ms: 2000, pose: 'bend', tick: pickBerries(3) },
+  { ms: 900, pose: 'wait' },
+  { to: [1252, 450], ms: 900, pose: 'walk' },
+  { to: [1220, 450.2], ms: 2300, pose: 'walk' },
+  { to: [1216, 449.3], ms: 350, pose: 'hop' },
+  { to: [1199, 449], ms: 1200, pose: 'walk' },
+  { to: [1195, 447], ms: 700, pose: 'walk' },
+]).then(() => { bakePie(); setTimeout(() => blueberryBushes.forEach((b) => b.classList.remove('picked')), 10 * 60000); });
 
 // calm summer days, once in a while: down the jetty, into the kayak, a paddle round the bay, and back
 const kayakMoored = $('#kayakMoored');
@@ -1747,6 +1839,8 @@ setTimeout(() => flyPlane(), 12000);
 every(70, 160, () => flyPlane());
 every(200, 480, () => flyBalloon());
 every(100, 240, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.4) penguinSolo(penguinChanterelles); });
+every(100, 240, () => { if (berryTime() && lastSky.d < 0.45 && !live.particle && Math.random() < 0.4) penguinSolo(penguinBlueberries); });
+every(120, 300, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.35) penguinSolo(penguinChop); });
 every(60, 150, () => { if (snowyPath() && lastSky.d < 0.45 && localHour() < 15) penguinSolo(penguinShovel); });
 every(120, 300, () => { if (currentSeason() === 'autumn' && lastSky.d < 0.45 && !live.particle && Math.random() < 0.35) penguinSolo(penguinRake); });
 every(90, 200, () => { if (thirsty() && lastSky.d < 0.45 && !live.particle && Math.random() < 0.5) penguinSolo(penguinWater); });
@@ -1796,6 +1890,9 @@ if (params.has('raindance')) setTimeout(() => penguinSolo(penguinRainDance, true
 if (params.has('angel')) setTimeout(() => penguinSolo(penguinAngel, true), 1200);
 if (params.has('sauna')) setTimeout(() => penguinSolo(penguinSauna, true), 1200);
 if (params.has('kayak')) setTimeout(() => penguinSolo(penguinKayak, true), 1200);
+if (params.has('blueberries')) { berryPreview = true; paintSky(); setTimeout(() => penguinSolo(penguinBlueberries, true), 1200); }
+if (params.has('chop')) setTimeout(() => penguinSolo(penguinChop, true), 1200);
+if (params.has('pie')) bakePie(800);
 if (params.has('chanterelles')) setTimeout(() => penguinSolo(penguinChanterelles, true), 1200);
 if (params.has('balloon')) setTimeout(() => flyBalloon(true), 1000);
 if (params.has('shovel')) { pathSnowPreview = true; setData('pathsnow', 'yes'); setTimeout(() => penguinSolo(penguinShovel, true), 1500); }

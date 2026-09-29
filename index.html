@@ -117,7 +117,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap"></noscript>
-  <link rel="stylesheet" href="style.css?v=20260929092318">
+  <link rel="stylesheet" href="style.css?v=20260929151617">
 </head>
 <body>
 <a class="skip-link" href="#about">Skip to content</a>
@@ -301,6 +301,8 @@
       <rect class="win-frame" x="1200.4" y="434.2" width="6.8" height="6.4"/><rect class="win-glass" x="1201.0" y="434.8" width="5.6" height="5.2"/><rect class="window" x="1201.0" y="434.8" width="5.6" height="5.2"/><path class="win-bar" d="M1203.8 434.8 V440 M1201.0 437.4 H1206.6"/>
       <rect class="door-frame" x="1191.9" y="432.9" width="6.2" height="13.5"/>
       <rect x="1180" y="451.5" width="30" height="9" fill="#9E2B25" opacity=".22"/>
+      <!-- firewood against the wall: it goes down over the winter and is restocked in autumn (gadgets.js) -->
+      <g class="woodpile" id="woodpile"><circle class="log" cx="1212.30" cy="446.48" r=".72"/><circle class="log" cx="1213.76" cy="446.48" r=".72"/><circle class="log" cx="1215.22" cy="446.48" r=".72"/><circle class="log" cx="1216.68" cy="446.48" r=".72"/><circle class="log" cx="1218.14" cy="446.48" r=".72"/><circle class="log" cx="1213.03" cy="445.18" r=".72"/><circle class="log" cx="1214.49" cy="445.18" r=".72"/><circle class="log" cx="1215.95" cy="445.18" r=".72"/><circle class="log" cx="1217.41" cy="445.18" r=".72"/><circle class="log" cx="1212.30" cy="443.88" r=".72"/><circle class="log" cx="1213.76" cy="443.88" r=".72"/><circle class="log" cx="1215.22" cy="443.88" r=".72"/><circle class="log" cx="1216.68" cy="443.88" r=".72"/><circle class="log" cx="1218.14" cy="443.88" r=".72"/><circle class="log" cx="1213.03" cy="442.58" r=".72"/><circle class="log" cx="1214.49" cy="442.58" r=".72"/><circle class="log" cx="1215.95" cy="442.58" r=".72"/><circle class="log" cx="1217.41" cy="442.58" r=".72"/></g>
       <!-- the veranda: a wooden deck with a white railing, and a step down to the path -->
       <g class="veranda">
         <path class="deck" d="M1176 446.4 H1214 L1217 449.4 H1173 Z"/>
@@ -333,6 +335,8 @@
       <g transform="translate(1289 449.8)"><path class="post" d="M0 0 V-3"/><circle class="halo" cy="-3.4" r="3"/><circle class="head" cy="-3.4" r=".75"/><path class="refl" d="M0 1.8 V6.5"/></g>
     </g>
 
+    <!-- chopping block by the path -->
+    <g class="chop-block" transform="translate(1225.4 448.8)"><rect class="cb-side" x="-1.1" y="-2" width="2.2" height="2"/><ellipse class="cb-top" cx="0" cy="-2" rx="1.1" ry=".3"/></g>
     <!-- barbecue next to the cottage -->
     <g class="bbq">
       <path d="M1228 448 L1231 440 M1238 448 L1235 440 M1233 448 L1233 440" class="bbq-legs"/>
@@ -562,6 +566,8 @@
     <g class="skier" id="skier"><g class="figure"><path d="M-3.5 0 H3.5"/><path d="M-0.5 -0.8 L0.6 -4.6 L-0.6 -7.2"/><circle cx="0" cy="-8.8" r="1.2"/><path d="M0.4 -6 L3.4 -1.4 M-0.6 -6 L-3 -2"/></g></g>
     <!-- penguin that lives in the cottage -->
     <defs><clipPath id="pgClip" clipPathUnits="userSpaceOnUse"><rect x="-12" y="-24" width="24" height="20"/></clipPath><clipPath id="pgClipKayak" clipPathUnits="userSpaceOnUse"><rect x="-14" y="-24" width="28" height="19.6"/></clipPath></defs>
+    <!-- blueberries at the forest edge in July and August; the penguin picks them into a pail -->
+    <g class="blueberries" id="blueberries"><g class="bb-bush" transform="translate(1245 446.9) scale(1)"><ellipse class="bb-leaf" cx="0" cy="-.7" rx="1.7" ry=".85"/><ellipse class="bb-leaf2" cx="-.6" cy="-1.1" rx=".9" ry=".6"/><g class="bb-berries"><circle cx="-.9" cy="-.8" r=".27"/><circle cx=".1" cy="-1.2" r=".27"/><circle cx=".8" cy="-.6" r=".27"/><circle cx="-.2" cy="-.4" r=".27"/></g></g><g class="bb-bush" transform="translate(1249.3 447.3) scale(0.85)"><ellipse class="bb-leaf" cx="0" cy="-.7" rx="1.7" ry=".85"/><ellipse class="bb-leaf2" cx="-.6" cy="-1.1" rx=".9" ry=".6"/><g class="bb-berries"><circle cx="-.9" cy="-.8" r=".27"/><circle cx=".1" cy="-1.2" r=".27"/><circle cx=".8" cy="-.6" r=".27"/><circle cx="-.2" cy="-.4" r=".27"/></g></g><g class="bb-bush" transform="translate(1253.4 446.7) scale(1)"><ellipse class="bb-leaf" cx="0" cy="-.7" rx="1.7" ry=".85"/><ellipse class="bb-leaf2" cx="-.6" cy="-1.1" rx=".9" ry=".6"/><g class="bb-berries"><circle cx="-.9" cy="-.8" r=".27"/><circle cx=".1" cy="-1.2" r=".27"/><circle cx=".8" cy="-.6" r=".27"/><circle cx="-.2" cy="-.4" r=".27"/></g></g></g>
     <!-- chanterelles at the forest edge in autumn; the penguin picks them -->
     <g class="chanterelles" id="chanterelles"><path class="cht" transform="translate(1266 446.6)" d="M-.9 0 L-.35 -1.1 Q-1.3 -1.4 -1.2 -1.8 Q0 -2.2 1.2 -1.8 Q1.3 -1.4 .35 -1.1 L.9 0 Z"/><path class="cht" transform="translate(1270.5 447.1) scale(.85)" d="M-.9 0 L-.35 -1.1 Q-1.3 -1.4 -1.2 -1.8 Q0 -2.2 1.2 -1.8 Q1.3 -1.4 .35 -1.1 L.9 0 Z"/><path class="cht" transform="translate(1275 446.4)" d="M-.9 0 L-.35 -1.1 Q-1.3 -1.4 -1.2 -1.8 Q0 -2.2 1.2 -1.8 Q1.3 -1.4 .35 -1.1 L.9 0 Z"/></g>
     <!-- the cottage's front door: it opens whenever the penguin goes in or out (gadgets.js) -->
@@ -578,6 +584,11 @@
     <path class="path-snow" id="pathSnow" d="M1216 449.7 C1240 450.3 1272 450.2 1297 449.4"/>
     <!-- 16 November: a birthday cake on the veranda (gadgets.js) -->
     <g class="cake" id="cake" transform="translate(1210.5 449.3)"><g class="cake-plate"><ellipse cx="0" cy="0" rx="2.6" ry=".45"/></g><rect class="cake-body" x="-1.9" y="-2" width="3.8" height="2"/><rect class="cake-icing" x="-1.95" y="-2.25" width="3.9" height=".6" rx=".25"/><g class="cake-candles"><path d="M-1 -2.2 V-3.3 M0 -2.2 V-3.5 M1 -2.2 V-3.3"/></g><g class="cake-flames"><ellipse cx="-1" cy="-3.7" rx=".28" ry=".45"/><ellipse cx="0" cy="-3.9" rx=".28" ry=".45"/><ellipse cx="1" cy="-3.7" rx=".28" ry=".45"/></g><rect class="hit" x="-4" y="-6" width="8" height="7"/></g>
+    <!-- the axe rests in the chopping block; a log on the block splits in two (gadgets.js) -->
+    <g class="block-axe" id="blockAxe" transform="translate(1225.4 446.8) rotate(35)"><path class="axe-handle" d="M0 0 L-4.2 0"/><path class="axe-head" d="M-.2 -.9 L.9 -.8 L.9 .6 L-.2 .5 Z"/></g>
+    <g class="split-log" id="splitLog" transform="translate(1225.4 446.8)"><g class="half l"><rect x="-.6" y="-1.5" width=".6" height="1.5"/></g><g class="half r"><rect x="0" y="-1.5" width=".6" height="1.5"/></g></g>
+    <!-- a blueberry pie cooling on the window sill after the berry picking (gadgets.js) -->
+    <g class="pie" id="pie" transform="translate(1203.8 440.6)"><ellipse class="pie-dish" cx="0" cy="0" rx="2" ry=".32"/><path class="pie-left" d="M-1.6 -.1 Q-1.6 -1.1 0 -1.15 Q.6 -1.15 .6 -1.13 V-.1 Z"/><path class="pie-right" d="M.6 -1.13 Q1.6 -1.05 1.6 -.1 H.6 Z"/><rect class="pie-cut" x=".45" y="-1.1" width=".3" height="1"/><path class="pie-lattice" d="M-1 -.95 L-.4 -.2 M-.2 -1.1 L.4 -.25 M-1.3 -.6 H.6"/><path class="pie-lattice r" d="M.6 -1.1 L1.2 -.3 M.6 -.6 H1.4"/><g class="pie-steam"><path d="M-.6 -1.5 q.4 -.6 0 -1.2 q-.4 -.6 0 -1.2"/><path d="M.5 -1.5 q.4 -.6 0 -1.2 q-.4 -.6 0 -1.2"/></g></g>
     <!-- a kayak moored at the end of the jetty in summer -->
     <g class="kayak-moored" id="kayakMoored" transform="translate(1312 474.5) scale(1.4)"><path class="pg-hull" d="M-12.5 -1.5 Q-7 .7 0 .8 Q7 .7 12.5 -1.5 Q0 -.9 -12.5 -1.5 Z"/><path class="pg-rim" d="M-3 -1.3 h6"/><path class="pg-shaft" d="M-6.5 -2 L6.5 -2"/></g>
     <g class="penguin" id="penguin"><g class="pg-flip"><g class="pg-chair"><path d="M-4.6 -8.2 L-3.8 -3.6 H2.6 M-3.6 -3.6 L-3.9 .2 M2.2 -3.6 L2.5 .2"/></g><g class="pg-waddle">
@@ -591,6 +602,8 @@
       <g class="pg-steam"><circle cx="-1" cy="-13.5" r=".9"/><circle cx="1" cy="-14" r=".8"/><circle cx="0" cy="-12.8" r=".7"/></g>
       <g class="pg-phone"><path class="pg-arm" d="M1.6 -7.2 Q3.4 -10 4.2 -12.6"/><rect x="3.4" y="-15.2" width="1.7" height="2.8" rx=".35"/><circle class="pg-flash" cx="4.2" cy="-13.8" r="3.2"/></g>
       <g class="pg-paddle"><path class="pg-shaft" d="M-7 -9.6 L7 -2.6"/><path class="pg-blade" d="M-8.4 -10.4 l2.6 1.3 M5.8 -1.9 l2.6 1.3"/></g>
+      <g class="pg-axe"><path class="axe-handle" d="M1.2 -6.8 L6.6 -6.8"/><path class="axe-head" d="M5.9 -7.9 L6.9 -7.9 L7.1 -5.6 L6 -6 Z"/></g><g class="pg-logs"><circle class="log" cx="3.4" cy="-5.2" r=".7"/><circle class="log" cx="4.6" cy="-5.6" r=".7"/><circle class="log" cx="3.9" cy="-6.4" r=".7"/></g>
+      <g class="pg-pail"><path class="pg-pl-h" d="M-6 -4.2 q1.8 -2.6 3.6 0"/><circle class="pg-pb b1" cx="-5.1" cy="-4.3" r=".55"/><circle class="pg-pb b2" cx="-4.2" cy="-4.5" r=".55"/><circle class="pg-pb b3" cx="-3.3" cy="-4.3" r=".55"/><path class="pg-pl" d="M-6.1 -4.3 h3.8 l-.4 2.7 h-3 z"/></g>
       <g class="pg-basket"><path class="pg-bk-h" d="M-6 -4.4 q1.8 -2.8 3.6 0"/><circle class="pg-cht c1" cx="-5.2" cy="-4.5" r=".7"/><circle class="pg-cht c2" cx="-4.2" cy="-4.7" r=".7"/><circle class="pg-cht c3" cx="-3.2" cy="-4.5" r=".7"/><path class="pg-bk" d="M-6.2 -4.4 h4 l-.6 2.8 h-2.8 z"/></g>
       <g class="pg-cake" transform="translate(4.6 -4.6) scale(.8)"><g class="cake-plate"><ellipse cx="0" cy="0" rx="2.6" ry=".45"/></g><rect class="cake-body" x="-1.9" y="-2" width="3.8" height="2"/><rect class="cake-icing" x="-1.95" y="-2.25" width="3.9" height=".6" rx=".25"/><g class="cake-candles"><path d="M-1 -2.2 V-3.3 M0 -2.2 V-3.5 M1 -2.2 V-3.3"/></g><g class="cake-flames"><ellipse cx="-1" cy="-3.7" rx=".28" ry=".45"/><ellipse cx="0" cy="-3.9" rx=".28" ry=".45"/><ellipse cx="1" cy="-3.7" rx=".28" ry=".45"/></g></g>
       <circle class="pg-snowball" cx="7" cy="-2" r="1"/>
@@ -752,11 +765,11 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="notes.js?v=20260929092318"></script>
+<script src="notes.js?v=20260929151617"></script>
 <script src="cv-data.js?v=local"></script>
-<script src="script.js?v=20260929092318"></script>
-<script src="extras.js?v=20260929092318"></script>
-<script src="gadgets.js?v=20260929092318"></script>
-<script src="science.js?v=20260929092318"></script>
+<script src="script.js?v=20260929151617"></script>
+<script src="extras.js?v=20260929151617"></script>
+<script src="gadgets.js?v=20260929151617"></script>
+<script src="science.js?v=20260929151617"></script>
 </body>
 </html>

@@ -588,6 +588,36 @@ kbd {
 .pg-cht { display: none; }
 .penguin.p1 .c1, .penguin.p2 .c1, .penguin.p2 .c2, .penguin.p3 .pg-cht { display: inline; }
 .cht.picked { display: none; }
+/* blueberries (July and August) and the penguin's pail */
+.blueberries, .pg-pail, .pg-pb { display: none; }
+[data-berries="yes"] .blueberries { display: inline; }
+.penguin.pail .pg-pail { display: inline; }
+.penguin.b1 .b1, .penguin.b2 .b1, .penguin.b2 .b2, .penguin.b3 .pg-pb { display: inline; }
+.bb-leaf { fill: #2F5A34; } .bb-leaf2 { fill: #3C6E3E; }
+.bb-berries circle, .pg-pb { fill: #43569F; }
+.bb-bush.picked .bb-berries { display: none; }
+.pg-pl { fill: #9AA5AE; } .pg-pl-h { fill: none; stroke: #6E7A84; stroke-width: .4; }
+/* firewood: the pile, the chopping block, the axe (gadgets.js) */
+.woodpile .log, .pg-logs .log { fill: #C68E55; stroke: #7E5530; stroke-width: .25; }
+.woodpile .log.gone { display: none; }
+.chop-block .cb-side { fill: #7A5534; } .chop-block .cb-top { fill: #C9A273; }
+.axe-handle { stroke: #9A7348; stroke-width: .4; stroke-linecap: round; fill: none; } .axe-head { fill: #6F7880; }
+.pg-axe, .pg-logs, .split-log { display: none; }
+.penguin.axe .pg-axe, .penguin.carrylogs .pg-logs { display: inline; }
+.block-axe.taken { display: none; }
+.split-log.show { display: inline; }
+.split-log rect { fill: #C68E55; stroke: #7E5530; stroke-width: .2; }
+/* a blueberry pie on the window sill */
+.pie { display: none; }
+.pie.show { display: inline; }
+.pie-dish { fill: #EDE9E0; } .pie-left, .pie-right { fill: #C98B4B; } .pie-lattice { stroke: #A36A35; stroke-width: .18; fill: none; }
+.pie-cut { fill: #4B3C7A; display: none; }
+.pie.bitten .pie-right, .pie.bitten .pie-lattice.r { display: none; } .pie.bitten .pie-cut { display: inline; }
+.pie-steam { display: none; } .pie-steam path { fill: none; stroke: rgba(255, 255, 255, .7); stroke-width: .18; stroke-linecap: round; }
+.pie.hot .pie-steam { display: inline; }
+.pie.hot .pie-steam path { animation: pie-steam 2.6s ease-out infinite; }
+.pie.hot .pie-steam path:nth-child(2) { animation-delay: 1.3s; }
+@keyframes pie-steam { from { opacity: 0; transform: translateY(.6px); } 30% { opacity: 1; } to { opacity: 0; transform: translateY(-1.4px); } }
 /* birthday cake (16 November) */
 .cake, .pg-cake { display: none; }
 .cake.show, .penguin.carrycake .pg-cake { display: inline; }
