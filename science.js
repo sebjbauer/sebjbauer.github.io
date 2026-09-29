@@ -25,7 +25,7 @@ const ripples = (() => {
   let sources = [], raf = 0, L = null, img = null;
 
   function layout() {
-    const m = sciLand.getScreenCTM();
+    const m = landMatrix(sciLand);
     if (!m || !m.a) return false;
     const hb = sciHero.getBoundingClientRect(), bb = lake.getBBox();
     const left = m.a * bb.x + m.e - hb.left, top = m.d * bb.y + m.f - hb.top, w = m.a * bb.width, h = m.d * bb.height;
@@ -96,7 +96,7 @@ const ripples = (() => {
   }
 
   // landscape units of a point on the screen
-  const toLand = (cx, cy) => new DOMPoint(cx, cy).matrixTransform(sciLand.getScreenCTM().inverse());
+  const toLand = (cx, cy) => screenToLand(sciLand, cx, cy);
   sciLand.addEventListener('pointerdown', (e) => {
     if (!e.target.closest('.l-lake')) return;
     const p = toLand(e.clientX, e.clientY);
@@ -105,6 +105,7 @@ const ripples = (() => {
   });
   addEventListener('resize', () => { if (raf) layout(); });
   cv.hidden = true;
+  panHooks.push(() => { if (raf) layout(); }); // the phone view was swiped
   return { add, toLand };
 })();
 
@@ -120,10 +121,10 @@ const ripples = (() => {
     const strength = live.frozen || live.fog || live.particle ? 0
       : isDay ? clearSky : light.hidden ? 0 : clearSky * Math.max(0, (moon.illum - 0.45) / 0.55); // moonlight only while the moon is up
     // where the sun or moon stands, in landscape units
-    const hb = sciHero.getBoundingClientRect(), m = sciLand.getScreenCTM();
+    const hb = sciHero.getBoundingClientRect(), m = landMatrix(sciLand);
     const left = parseFloat(light.style.left);
     let x = null;
-    if (m && strength > 0.3 && !isNaN(left)) x = new DOMPoint(hb.left + (left / 100) * hb.width, 0).matrixTransform(m.inverse()).x;
+    if (m && strength > 0.3 && !isNaN(left)) x = (hb.left + (left / 100) * hb.width - m.e) / m.a;
     const onLake = x !== null && x > 945 && x < 1430;
     const next = onLake ? `${Math.round(x)}|${isDay}|${strength.toFixed(2)}` : 'none';
     if (next === key) return;

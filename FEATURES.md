@@ -141,6 +141,10 @@ Based on the date in Vienna.
 | Easter Sunday | Calculated each year (2026: 5 April, 2027: 28 March) | Coloured eggs and a bunny in the meadow, greeting "Happy Easter · Frohe Ostern · Glad påsk." |
 | Midsommar | Swedish Midsummer Eve (Friday 19–25 June) and the Saturday after | Flower-covered maypole next to the cottage, greeting "Happy Midsummer · Glad midsommar!" |
 
+## Phones: swipe the landscape
+
+On phones the landscape is drawn at its true proportions (no longer squeezed sideways) and bigger, about a quarter of the scene at a time; it starts at the cottage end. Swipe sideways to look around (with a little momentum); up and down still scroll the page, and a swipe never counts as a tap. Only the drawing moves: the name, the text and the sky stay where they are. The first time, the view nudges a little to show that it moves. Technically: the two landscape SVGs are drawn at full width and slid with a GPU transform (`setPan` in script.js); anything that maps landscape units to the screen uses `landMatrix()` (Safari's getScreenCTM ignores CSS transforms), and code that caches positions listens to `panHooks`.
+
 ## Things visitors can find and click
 
 - **Shooting stars:** at night, one crosses the sky every 15 to 50 seconds. Clicking it "catches" it ("Make a wish."). The browser remembers how many each visitor has caught.
@@ -156,6 +160,7 @@ Based on the date in Vienna.
   - **Sauna:** a whole sauna session. When the lake is frozen (or mostly), the cold plunge is through the hole in the ice; otherwise it walks to the jetty, jumps off the end, swims round the moored kayak and climbs out by the sauna (straight from the shore while a triathlon has the jetty). Tapping during the session gives a big puff of steam (badge *Löyly*).
   - **Woodpile or chopping block:** chops wood. **Blueberry bushes** (July–August): picks them. **Chanterelles** (autumn): picks them. **Autumn leaves:** rakes them (and jumps in). **Window boxes:** waters them. **Moored kayak** (summer, open water, no triathlon): a paddle. **Grill:** a barbecue. **Snowy path:** shovels it.
   - **Beaver lodge:** the beaver swims out (open water only; badge *Busy beaver*). **Pie on the sill:** a slice disappears. **Visiting penguins** (World Penguin Day): the one you tap hops.
+  - Every jump into the water (from the jetty, into the hole in the ice, from the shore) is a **cannonball**: tucked up into a ball, a high arc, a big splash and a ring of waves.
   - **Jetty:** a swim on summer days (or 20 °C and warmer), a belly slide when the lake is frozen. **Frozen lake:** out onto the ice, taking turns between a belly slide, ice fishing and a snow angel.
   - If the penguin is already out (or a triathlon has the jetty), the job waits and starts as soon as it can (up to 90 seconds). Things only react while they're there (blueberries in July and August, chanterelles and leaves in autumn, the kayak in summer, …).
   - On phones the drawing is squeezed sideways, so the things are only a few pixels wide: a tap that misses one by up to 24 px still counts (the nearest one is used).

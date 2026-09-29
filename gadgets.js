@@ -240,7 +240,7 @@ fxSvg.after(pgSprite);
 let spriteM = null;
 function spriteMatrix() { // landscape units → pixels in the hero (the phone view stretches x and y differently)
   if (spriteM) return spriteM;
-  const m = fxSvg.getScreenCTM(), hero = fxSvg.parentNode.getBoundingClientRect();
+  const m = landMatrix(fxSvg), hero = fxSvg.parentNode.getBoundingClientRect();
   if (!m) return { a: 1, d: 1, e: 0, f: 0 };
   spriteM = { a: m.a, d: m.d, e: m.e - hero.left, f: m.f - hero.top };
   const k = SPRITE;
@@ -248,6 +248,7 @@ function spriteMatrix() { // landscape units → pixels in the hero (the phone v
   return spriteM;
 }
 addEventListener('resize', () => { spriteM = null; });
+panHooks.push(() => { spriteM = null; }); // the phone view was swiped: the penguin follows on its next step
 // the front door opens while the penguin stands in the doorway, going out or coming home
 const stugaDoor = $('#stugaDoor');
 let doorTimer = 0;
@@ -364,6 +365,11 @@ async function penguinRoute(steps) {
         if (s.pose === 'walk') pose = `rotate(${(Math.sin(t / (s.fast ? 55 : 90)) * 9).toFixed(1)})`;
         if (s.pose === 'slide') pose = 'translate(0 -1.5) rotate(78)';
         if (s.pose === 'jump') { y -= Math.sin(Math.PI * k) * 9; pose = `rotate(${(20 + 70 * k).toFixed(0)})`; }
+        if (s.pose === 'cannonball') { // into the water: tucked up into a ball, a high arc, and a big splash
+          y -= Math.sin(Math.PI * k) * 11;
+          pose = `translate(0 -5) rotate(${(-30 * k).toFixed(0)}) scale(.86 .72) translate(0 5)`;
+          if (k >= 1) bigSplash(x, y);
+        }
         if (s.pose === 'hop') y -= Math.sin(Math.PI * k) * 4;
         if (s.pose === 'read') pose = 'translate(0 1.3) rotate(-5)'; // sitting on the veranda chair
         if (s.pose === 'chop') pose = `rotate(${(k < 0.6 ? -6 * k / 0.6 : k < 0.72 ? -6 + 16 * (k - 0.6) / 0.12 : 10 - 10 * Math.min(1, (k - 0.72) / 0.28)).toFixed(1)})`; // lean back, then into the swing
@@ -417,7 +423,7 @@ const penguinSwim = () => penguinRoute([
   { to: [1220, 450.2], ms: 350, pose: 'hop' },               // down the step
   { to: [1297, 449.6], ms: 3600, pose: 'walk', fast: true }, // along the path to the jetty
   { to: [1302, 471], ms: 1300, pose: 'walk', fast: true },   // down the jetty
-  { to: [1307, 481], ms: 650, pose: 'jump' },                // and in!
+  { to: [1307, 481], ms: 750, pose: 'cannonball' },          // and in!
   { to: [1190, 466], ms: 7500, pose: 'swim' },               // swim to the rocks
   { to: [1168, 455], ms: 2200, pose: 'swim' },
   { to: [1164, 450.5], ms: 700, pose: 'hop' },               // climb out onto the rocks
@@ -478,6 +484,12 @@ const penguinStargaze = () => penguinRoute([
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]);
 
+// a cannonball's splash: the spray, three times bigger, and a ring of waves on open water
+function bigSplash(x, y) {
+  splash.setAttribute('transform', `translate(${x.toFixed(1)} ${(y - 0.6).toFixed(1)}) scale(2.4)`);
+  splash.classList.remove('go'); void splash.getBoundingClientRect(); splash.classList.add('go');
+  if (!live.frozen && typeof ripples !== 'undefined') ripples.add(x, y, 1.1, 1.4);
+}
 // warm rain: out to the puddle on the path for some jumping
 const splashAt = (x) => (k) => {
   if (k < 1) return;
@@ -523,16 +535,15 @@ $('.sauna-hit').addEventListener('click', (e) => {
 const saunaPlunge = () => {
   if (live.ice >= 0.5) return [
     { to: [1345, 461.2], ms: 1100, pose: 'walk', fast: true }, // out and straight to the hole in the ice
-    { to: [1345, 463.4], ms: 450, pose: 'jump', tick: (k) => { if (k >= 1) { splash.setAttribute('transform', 'translate(1345 462.6)'); splash.classList.remove('go'); void splash.getBoundingClientRect(); splash.classList.add('go'); } } },
+    { to: [1345, 463.4], ms: 600, pose: 'cannonball' },
     { ms: 1300, pose: 'wait', tick: hide(true) },             // under the ice for a moment
     { ms: 1, pose: 'wait', tick: hide(false) },
     { to: [1341, 460], ms: 500, pose: 'hop' },                // brrr, out
     { to: [1335, 449.1], ms: 1100, pose: 'walk', fast: true }, // back into the heat
   ];
-  const splashAt = (x, y) => (k) => { if (k >= 1) { splash.setAttribute('transform', `translate(${x} ${y})`); splash.classList.remove('go'); void splash.getBoundingClientRect(); splash.classList.add('go'); } };
   if (tri) return [
     { to: [1333, 451], ms: 500, pose: 'walk', fast: true },
-    { to: [1331, 457], ms: 450, pose: 'jump', tick: splashAt(1331, 456.5) },
+    { to: [1331, 457], ms: 600, pose: 'cannonball' },
     { ms: 1600, pose: 'swim' },
     { to: [1331, 450.4], ms: 600, pose: 'hop' },
     { to: [1335, 449.1], ms: 700, pose: 'walk', fast: true },
@@ -540,7 +551,7 @@ const saunaPlunge = () => {
   return [
     { to: [1297, 449.6], ms: 1500, pose: 'walk', fast: true },  // along the shore to the jetty
     { to: [1302, 471], ms: 1300, pose: 'walk', fast: true },    // down the jetty
-    { to: [1307, 481], ms: 650, pose: 'jump', tick: splashAt(1307, 480.5) }, // and in!
+    { to: [1307, 481], ms: 750, pose: 'cannonball' }, // and in!
     { to: [1318, 487], ms: 1800, pose: 'swim' },                 // round the kayak …
     { to: [1335, 479], ms: 2200, pose: 'swim' },
     { to: [1334, 462], ms: 2600, pose: 'swim' },

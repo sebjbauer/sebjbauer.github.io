@@ -532,12 +532,95 @@ function fitLandscape() {
   }
   document.querySelectorAll('.landscape').forEach((svg) => {
     svg.style.height = height; svg.style.bottom = bottom;
-    // phones: a closer view, from the summit cross to the lake; wide screens: if the drawing has to
-    // be cropped, crop the far left of the Alps and keep the lake and the cottage
-    svg.setAttribute('viewBox', narrow ? '330 70 1110 450' : '0 0 1440 520');
-    svg.setAttribute('preserveAspectRatio', narrow ? 'none' : 'xMaxYMax slice');
+    // wide screens: if the drawing has to be cropped, crop the far left of the Alps and keep the
+    // lake and the cottage. Phones: see setPan below.
+    svg.style.width = ''; svg.style.transform = '';
+    if (!narrow) { svg.setAttribute('viewBox', '0 0 1440 520'); svg.setAttribute('preserveAspectRatio', 'xMaxYMax slice'); }
   });
+  panWidth = 0;
+  if (narrow) {
+    // the whole drawing at one scale (nothing squeezed), as wide as it needs to be; setPan slides it
+    const box = $('#landscape').getBoundingClientRect();
+    panScale = box.height / PAN_H;
+    panWidth = Math.min(1440, box.width / panScale); // how much of it fits on the screen
+    document.querySelectorAll('.landscape').forEach((svg) => {
+      svg.setAttribute('viewBox', `0 ${PAN_Y0} 1440 ${PAN_H}`); svg.setAttribute('preserveAspectRatio', 'none');
+      svg.style.width = `${(1440 * panScale).toFixed(1)}px`;
+    });
+    setPan(panX ?? 1440 - panWidth); // start at the cottage end
+  }
 }
+
+// Landscape units → screen pixels: x = a·u + e, y = d·v + f. getScreenCTM ignores CSS transforms in
+// some Safari versions, so while the phone view is slid sideways, work it out from where the
+// drawing actually is on the screen.
+function landMatrix(svg) {
+  if (panWidth) { const r = svg.getBoundingClientRect(); return { a: panScale, d: panScale, e: r.left, f: r.top - PAN_Y0 * panScale }; }
+  const m = svg.getScreenCTM();
+  return m && { a: m.a, d: m.d, e: m.e, f: m.f };
+}
+const screenToLand = (svg, cx, cy) => { const m = landMatrix(svg); return { x: (cx - m.e) / m.a, y: (cy - m.f) / m.d }; };
+
+/* ---------------- phones: swipe the landscape sideways ---------------- */
+// On a phone the drawing is shown at its true proportions, a third of it at a time, and a sideways
+// swipe pans along it (with a little momentum); up and down still scroll the page. Only the drawing
+// moves: the text and the sky stay where they are. Other scripts can follow along via panHooks.
+const PAN_Y0 = 92, PAN_H = 428; // from just above the summit cross (y = 102) down to the front meadow
+let panX = null, panWidth = 0, panScale = 1;
+const panHooks = [];
+function setPan(x) { // slides the drawing (a GPU transform, so it stays smooth on phones)
+  if (!panWidth) return;
+  panX = Math.max(0, Math.min(1440 - panWidth, x));
+  const t = `translate3d(${(-panX * panScale).toFixed(1)}px, 0, 0)`;
+  document.querySelectorAll('.landscape').forEach((svg) => { svg.style.transform = t; });
+  panHooks.forEach((fn) => fn());
+}
+(() => {
+  const hero = $('.hero');
+  let start = null, lastX = 0, lastT = 0, v = 0, glide = 0, swiped = false, settle = 0;
+  const unitsPerPx = () => 1 / panScale;
+  const settled = () => { clearTimeout(settle); settle = setTimeout(() => paintSky(), 200); }; // glints etc. line up again
+  hero.addEventListener('pointerdown', (e) => {
+    if (!panWidth || e.pointerType === 'mouse' || e.target.closest('a, button, .gps')) return;
+    cancelAnimationFrame(glide);
+    start = { x: e.clientX, y: e.clientY, pan: panX }; lastX = e.clientX; lastT = e.timeStamp; v = 0; swiped = false;
+  });
+  hero.addEventListener('pointermove', (e) => {
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    if (!swiped && Math.abs(dx) < 8) return;
+    swiped = true;
+    setPan(start.pan - dx * unitsPerPx());
+    const dt = Math.max(1, e.timeStamp - lastT);
+    v = 0.8 * v + 0.2 * ((lastX - e.clientX) * unitsPerPx() / dt); // units per ms
+    lastX = e.clientX; lastT = e.timeStamp;
+  });
+  const end = () => {
+    if (!start) return;
+    start = null;
+    if (!swiped) return;
+    let t0 = 0;
+    const coast = (t) => { // let it glide to a stop
+      const dt = t0 ? Math.min(32, t - t0) : 16; t0 = t;
+      v *= Math.pow(0.994, dt);
+      setPan(panX + v * dt);
+      if (Math.abs(v) > 0.01 && panX > 0 && panX < 1440 - panWidth) glide = requestAnimationFrame(coast); else settled();
+    };
+    glide = requestAnimationFrame(coast);
+  };
+  hero.addEventListener('pointerup', end);
+  hero.addEventListener('pointercancel', () => { start = null; }); // the page scrolled instead
+  // a swipe is not a tap: don't let it trigger anything
+  hero.addEventListener('click', (e) => { if (swiped) { e.stopPropagation(); e.preventDefault(); swiped = false; } }, true);
+  // the first time, a small nudge shows that the view moves
+  setTimeout(() => {
+    if (!panWidth || reduceMotion || localStorage.getItem('panHint')) return;
+    try { localStorage.setItem('panHint', '1'); } catch { /* private mode */ }
+    const from = panX, t0 = performance.now();
+    const nudge = (t) => { const k = Math.min(1, (t - t0) / 1600); setPan(from - Math.sin(Math.PI * k) * 70); if (k < 1) requestAnimationFrame(nudge); else settled(); };
+    requestAnimationFrame(nudge);
+  }, 2500);
+})();
 
 /* ---------------- hero text ---------------- */
 let specialGreeting = () => null; // extras.js sets this on Christmas, Easter and Midsommar
