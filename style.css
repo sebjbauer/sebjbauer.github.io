@@ -154,6 +154,7 @@ kbd {
 [data-daylight="no"] #flowers .petals { transform: scale(.4); }
 [data-daylight="no"] #flowers .c { display: none; }
 .weather { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.world { position: absolute; inset: 0; }
 .frost { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 2.5s; }
 .frost.on { opacity: 1; }
 /* soft edge where a coloured meadow meets the page */
@@ -594,6 +595,13 @@ kbd {
 [data-pathsnow="yes"] .tap-pathsnow { display: inline; }
 .hit-stroke { fill: none; stroke: transparent; stroke-width: 3; pointer-events: stroke; cursor: pointer; }
 .visitors use { pointer-events: all; cursor: pointer; }
+/* night stroll: nightcap and lantern; the trophy for all badges */
+.pg-nightcap, .pg-lantern, .pg-trophy, .trophy { display: none; }
+.penguin.nightcap .pg-nightcap, .penguin.nightcap .pg-lantern, .penguin.carrytrophy .pg-trophy, .trophy.show { display: inline; }
+.pg-cap { fill: #3D5A80; } .pg-capband { fill: none; stroke: #F4F4F2; stroke-width: .5; stroke-linecap: round; } .pg-pompom { fill: #F4F4F2; }
+.pg-lbody { fill: #2B2B2B; } .pg-lhandle { fill: none; stroke: #2B2B2B; stroke-width: .3; } .pg-lflame { fill: #FFC857; }
+.pg-lglow { fill: rgba(255, 200, 110, .28); }
+.tr-cup, .tr-stem { fill: #E0B642; stroke: #A7832A; stroke-width: .15; } .tr-shine { fill: #FFF3C4; }
 /* sunglasses when the UV index is 6 or more (extras.js) */
 .pg-shades { display: none; }
 [data-uv="high"] .penguin .pg-shades { display: inline; }
@@ -1137,11 +1145,11 @@ html:not([data-holiday="christmas"]) .xmas-lights circle,
 }
 @media (max-width: 760px) {
   .hero { touch-action: pan-y; } /* sideways swipes pan the landscape (script.js), up and down scroll the page */
-  .landscape { will-change: transform; } /* its own layer: sliding it is cheap */
+  .world { right: auto; will-change: transform; } /* wider than the screen, slid by script.js: its own layer, so sliding is cheap */
   .nav nav a { display: none; }
   .hero-text { top: 18vh; }
   .hero-clock { display: block; margin-top: 2px; } /* on phones: greeting on one line, time on the next */
-  .landscape { height: 55%; }
+  .landscape { height: 48%; }
   /* phones: the terminal is a sheet across the bottom of the screen */
   .gps { left: 0; right: 0; bottom: 0; width: auto; height: min(74svh, 640px); border-width: 1px 0 0; border-radius: 14px 14px 0 0; font-size: 12.5px; }
   .gps-head { padding: 12px 16px; }

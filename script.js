@@ -50,6 +50,17 @@ const SITE = {
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Everything in the hero except the text (and the screen-fixed rain and snow, fog, lightning flash
+// and window frost) lives in one "world" layer: sky, sun, moon, stars, clouds, landscape. On phones
+// it is wider than the screen and slides sideways when you swipe (setPan); on wide screens it is
+// simply the size of the hero.
+const heroWorld = (() => {
+  const hero = document.querySelector('.hero'), w = document.createElement('div'), stop = document.getElementById('weather');
+  w.className = 'world';
+  for (const el of [...hero.children]) { if (el === stop) break; w.appendChild(el); }
+  hero.insertBefore(w, stop);
+  return w;
+})();
 const TZ = SITE.places[SITE.workBase].tz; // the time zone of the place you're at
 const base = () => SITE.places[SITE.workBase];
 const fmtCoord = (p) => `${p.lat.toFixed(2)}°N ${p.lon.toFixed(2)}°E`;
@@ -216,7 +227,7 @@ function paintSky() {
   const narrow = innerWidth < 760, place = skyPlace ?? base();
   const highest = 90 - place.lat + 23.44; // the sun's height at noon on midsummer day
   const lift = isDay ? Math.min(1, Math.max(0, sunT.alt(h) / highest)) : Math.sin(p * Math.PI);
-  const left = ((narrow ? 20 : 48) + p * (narrow ? 70 : 46)).toFixed(2) + '%', top = ((narrow ? 63 : 62) - lift * (narrow ? 6 : 44)).toFixed(2) + '%';
+  const left = (48 + p * 46).toFixed(2) + '%', top = ((narrow ? 63 : 62) - lift * (narrow ? 6 : 44)).toFixed(2) + '%';
   if (sun.style.left !== left) sun.style.left = left;
   if (sun.style.top !== top) sun.style.top = top;
   // Near the horizon the air bends light from the lower edge more than from the upper edge,
@@ -534,19 +545,16 @@ function fitLandscape() {
     svg.style.height = height; svg.style.bottom = bottom;
     // wide screens: if the drawing has to be cropped, crop the far left of the Alps and keep the
     // lake and the cottage. Phones: see setPan below.
-    svg.style.width = ''; svg.style.transform = '';
     if (!narrow) { svg.setAttribute('viewBox', '0 0 1440 520'); svg.setAttribute('preserveAspectRatio', 'xMaxYMax slice'); }
   });
   panWidth = 0;
+  heroWorld.style.width = ''; heroWorld.style.transform = '';
+  const smlmCv = $('#smlm'); smlmCv.style.left = ''; smlmCv.style.width = '';
   if (narrow) {
-    // the whole drawing at one scale (nothing squeezed), as wide as it needs to be; setPan slides it
-    const box = $('#landscape').getBoundingClientRect();
-    panScale = box.height / PAN_H;
-    panWidth = Math.min(1440, box.width / panScale); // how much of it fits on the screen
-    document.querySelectorAll('.landscape').forEach((svg) => {
-      svg.setAttribute('viewBox', `0 ${PAN_Y0} 1440 ${PAN_H}`); svg.setAttribute('preserveAspectRatio', 'none');
-      svg.style.width = `${(1440 * panScale).toFixed(1)}px`;
-    });
+    // the whole scene at one scale (nothing squeezed), as wide as it needs to be; setPan slides it
+    panBase = $('#landscape').getBoundingClientRect().height / PAN_H; // the scale when not zoomed in
+    document.querySelectorAll('.landscape').forEach((svg) => { svg.setAttribute('viewBox', `0 ${PAN_Y0} 1440 ${PAN_H}`); svg.setAttribute('preserveAspectRatio', 'none'); });
+    applyZoom();
     setPan(panX ?? 1440 - panWidth); // start at the cottage end
   }
 }
@@ -555,7 +563,7 @@ function fitLandscape() {
 // some Safari versions, so while the phone view is slid sideways, work it out from where the
 // drawing actually is on the screen.
 function landMatrix(svg) {
-  if (panWidth) { const r = svg.getBoundingClientRect(); return { a: panScale, d: panScale, e: r.left, f: r.top - PAN_Y0 * panScale }; }
+  if (panWidth) { const r = svg.getBoundingClientRect(), a = r.width / 1440, d = r.height / PAN_H; return { a, d, e: r.left, f: r.top - PAN_Y0 * d }; }
   const m = svg.getScreenCTM();
   return m && { a: m.a, d: m.d, e: m.e, f: m.f };
 }
@@ -566,13 +574,50 @@ const screenToLand = (svg, cx, cy) => { const m = landMatrix(svg); return { x: (
 // swipe pans along it (with a little momentum); up and down still scroll the page. Only the drawing
 // moves: the text and the sky stay where they are. Other scripts can follow along via panHooks.
 const PAN_Y0 = 92, PAN_H = 428; // from just above the summit cross (y = 102) down to the front meadow
-let panX = null, panWidth = 0, panScale = 1;
+let panX = null, panWidth = 0, panScale = 1, panBase = 1, panZoom = 1, lastUserPan = 0;
 const panHooks = [];
+// pinch to zoom: the whole scene grows from the bottom edge (the ground stays where it is)
+function applyZoom() {
+  panScale = panBase * panZoom;
+  panWidth = Math.min(1440, innerWidth / panScale); // how much of the scene fits on the screen
+  heroWorld.style.width = `${(1440 * panScale).toFixed(1)}px`;
+  const h = panZoom === 1 ? '' : `${(PAN_H * panScale).toFixed(1)}px`;
+  document.querySelectorAll('.landscape').forEach((svg) => { svg.style.height = h; });
+}
+function setZoom(z, atX) { // atX: the screen x that stays put (between the two fingers)
+  if (!panWidth) return;
+  const u = panX + atX / panScale;
+  panZoom = Math.max(1, Math.min(2, z));
+  applyZoom();
+  setPan(u - atX / panScale);
+}
+// The camera: keeps the landscape x that get() returns comfortably in view, gliding gently. It
+// stops when you swipe yourself, when get() returns null, or after ms.
+let cam = null, camRaf = 0;
+function camFollow(get, { ms = 15000, margin = 0.3 } = {}) {
+  if (!panWidth || reduceMotion) return;
+  cam = { get, until: performance.now() + ms, since: Date.now(), margin };
+  if (!camRaf) camRaf = requestAnimationFrame(camStep);
+}
+function camStep(t) {
+  camRaf = 0;
+  if (!cam || !panWidth || lastUserPan > cam.since || t > cam.until) { cam = null; return; }
+  const x = cam.get();
+  if (x == null) { cam = null; return; }
+  const m = panWidth * cam.margin, lo = panX + m, hi = panX + panWidth - m;
+  const target = x < lo ? x - m : x > hi ? x - panWidth + m : panX;
+  if (Math.abs(target - panX) > 0.3) setPan(panX + (target - panX) * 0.07);
+  camRaf = requestAnimationFrame(camStep);
+}
+// the landscape x of an element on the screen (null if it isn't shown)
+const landXOf = (el) => { const r = el?.getBoundingClientRect(); return r && (r.width || r.height) ? screenToLand($('#landscape'), r.left + r.width / 2, 0).x : null; };
 function setPan(x) { // slides the drawing (a GPU transform, so it stays smooth on phones)
   if (!panWidth) return;
   panX = Math.max(0, Math.min(1440 - panWidth, x));
-  const t = `translate3d(${(-panX * panScale).toFixed(1)}px, 0, 0)`;
-  document.querySelectorAll('.landscape').forEach((svg) => { svg.style.transform = t; });
+  const px = panX * panScale;
+  heroWorld.style.transform = `translate3d(${(-px).toFixed(1)}px, 0, 0)`;
+  // the star shows (microscope, Game of Life, flow) always happen in the part of the sky you see
+  Object.assign($('#smlm').style, { left: `${px.toFixed(1)}px`, width: `${innerWidth}px` });
   panHooks.forEach((fn) => fn());
 }
 (() => {
@@ -580,16 +625,31 @@ function setPan(x) { // slides the drawing (a GPU transform, so it stays smooth 
   let start = null, lastX = 0, lastT = 0, v = 0, glide = 0, swiped = false, settle = 0;
   const unitsPerPx = () => 1 / panScale;
   const settled = () => { clearTimeout(settle); settle = setTimeout(() => paintSky(), 200); }; // glints etc. line up again
+  const fingers = new Map();
+  let pinch = null;
   hero.addEventListener('pointerdown', (e) => {
     if (!panWidth || e.pointerType === 'mouse' || e.target.closest('a, button, .gps')) return;
+    fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (fingers.size === 2) { // two fingers: pinch to zoom
+      const [a, b] = [...fingers.values()];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, z: panZoom };
+      start = null; swiped = true; lastUserPan = Date.now();
+      return;
+    }
     cancelAnimationFrame(glide);
     start = { x: e.clientX, y: e.clientY, pan: panX }; lastX = e.clientX; lastT = e.timeStamp; v = 0; swiped = false;
   });
   hero.addEventListener('pointermove', (e) => {
+    if (fingers.has(e.pointerId)) fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && fingers.size === 2) {
+      const [a, b] = [...fingers.values()];
+      setZoom(pinch.z * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d, (a.x + b.x) / 2);
+      return;
+    }
     if (!start) return;
     const dx = e.clientX - start.x;
     if (!swiped && Math.abs(dx) < 8) return;
-    swiped = true;
+    swiped = true; lastUserPan = Date.now();
     setPan(start.pan - dx * unitsPerPx());
     const dt = Math.max(1, e.timeStamp - lastT);
     v = 0.8 * v + 0.2 * ((lastX - e.clientX) * unitsPerPx() / dt); // units per ms
@@ -608,8 +668,9 @@ function setPan(x) { // slides the drawing (a GPU transform, so it stays smooth 
     };
     glide = requestAnimationFrame(coast);
   };
-  hero.addEventListener('pointerup', end);
-  hero.addEventListener('pointercancel', () => { start = null; }); // the page scrolled instead
+  const lift = (e) => { fingers.delete(e.pointerId); if (fingers.size < 2) { if (pinch) settled(); pinch = null; } };
+  hero.addEventListener('pointerup', (e) => { lift(e); end(); });
+  hero.addEventListener('pointercancel', (e) => { lift(e); start = null; }); // the page scrolled instead
   // a swipe is not a tap: don't let it trigger anything
   hero.addEventListener('click', (e) => { if (swiped) { e.stopPropagation(); e.preventDefault(); swiped = false; } }, true);
   // the first time, a small nudge shows that the view moves

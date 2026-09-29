@@ -77,7 +77,7 @@ skyHooks.push(({ h, isDay, d }) => {
   moonEl.classList.toggle('by-day', d < 0.5);
   const p = (when - pass.rise) / (pass.set - pass.rise), highest = 90 - place.lat + 28.6, lift = Math.min(1, Math.max(0, alt / highest));
   const narrow = innerWidth < 760;
-  moonEl.style.left = ((narrow ? 20 : 48) + p * (narrow ? 70 : 46)).toFixed(2) + '%';
+  moonEl.style.left = (48 + p * 46).toFixed(2) + '%';
   moonEl.style.top = ((narrow ? 63 : 62) - lift * (narrow ? 6 : 44)).toFixed(2) + '%';
   // pale by day (and only when there's enough of it to see), bright at night; clouds hide it
   const visible = d < 0.5 ? 0.75 * Math.min(1, phase.illum * 3) : 1;
@@ -329,12 +329,13 @@ function buildDecorations() {
 let starsCaught = +(store.get('starsCaught') || 0);
 
 function shootingStar() {
-  const hero = $('.hero');
+  const hero = heroWorld;
   const btn = document.createElement('button');
   btn.className = 'shooting-star';
   btn.type = 'button';
   btn.setAttribute('aria-label', 'Catch the shooting star');
-  btn.style.left = 30 + Math.random() * 60 + '%';
+  // across the part of the sky you see (on phones that is a slice of the wider scene)
+  btn.style.left = panWidth ? `${(panX * panScale + (0.1 + Math.random() * 0.8) * innerWidth).toFixed(0)}px` : 30 + Math.random() * 60 + '%';
   btn.style.top = 4 + Math.random() * 22 + '%';
   btn.addEventListener('click', () => {
     starsCaught += 1;

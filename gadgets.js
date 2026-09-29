@@ -248,11 +248,14 @@ function spriteMatrix() { // landscape units → pixels in the hero (the phone v
   return spriteM;
 }
 addEventListener('resize', () => { spriteM = null; });
-panHooks.push(() => { spriteM = null; }); // the phone view was swiped: the penguin follows on its next step
+let spriteScale = 0;
+panHooks.push(() => { if (panScale !== spriteScale) { spriteScale = panScale; spriteM = null; } }); // zoomed: the penguin resizes on its next step
 // the front door opens while the penguin stands in the doorway, going out or coming home
 const stugaDoor = $('#stugaDoor');
 let doorTimer = 0;
+let pgX = 1195; // where the penguin is (landscape x), for the phone camera
 function placePenguin(x, y, scale = 1, dy = 0) {
+  if (y > 420) pgX = x;
   const m = spriteMatrix();
   pgSprite.style.transform = `translate3d(${(m.a * x + m.e).toFixed(1)}px, ${(m.d * (y + dy) + m.f).toFixed(1)}px, 0) scale(${(scale / SPRITE).toFixed(3)})`;
   if (Math.hypot(x - 1195, y - 447) < 2.2) { clearTimeout(doorTimer); doorTimer = 0; stugaDoor.classList.add('open'); }
@@ -275,7 +278,8 @@ let penguinTrips = 0;
 async function penguinOuting(kind) {
   penguinOut = true;
   penguinTrips += 1;
-  if (penguinTrips % 3 === 0) await penguinGrill();
+  if (kind === 'walk' && lastSky.d > 0.75) await penguinNight(); // at night: nightcap and lantern
+  else if (penguinTrips % 3 === 0) await penguinGrill();
   else await ({ slide: penguinSlide, fish: penguinFish, swim: penguinSwim, angel: penguinAngel }[kind] || penguinWalk)();
   penguinOut = false;
 }
@@ -391,7 +395,7 @@ async function penguinRoute(steps) {
     });
     pos = to;
   }
-  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze', 'inside', 'steamy', 'kayak', 'basket', 'p1', 'p2', 'p3', 'pail', 'b1', 'b2', 'b3', 'axe', 'carrylogs', 'carrycake', 'shovel', 'rake', 'watering', 'pouring', 'reading', 'pageturn');
+  pg.classList.remove('out', 'fishing', 'caught', 'selfie', 'snap', 'stargaze', 'inside', 'steamy', 'kayak', 'basket', 'p1', 'p2', 'p3', 'pail', 'b1', 'b2', 'b3', 'axe', 'carrylogs', 'nightcap', 'carrytrophy', 'carrycake', 'shovel', 'rake', 'watering', 'pouring', 'reading', 'pageturn');
   earnBadge('penguin');
 }
 
@@ -884,6 +888,51 @@ $('.hero').addEventListener('click', (e) => {
   });
   if (best) best.fn();
 });
+
+/* ---------------- phones: the camera follows the penguin ---------------- */
+// When the penguin heads out, the phone view glides along so that it stays in sight (kayak round,
+// sauna, swim, …). Swipe yourself and it lets you look wherever you like until the next outing.
+let wasOut = false;
+new MutationObserver(() => {
+  const out = penguinEl.classList.contains('out');
+  if (out && !wasOut) camFollow(() => (penguinEl.classList.contains('out') ? pgX : null), { ms: 600000, margin: 0.28 });
+  wasOut = out;
+}).observe(penguinEl, { attributes: true, attributeFilter: ['class'] });
+
+/* ---------------- night stroll ---------------- */
+// Tap the cottage at night (the same taps that bring the penguin out by day): out it comes in a
+// nightcap with a lantern, a slow stroll to the shore, a look at the sky, and back to bed.
+const penguinNight = () => penguinRoute([
+  { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.add('nightcap') },
+  ...outDoor,
+  { to: [1250, 450.4], ms: 4200, pose: 'walk' },
+  { to: [1262, 451.2], ms: 1600, pose: 'walk' },
+  { ms: 3500, pose: 'wait' },
+  { to: [1262.2, 451.2], ms: 200, pose: 'walk' },
+  { to: [1220, 450.2], ms: 5000, pose: 'walk' },
+  ...homeAgain,
+]);
+
+/* ---------------- every badge found: a trophy ---------------- */
+// The moment a visitor has found every badge, the penguin carries a small trophy out onto the
+// veranda. It stays there for that visitor.
+const trophy = $('#trophy');
+const penguinTrophy = () => penguinRoute([
+  { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.add('carrytrophy') },
+  { to: [1190, 447.8], ms: 800, pose: 'walk' },
+  { to: [1181.5, 448.4], ms: 1400, pose: 'walk' },
+  { to: [1181.5, 448.4], ms: 1500, pose: 'bend', tick: (k, pg) => { if (k > 0.5) { pg.classList.remove('carrytrophy'); trophy.classList.add('show'); } } },
+  { ms: 900, pose: 'hop' },
+  { to: [1195, 447], ms: 1300, pose: 'walk' },
+]);
+let trophyPreview = false;
+const trophyState = () => trophy.classList.toggle('show', trophyPreview || store.get('trophy') === '1');
+trophyState();
+const earnBadgeBefore = earnBadge;
+earnBadge = function (id) {
+  earnBadgeBefore(id);
+  if (earned.length >= BADGES.length && store.get('trophy') !== '1') { store.set('trophy', '1'); errand('trophy', penguinTrophy); }
+};
 
 /* ---------------- World Penguin Day (25 April) ---------------- */
 // The colony from the 404 page comes to visit for the day: eight penguins stand about on the grass,

@@ -27,7 +27,7 @@ const ripples = (() => {
   function layout() {
     const m = landMatrix(sciLand);
     if (!m || !m.a) return false;
-    const hb = sciHero.getBoundingClientRect(), bb = lake.getBBox();
+    const hb = heroWorld.getBoundingClientRect(), bb = lake.getBBox();
     const left = m.a * bb.x + m.e - hb.left, top = m.d * bb.y + m.f - hb.top, w = m.a * bb.width, h = m.d * bb.height;
     const r = Math.min(devicePixelRatio || 1, 1.5), cell = Math.max(2, w / 320);
     Object.assign(cv.style, { left: `${left}px`, top: `${top}px`, width: `${w}px`, height: `${h}px` });
@@ -121,7 +121,7 @@ const ripples = (() => {
     const strength = live.frozen || live.fog || live.particle ? 0
       : isDay ? clearSky : light.hidden ? 0 : clearSky * Math.max(0, (moon.illum - 0.45) / 0.55); // moonlight only while the moon is up
     // where the sun or moon stands, in landscape units
-    const hb = sciHero.getBoundingClientRect(), m = landMatrix(sciLand);
+    const hb = heroWorld.getBoundingClientRect(), m = landMatrix(sciLand);
     const left = parseFloat(light.style.left);
     let x = null;
     if (m && strength > 0.3 && !isNaN(left)) x = (hb.left + (left / 100) * hb.width - m.e) / m.a;
@@ -1077,6 +1077,8 @@ const BACKSTAGE = [
     ['aurora selfie', show({ sky: 'night', weather: 'clear' }, () => selfieOuting(true))],
     ['stargazing', show({ sky: 'night', weather: 'clear' }, () => penguinSolo(penguinStargaze, true))],
     ['kayak', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => penguinSolo(penguinKayak, true))],
+    ['night stroll (nightcap)', show({ sky: 'night', weather: 'clear' }, () => penguinSolo(penguinNight, true))],
+    ['trophy (all badges)', show({ sky: 'day' }, () => { trophy.classList.remove('show'); trophyPreview = true; penguinSolo(penguinTrophy, true); })],
     ['blueberries', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => { berryPreview = true; paintSky(); penguinSolo(penguinBlueberries, true); })],
     ['footprints in the snow', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => penguinSolo(penguinStroll, true))],
     ['sunglasses (high UV)', show({ sky: 'day', season: 'summer', weather: 'sunny' }, () => penguinSolo(penguinStroll, true))],
@@ -1145,11 +1147,37 @@ COMMANDS.backstage = () => {
   askingPassword = true; input.type = 'password'; input.value = '';
   return 'Password:';
 };
+// On phones, backstage also moves the view to where the scene happens: a fixed landscape x, or the
+// element to keep in sight while it moves (the first one of a list that is showing). Scenes with the
+// penguin don't need this: the camera follows the penguin by itself.
+const BACKSTAGE_SPOTS = {
+  cyclist: '#cyclist', triathlon: ['#swimmer', '#cyclist', '#runner'], 'roller skier': '#xc', 'cross-country skier': '#xc',
+  moose: '#moose', 'cow on the road': '#cows', moo: '#cows', deer: '#deer', owl: '#owl', fireflies: 1240,
+  'hot-air balloon': '#balloon', ufo: '#ufo', 'chairlift and skier': '#skier', 'iss pass': '#iss',
+  ripples: 1120, 'glowing plankton': 1120, 'jumping fish': 1080, ducks: '#ducks', 'night fishing': '#rowboat',
+  'ice skater': '#skater', 'ice hockey': 1080, beaver: '#beaver', 'ice from the shore': 1120, 'long shadows': 1230,
+  'tent and campfire': '#camp', snowman: '#snowman', 'melting snowman': '#snowman', 'path lights': 1255,
+  'swedish flag (6 june)': '#flagpole', 'austrian flag (26 october)': '#flagpole', 'stove and smoke': 1195,
+  'woodpile through the winter': 1215, 'blueberry pie': 1204, 'hare or fox tracks': 1266, 'world penguin day (25 april)': 1265,
+};
+function backstageCam(name) {
+  const spot = BACKSTAGE_SPOTS[name];
+  if (spot == null || !panWidth) return;
+  const sels = typeof spot === 'number' ? null : [].concat(spot);
+  let last = typeof spot === 'number' ? spot : null;
+  const get = () => {
+    if (!sels) return spot;
+    for (const sel of sels) { const x = landXOf($(sel)); if (x != null) return (last = x); }
+    return last;
+  };
+  setTimeout(() => camFollow(get, { ms: 14000, margin: 0.35 }), 1000); // once the scene has started
+}
 COMMANDS.show = (arg) => {
   if (!backstageOpen()) return `Command not found: show. Type <b class="warn">help</b>.`;
   const fn = BACKSTAGE_ACTIONS.get(arg);
   if (!fn) return `Nothing called "${esc(arg)}". Type <b class="warn">backstage</b> for the list.`;
   fn();
+  backstageCam(arg);
   return `▶ ${esc(arg)}`;
 };
 HIDDEN.push('backstage', 'show');
@@ -1161,7 +1189,7 @@ const simulating = () => forcedHour !== null || !!skyPlace || !!flagPreview || f
 COMMANDS.live = () => {
   const was = simulating();
   COMMANDS.season('live'); COMMANDS.holiday('live'); COMMANDS.sky('live');
-  fractalForest(false); snowPreview = null; berryPreview = false; woodPreview = null; trackPreview = false; penguinDayPreview = false; skyPlace = skyDate = null; flagPreview = null;
+  fractalForest(false); snowPreview = null; berryPreview = false; woodPreview = null; trackPreview = false; penguinDayPreview = false; trophyPreview = false; trophyState(); skyPlace = skyDate = null; flagPreview = null;
   COMMANDS.weather('live'); // fetches the real weather (async)
   paintSky(); updateLiveButton();
   return was ? `Back to live: the real time, season and weather in ${esc(base().city)}.` : `Already live: this is the real sky over ${esc(base().city)}.`;
