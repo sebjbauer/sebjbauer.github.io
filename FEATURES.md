@@ -143,9 +143,9 @@ Based on the date in Vienna.
 
 ## Phones: swipe and zoom the whole scene
 
-On phones the whole scene (sky, sun, moon, stars, aurora, clouds, birds, landscape) is drawn at its true proportions, about a third of it at a time, starting at the cottage end. Only the text stays where it is.
+On phones the whole scene (sky, sun, moon, stars, aurora, clouds, birds, landscape) is shown about 40% at a time (drawn 20% narrower than its true proportions, which you hardly notice, so there's less to swipe), starting at the cottage end. Only the text stays where it is.
 - **Swipe sideways** to look around (with a little momentum); up and down still scroll the page, and a swipe never counts as a tap. The first time, the view nudges a little to show that it moves.
-- **Pinch** with two fingers to zoom in (up to 2×, the ground stays at the bottom) and out again.
+- **Pinch** with two fingers to zoom in (up to 2×, the ground stays at the bottom) and out again. While the fingers move, the picture is only scaled (smooth); the scene is laid out at the new size once when they lift.
 - **The camera follows the penguin:** when it heads out (kayak, sauna, swim, …), the view glides along to keep it in sight. Swipe yourself and it lets you look wherever you like until the next outing.
 - **Backstage glides there:** on the phone, backstage scenes move the view to where they happen (the cyclist, the owl, the rowing boat, the snowman, …) and keep the moving ones in sight for a while.
 - Rain, snow, fog, lightning and the window frost stay fixed to the screen (they're in front of you, not in the scene).

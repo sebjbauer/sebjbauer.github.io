@@ -335,7 +335,7 @@ function shootingStar() {
   btn.type = 'button';
   btn.setAttribute('aria-label', 'Catch the shooting star');
   // across the part of the sky you see (on phones that is a slice of the wider scene)
-  btn.style.left = panWidth ? `${(panX * panScale + (0.1 + Math.random() * 0.8) * innerWidth).toFixed(0)}px` : 30 + Math.random() * 60 + '%';
+  btn.style.left = panWidth ? `${(panX * panSX + (0.1 + Math.random() * 0.8) * innerWidth).toFixed(0)}px` : 30 + Math.random() * 60 + '%';
   btn.style.top = 4 + Math.random() * 22 + '%';
   btn.addEventListener('click', () => {
     starsCaught += 1;

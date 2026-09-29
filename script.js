@@ -574,22 +574,26 @@ const screenToLand = (svg, cx, cy) => { const m = landMatrix(svg); return { x: (
 // swipe pans along it (with a little momentum); up and down still scroll the page. Only the drawing
 // moves: the text and the sky stay where they are. Other scripts can follow along via panHooks.
 const PAN_Y0 = 92, PAN_H = 428; // from just above the summit cross (y = 102) down to the front meadow
-let panX = null, panWidth = 0, panScale = 1, panBase = 1, panZoom = 1, lastUserPan = 0;
+// The phone view is 20% narrower than true proportions (PAN_SQUISH), hardly noticeable, but it
+// shows much more of the scene at once, so there's less to swipe. panScale is the vertical scale
+// (px per landscape unit), panSX the horizontal one.
+const PAN_SQUISH = 0.8;
+let panX = null, panWidth = 0, panScale = 1, panSX = 1, panBase = 1, panZoom = 1, lastUserPan = 0;
 const panHooks = [];
 // pinch to zoom: the whole scene grows from the bottom edge (the ground stays where it is)
 function applyZoom() {
-  panScale = panBase * panZoom;
-  panWidth = Math.min(1440, innerWidth / panScale); // how much of the scene fits on the screen
-  heroWorld.style.width = `${(1440 * panScale).toFixed(1)}px`;
+  panScale = panBase * panZoom; panSX = panScale * PAN_SQUISH;
+  panWidth = Math.min(1440, innerWidth / panSX); // how much of the scene fits on the screen
+  heroWorld.style.width = `${(1440 * panSX).toFixed(1)}px`;
   const h = panZoom === 1 ? '' : `${(PAN_H * panScale).toFixed(1)}px`;
   document.querySelectorAll('.landscape').forEach((svg) => { svg.style.height = h; });
 }
 function setZoom(z, atX) { // atX: the screen x that stays put (between the two fingers)
   if (!panWidth) return;
-  const u = panX + atX / panScale;
+  const u = panX + atX / panSX;
   panZoom = Math.max(1, Math.min(2, z));
   applyZoom();
-  setPan(u - atX / panScale);
+  setPan(u - atX / panSX);
 }
 // The camera: keeps the landscape x that get() returns comfortably in view, gliding gently. It
 // stops when you swipe yourself, when get() returns null, or after ms.
@@ -614,7 +618,7 @@ const landXOf = (el) => { const r = el?.getBoundingClientRect(); return r && (r.
 function setPan(x) { // slides the drawing (a GPU transform, so it stays smooth on phones)
   if (!panWidth) return;
   panX = Math.max(0, Math.min(1440 - panWidth, x));
-  const px = panX * panScale;
+  const px = panX * panSX;
   heroWorld.style.transform = `translate3d(${(-px).toFixed(1)}px, 0, 0)`;
   // the star shows (microscope, Game of Life, flow) always happen in the part of the sky you see
   Object.assign($('#smlm').style, { left: `${px.toFixed(1)}px`, width: `${innerWidth}px` });
@@ -623,7 +627,7 @@ function setPan(x) { // slides the drawing (a GPU transform, so it stays smooth 
 (() => {
   const hero = $('.hero');
   let start = null, lastX = 0, lastT = 0, v = 0, glide = 0, swiped = false, settle = 0;
-  const unitsPerPx = () => 1 / panScale;
+  const unitsPerPx = () => 1 / panSX;
   const settled = () => { clearTimeout(settle); settle = setTimeout(() => paintSky(), 200); }; // glints etc. line up again
   const fingers = new Map();
   let pinch = null;
@@ -632,7 +636,8 @@ function setPan(x) { // slides the drawing (a GPU transform, so it stays smooth 
     fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (fingers.size === 2) { // two fingers: pinch to zoom
       const [a, b] = [...fingers.values()];
-      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, z: panZoom };
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, z: panZoom, k: 1, mid: (a.x + b.x) / 2, px: panX * panSX };
+      heroWorld.style.transformOrigin = `${(pinch.px + pinch.mid).toFixed(1)}px 100%`; // the point between the fingers, at the ground
       start = null; swiped = true; lastUserPan = Date.now();
       return;
     }
@@ -641,9 +646,10 @@ function setPan(x) { // slides the drawing (a GPU transform, so it stays smooth 
   });
   hero.addEventListener('pointermove', (e) => {
     if (fingers.has(e.pointerId)) fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pinch && fingers.size === 2) {
+    if (pinch && fingers.size === 2) { // while pinching, only scale the picture (cheap); the real zoom comes when the fingers lift
       const [a, b] = [...fingers.values()];
-      setZoom(pinch.z * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d, (a.x + b.x) / 2);
+      pinch.k = Math.max(1, Math.min(2, pinch.z * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d)) / pinch.z;
+      heroWorld.style.transform = `translate3d(${(-pinch.px).toFixed(1)}px, 0, 0) scale(${pinch.k.toFixed(3)})`;
       return;
     }
     if (!start) return;
@@ -668,7 +674,16 @@ function setPan(x) { // slides the drawing (a GPU transform, so it stays smooth 
     };
     glide = requestAnimationFrame(coast);
   };
-  const lift = (e) => { fingers.delete(e.pointerId); if (fingers.size < 2) { if (pinch) settled(); pinch = null; } };
+  const lift = (e) => {
+    fingers.delete(e.pointerId);
+    if (fingers.size < 2 && pinch) {
+      const { z, k, mid } = pinch;
+      pinch = null;
+      heroWorld.style.transformOrigin = '';
+      setZoom(z * k, mid); // lay the scene out once at the new size
+      settled();
+    }
+  };
   hero.addEventListener('pointerup', (e) => { lift(e); end(); });
   hero.addEventListener('pointercancel', (e) => { lift(e); start = null; }); // the page scrolled instead
   // a swipe is not a tap: don't let it trigger anything

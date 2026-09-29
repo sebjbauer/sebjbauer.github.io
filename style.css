@@ -1149,7 +1149,7 @@ html:not([data-holiday="christmas"]) .xmas-lights circle,
   .nav nav a { display: none; }
   .hero-text { top: 18vh; }
   .hero-clock { display: block; margin-top: 2px; } /* on phones: greeting on one line, time on the next */
-  .landscape { height: 48%; }
+  .landscape { height: 44%; }
   /* phones: the terminal is a sheet across the bottom of the screen */
   .gps { left: 0; right: 0; bottom: 0; width: auto; height: min(74svh, 640px); border-width: 1px 0 0; border-radius: 14px 14px 0 0; font-size: 12.5px; }
   .gps-head { padding: 12px 16px; }
