@@ -509,8 +509,9 @@ const saunaState = () => {
 skyHooks.push(saunaState);
 saunaState();
 const hide = (on) => (k, pg) => pg.classList.toggle('inside', on);
-$('.sauna-hit').addEventListener('click', () => {
-  if (!saunaSession && !penguinOut) { errand('sauna', penguinSauna); return; } // tap: the penguin goes for a sauna
+$('.sauna-hit').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (!saunaSession) { errand('sauna', penguinSauna); return; } // tap: the penguin goes for a sauna (after its current outing)
   if (!sauna.classList.contains('on')) return;
   saunaSmoke.classList.add('burst');
   setTimeout(() => saunaSmoke.classList.remove('burst'), 2400);
@@ -814,25 +815,64 @@ const penguinStroll = () => penguinRoute([
 // the sauna, the woodpile or chopping block, the blueberries, the chanterelles, the autumn leaves,
 // the window boxes, the moored kayak, the grill, a snowy path. The beaver lodge sends the beaver
 // out, the pie loses a slice, and a visiting penguin hops. Five different jobs: badge "Errand runner".
-function errand(name, route) {
-  if (penguinOut || reduceMotion) return;
+// If the penguin is out already (or the jetty is taken by a triathlon), the job waits and starts as
+// soon as it can, for up to 90 seconds. On phones the drawing is squeezed sideways, so the things
+// are only a few pixels wide: a tap that misses one by a little (up to 24 px) still counts.
+let pendingJob = null, pendingTimer = 0;
+function errand(name, route, can = () => true) {
+  if (reduceMotion) return;
+  if (penguinOut || !can()) {
+    pendingJob = { name, route, can, until: Date.now() + 90000 };
+    if (!pendingTimer) pendingTimer = setInterval(() => {
+      if (!pendingJob || Date.now() > pendingJob.until) { clearInterval(pendingTimer); pendingTimer = 0; pendingJob = null; return; }
+      if (!penguinOut && pendingJob.can()) { const job = pendingJob; pendingJob = null; clearInterval(pendingTimer); pendingTimer = 0; errand(job.name, job.route, job.can); }
+    }, 1000);
+    return;
+  }
   penguinSolo(route, true);
   const done = new Set(JSON.parse(store.get('errands') || '[]')); done.add(name);
   store.set('errands', JSON.stringify([...done]));
   if (done.size >= 5) earnBadge('errands');
 }
-const onTap = (el, fn) => el && el.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
+const TAPS = [];
+const onTap = (el, fn) => { if (!el) return; TAPS.push({ el, fn }); el.addEventListener('click', (e) => { e.stopPropagation(); fn(); }); };
+const shown = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 || r.height > 0; };
 onTap($('#woodHit'), () => errand('wood', penguinChop));
 onTap($('#blockHit'), () => errand('wood', penguinChop));
-onTap($('#blueberries .hit'), () => errand('berries', penguinBlueberries));
-onTap($('#chanterelles .hit'), () => errand('mushrooms', penguinChanterelles));
-onTap($('#leavesHit'), () => errand('leaves', penguinRake));
+onTap($('#blueberries .hit'), () => errand('berries', penguinBlueberries, () => shown($('#blueberries .hit'))));
+onTap($('#chanterelles .hit'), () => errand('mushrooms', penguinChanterelles, () => shown($('#chanterelles .hit'))));
+onTap($('#leavesHit'), () => errand('leaves', penguinRake, () => shown($('#leavesHit'))));
 onTap($('#winboxHit'), () => errand('flowers', penguinWater));
-onTap($('#kayakMoored .hit'), () => { if (!tri && !live.frozen) errand('kayak', penguinKayak); });
+onTap($('#kayakMoored .hit'), () => errand('kayak', penguinKayak, () => !tri && !live.frozen && shown($('#kayakMoored .hit'))));
+onTap($('#jettyHit'), () => { // summer: a swim off the jetty; frozen lake: a belly slide
+  if (live.frozen) errand('slide', penguinSlide);
+  else if (currentSeason() === 'summer' || ((simulated || weatherNow)?.temp ?? 0) >= 20) errand('swim', penguinSwim, () => !tri && !live.frozen);
+});
 onTap($('#grillHit'), () => errand('grill', penguinGrill));
-onTap($('#pathSnowHit'), () => { if (snowyPath()) errand('shovel', penguinShovel); });
+onTap($('#pathSnowHit'), () => errand('shovel', penguinShovel, snowyPath));
 onTap($('#pie .hit'), () => pie.classList.add('bitten'));
 onTap($('#beaverLodge .hit'), () => { if (!live.ice) { beaverSwim(true); earnBadge('beaver'); } });
+TAPS.push({ el: $('.sauna-hit'), fn: () => $('.sauna-hit').dispatchEvent(new MouseEvent('click')) });
+// the frozen lake: out onto the ice, taking turns between a belly slide, ice fishing and a snow angel
+let iceTurn = 0;
+$('#landscape').addEventListener('click', (e) => {
+  if (!live.frozen || !e.target.closest('.l-lake')) return;
+  e.stopPropagation();
+  const [name, route] = [['slide', penguinSlide], ['icefish', penguinFish], ['angel', penguinAngel]][iceTurn++ % 3];
+  errand(name, route, () => live.frozen);
+});
+// a tap next to a small thing: the nearest one within 24 px
+$('.hero').addEventListener('click', (e) => {
+  if (e.target.closest('a, button, .hero-text, .gps') || getComputedStyle(e.target).cursor === 'pointer') return;
+  let best = null, bestD = 24;
+  TAPS.forEach((t) => {
+    const r = t.el.getBoundingClientRect();
+    if (!r.width && !r.height) return; // not there right now (out of season)
+    const d = Math.hypot(Math.max(r.left - e.clientX, 0, e.clientX - r.right), Math.max(r.top - e.clientY, 0, e.clientY - r.bottom));
+    if (d < bestD) { bestD = d; best = t; }
+  });
+  if (best) best.fn();
+});
 
 /* ---------------- World Penguin Day (25 April) ---------------- */
 // The colony from the 404 page comes to visit for the day: eight penguins stand about on the grass,

@@ -156,6 +156,9 @@ Based on the date in Vienna.
   - **Sauna:** a whole sauna session. When the lake is frozen (or mostly), the cold plunge is through the hole in the ice; otherwise it walks to the jetty, jumps off the end, swims round the moored kayak and climbs out by the sauna (straight from the shore while a triathlon has the jetty). Tapping during the session gives a big puff of steam (badge *Löyly*).
   - **Woodpile or chopping block:** chops wood. **Blueberry bushes** (July–August): picks them. **Chanterelles** (autumn): picks them. **Autumn leaves:** rakes them (and jumps in). **Window boxes:** waters them. **Moored kayak** (summer, open water, no triathlon): a paddle. **Grill:** a barbecue. **Snowy path:** shovels it.
   - **Beaver lodge:** the beaver swims out (open water only; badge *Busy beaver*). **Pie on the sill:** a slice disappears. **Visiting penguins** (World Penguin Day): the one you tap hops.
+  - **Jetty:** a swim on summer days (or 20 °C and warmer), a belly slide when the lake is frozen. **Frozen lake:** out onto the ice, taking turns between a belly slide, ice fishing and a snow angel.
+  - If the penguin is already out (or a triathlon has the jetty), the job waits and starts as soon as it can (up to 90 seconds). Things only react while they're there (blueberries in July and August, chanterelles and leaves in autumn, the kayak in summer, …).
+  - On phones the drawing is squeezed sideways, so the things are only a few pixels wide: a tap that misses one by up to 24 px still counts (the nearest one is used).
   - Five different jobs: badge *Errand runner*.
 
 ## Life in the landscape
