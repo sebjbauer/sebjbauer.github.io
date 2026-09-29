@@ -718,15 +718,16 @@ if (lastSky.sunT) castShadows(lastSky);
 
 /* ---------------- frost on the window ---------------- */
 // When it's really freezing where I am (-3 °C or colder, from the live weather), ice ferns grow in from
-// the corners of the "window", the way frost does on glass: straight needles that branch at 60°
-// (ice is hexagonal). The colder it is, the further they reach. Drawn once, then left alone.
+// the two top corners of the "window" (over the sky, never over the landscape), the way frost does on
+// glass: straight needles that branch at 60° (ice is hexagonal). The colder it is, the further they
+// reach, but only a little way. Drawn once, then left alone.
 const frostCv = $('#frost');
 let frostTemp = null;
 function frostDraw(temp, animate) {
   const ctx = frostCv.getContext('2d'), r = Math.min(devicePixelRatio || 1, 1.5);
   const W = frostCv.clientWidth, H = frostCv.clientHeight;
   frostCv.width = Math.round(W * r); frostCv.height = Math.round(H * r); ctx.setTransform(r, 0, 0, r, 0, 0);
-  const reach = Math.min(1, Math.max(0.45, (-temp - 2) / 10)) * Math.min(W, H) * (innerWidth < 760 ? 0.5 : 0.36);
+  const reach = Math.min(1, Math.max(0.45, (-temp - 2) / 10)) * Math.min(W, H) * (innerWidth < 760 ? 0.24 : 0.16);
   const segs = []; // [x0, y0, x1, y1, when, width]
   const branch = (x, y, ang, len, depth, t0) => {
     let t = t0, travelled = 0;
@@ -743,18 +744,14 @@ function frostDraw(temp, animate) {
       }
     }
   };
-  // seeds: fans of needles from each corner, a few from the side edges
-  [[0, 0, 0], [W, 0, Math.PI / 2], [0, H, -Math.PI / 2], [W, H, Math.PI]].forEach(([x, y, a0]) => {
-    for (let i = 0; i < 11; i++) branch(x, y, a0 + (i + 0.5) * (Math.PI / 2) / 11, reach * (0.5 + Math.random() * 0.55), 0, Math.random() * 20);
+  // seeds: fans of needles from the two top corners
+  [[0, 0, 0], [W, 0, Math.PI / 2]].forEach(([x, y, a0]) => {
+    for (let i = 0; i < 9; i++) branch(x, y, a0 + (i + 0.5) * (Math.PI / 2) / 9, reach * (0.5 + Math.random() * 0.55), 0, Math.random() * 20);
   });
-  for (let i = 0; i < 6; i++) {
-    const left = i % 2 === 0, y = H * (0.15 + Math.random() * 0.7);
-    branch(left ? 0 : W, y, (left ? 0 : Math.PI) + (Math.random() - 0.5) * 0.9, reach * (0.25 + Math.random() * 0.3), 1, Math.random() * 30);
-  }
   segs.sort((a, b) => a[4] - b[4]);
   // frosted glass: a soft white haze in the corners
-  const haze = (x, y) => { const g = ctx.createRadialGradient(x, y, 0, x, y, reach * 1.1); g.addColorStop(0, 'rgba(255,255,255,.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); };
-  [[0, 0], [W, 0], [0, H], [W, H]].forEach(([x, y]) => haze(x, y));
+  const haze = (x, y) => { const g = ctx.createRadialGradient(x, y, 0, x, y, reach * 1.1); g.addColorStop(0, 'rgba(255,255,255,.28)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); };
+  [[0, 0], [W, 0]].forEach(([x, y]) => haze(x, y));
   ctx.strokeStyle = 'rgba(255, 255, 255, .75)'; ctx.lineCap = 'round';
   let drawn = 0;
   const drawUpTo = (t) => {
