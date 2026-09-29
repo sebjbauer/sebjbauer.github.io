@@ -1176,8 +1176,10 @@ COMMANDS.show = (arg) => {
   if (!backstageOpen()) return `Command not found: show. Type <b class="warn">help</b>.`;
   const fn = BACKSTAGE_ACTIONS.get(arg);
   if (!fn) return `Nothing called "${esc(arg)}". Type <b class="warn">backstage</b> for the list.`;
+  const busy = penguinOut;
   fn();
   backstageCam(arg);
+  if (busy) setTimeout(() => { if (waitingJob && penguinOut) toast('The penguin is out. It will do this as soon as it’s back.'); }, 1500);
   return `▶ ${esc(arg)}`;
 };
 HIDDEN.push('backstage', 'show');
@@ -1189,7 +1191,7 @@ const simulating = () => forcedHour !== null || !!skyPlace || !!flagPreview || f
 COMMANDS.live = () => {
   const was = simulating();
   COMMANDS.season('live'); COMMANDS.holiday('live'); COMMANDS.sky('live');
-  fractalForest(false); snowPreview = null; berryPreview = false; woodPreview = null; trackPreview = false; penguinDayPreview = false; trophyPreview = false; trophyState(); skyPlace = skyDate = null; flagPreview = null;
+  fractalForest(false); snowPreview = null; waitingJob = null; berryPreview = false; woodPreview = null; trackPreview = false; penguinDayPreview = false; trophyPreview = false; trophyState(); skyPlace = skyDate = null; flagPreview = null;
   COMMANDS.weather('live'); // fetches the real weather (async)
   paintSky(); updateLiveButton();
   return was ? `Back to live: the real time, season and weather in ${esc(base().city)}.` : `Already live: this is the real sky over ${esc(base().city)}.`;

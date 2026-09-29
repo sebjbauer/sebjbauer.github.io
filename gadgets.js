@@ -241,15 +241,14 @@ let spriteM = null;
 function spriteMatrix() { // landscape units → pixels in the hero (the phone view stretches x and y differently)
   if (spriteM) return spriteM;
   const m = landMatrix(fxSvg), hero = fxSvg.parentNode.getBoundingClientRect();
-  if (!m) return { a: 1, d: 1, e: 0, f: 0 };
+  if (!m || !(m.a > 0) || !(m.d > 0)) return { a: 1, d: 1, e: -9999, f: -9999 }; // not laid out yet: measure again next time
   spriteM = { a: m.a, d: m.d, e: m.e - hero.left, f: m.f - hero.top };
   const k = SPRITE;
   Object.assign(pgSprite.style, { width: `${40 * m.a * k}px`, height: `${32 * m.d * k}px`, left: `${-20 * m.a * k}px`, top: `${-24 * m.d * k}px`, transformOrigin: `${20 * m.a * k}px ${24 * m.d * k}px` });
   return spriteM;
 }
 addEventListener('resize', () => { spriteM = null; });
-let spriteScale = 0;
-panHooks.push(() => { if (panScale !== spriteScale) { spriteScale = panScale; spriteM = null; } }); // zoomed: the penguin resizes on its next step
+panHooks.push(() => { spriteM = null; }); // the scene was swiped, zoomed or laid out again: measure afresh on the next step
 // the front door opens while the penguin stands in the doorway, going out or coming home
 const stugaDoor = $('#stugaDoor');
 let doorTimer = 0;
@@ -271,22 +270,22 @@ $('#landscapeFx').appendChild(penguinLoop); // paths must be in the page to be m
 $('#stugaHit').addEventListener('click', () => {
   if (document.documentElement.dataset.cottage === 'on') earnBadge('cottage');
   cottageClicks += 1;
-  if (cottageClicks % 5 === 0 && !penguinOut && !reduceMotion) penguinOuting('walk');
+  if (cottageClicks % 5 === 0) penguinOuting('walk', 'ask');
 });
 // every third time the penguin comes out, it goes to the barbecue instead
 let penguinTrips = 0;
-async function penguinOuting(kind) {
-  penguinOut = true;
+function penguinOuting(kind, source = 'auto') {
+  return goOut(`outing-${kind}`, () => outingRun(kind), { source });
+}
+async function outingRun(kind) {
   penguinTrips += 1;
   if (kind === 'walk' && lastSky.d > 0.75) await penguinNight(); // at night: nightcap and lantern
   else if (penguinTrips % 3 === 0) await penguinGrill();
   else await ({ slide: penguinSlide, fish: penguinFish, swim: penguinSwim, angel: penguinAngel }[kind] || penguinWalk)();
-  penguinOut = false;
 }
 const hotDay = () => !live.frozen && !live.particle && lastSky.d < 0.4 && (weatherNow?.temp ?? 0) >= 25;
 
 async function penguinGrill() {
-  penguinOut = true;
   const root = document.documentElement, pg = $('#penguin'), flip = pg.querySelector('.pg-flip'), waddle = pg.querySelector('.pg-waddle');
   const spatula = pg.querySelector('.pg-spatula');
   waddle.removeAttribute('clip-path'); pg.querySelector('.pg-ripple').style.opacity = 0;
@@ -299,7 +298,7 @@ async function penguinGrill() {
       placePenguin(from + (to - from) * k, 447);
       flip.setAttribute('transform', to < from ? 'scale(-1 1)' : '');
       waddle.setAttribute('transform', `rotate(${(Math.sin(t / 90) * 9).toFixed(1)})`);
-      if (k < 1) requestAnimationFrame(step); else done();
+      if (k < 1 && !routeAbort) requestAnimationFrame(step); else done();
     };
     requestAnimationFrame(step);
   });
@@ -313,7 +312,7 @@ async function penguinGrill() {
       if (!t0) t0 = t;
       const e = t - t0, flipNow = (e % 1600) < 450;
       spatula.setAttribute('transform', flipNow ? 'rotate(-28 2.6 -6.6)' : '');
-      if (e < 7000) requestAnimationFrame(step); else done();
+      if (e < 7000 && !routeAbort) requestAnimationFrame(step); else done();
     };
     requestAnimationFrame(step);
   });
@@ -322,11 +321,9 @@ async function penguinGrill() {
   await walk(1222, 1195, 2600);
   pg.classList.remove('out', 'grill');
   earnBadge('penguin'); earnBadge('bbq');
-  penguinOut = false;
 }
 
 async function penguinWalk() {
-  penguinOut = true;
   const pg = $('#penguin'), flip = pg.querySelector('.pg-flip'), waddle = pg.querySelector('.pg-waddle'), ripple = pg.querySelector('.pg-ripple');
   const frozen = live.frozen;
   spriteM = null; pg.classList.add('out');
@@ -342,7 +339,6 @@ async function penguinWalk() {
   });
   pg.classList.remove('out');
   earnBadge('penguin');
-  penguinOut = false;
 }
 
 // write an attribute only when it changes (every write makes the browser restyle; null removes it)
@@ -355,11 +351,14 @@ async function penguinRoute(steps) {
   spriteM = null; pg.classList.add('out');
   let pos = [1195, 447], dir = 1;
   for (const s of steps) {
+    if (routeAbort) break; // the outing was ended (an error, or it ran far too long)
     const from = pos, to = s.to || pos;
     if (to[0] !== from[0]) dir = Math.sign(to[0] - from[0]);
     await new Promise((done) => {
       let t0 = 0;
-      const step = (t) => {
+      const step = (t) => { try { frameOf(t); } catch (err) { console.warn('penguin:', err); routeAbort = true; done(); } };
+      const frameOf = (t) => {
+        if (routeAbort) { done(); return; }
         if (!t0) t0 = t;
         const k = Math.min(1, (t - t0) / s.ms);
         if (k < 1 && t - pgDrawn < 15) { requestAnimationFrame(step); return; } // at most 60 frames a second (phones run at 120)
@@ -526,7 +525,7 @@ skyHooks.push(saunaState);
 saunaState();
 const hide = (on) => (k, pg) => pg.classList.toggle('inside', on);
 $('.sauna-hit').addEventListener('click', (e) => {
-  e.stopPropagation();
+  e.stopPropagation(); tapRing($('.sauna-hit'));
   if (!saunaSession) { errand('sauna', penguinSauna); return; } // tap: the penguin goes for a sauna (after its current outing)
   if (!sauna.classList.contains('on')) return;
   saunaSmoke.classList.add('burst');
@@ -833,24 +832,26 @@ const penguinStroll = () => penguinRoute([
 // If the penguin is out already (or the jetty is taken by a triathlon), the job waits and starts as
 // soon as it can, for up to 90 seconds. On phones the drawing is squeezed sideways, so the things
 // are only a few pixels wide: a tap that misses one by a little (up to 24 px) still counts.
-let pendingJob = null, pendingTimer = 0;
-function errand(name, route, can = () => true) {
-  if (reduceMotion) return;
-  if (penguinOut || !can()) {
-    pendingJob = { name, route, can, until: Date.now() + 90000 };
-    if (!pendingTimer) pendingTimer = setInterval(() => {
-      if (!pendingJob || Date.now() > pendingJob.until) { clearInterval(pendingTimer); pendingTimer = 0; pendingJob = null; return; }
-      if (!penguinOut && pendingJob.can()) { const job = pendingJob; pendingJob = null; clearInterval(pendingTimer); pendingTimer = 0; errand(job.name, job.route, job.can); }
-    }, 1000);
-    return;
-  }
-  penguinSolo(route, true);
-  const done = new Set(JSON.parse(store.get('errands') || '[]')); done.add(name);
-  store.set('errands', JSON.stringify([...done]));
-  if (done.size >= 5) earnBadge('errands');
+function errand(name, route, can = () => true) { // a tap: the job waits its turn (see goOut)
+  return goOut(route.name || name, () => {
+    const done = new Set(JSON.parse(store.get('errands') || '[]')); done.add(name);
+    store.set('errands', JSON.stringify([...done]));
+    if (done.size >= 5) earnBadge('errands');
+    return route();
+  }, { source: 'ask', can });
 }
 const TAPS = [];
-const onTap = (el, fn) => { if (!el) return; TAPS.push({ el, fn }); el.addEventListener('click', (e) => { e.stopPropagation(); fn(); }); };
+// a tap always shows that it arrived: a small ring spreads from the thing you tapped
+function tapRing(el) {
+  const x = landXOf(el), r = el.getBoundingClientRect();
+  if (x == null) return;
+  const y = screenToLand($('#landscape'), 0, r.top + r.height / 2).y;
+  const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  c.setAttribute('class', 'tap-ring'); c.setAttribute('cx', x.toFixed(1)); c.setAttribute('cy', y.toFixed(1)); c.setAttribute('r', '2');
+  fxSvg.appendChild(c);
+  setTimeout(() => c.remove(), 700);
+}
+const onTap = (el, fn) => { if (!el) return; const go = () => { tapRing(el); fn(); }; TAPS.push({ el, fn: go }); el.addEventListener('click', (e) => { e.stopPropagation(); go(); }); };
 const shown = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 || r.height > 0; };
 onTap($('#woodHit'), () => errand('wood', penguinChop));
 onTap($('#blockHit'), () => errand('wood', penguinChop));
@@ -1060,26 +1061,76 @@ cake.querySelector('.hit').addEventListener('click', () => { cake.classList.add(
 function birthdayCheck() {
   if (!birthdayToday()) { cake.classList.remove('show', 'out'); return; }
   if (cake.classList.contains('show')) return;
-  if (penguinOut || !heroVisible()) return setTimeout(birthdayCheck, 5000); // try again once the penguin is home
-  penguinSolo(penguinCake);
+  goOut('penguinCake', penguinCake, { source: 'ask' }); // waits its turn if the penguin is out
 }
 setTimeout(birthdayCheck, 4000);
 setInterval(birthdayCheck, 10 * 60000); // also when the page stays open past midnight
 
-async function penguinSolo(route, force = false) {
-  if (penguinOut || reduceMotion || (!force && !heroVisible())) return;
-  penguinOut = true;
-  await route();
-  penguinOut = false;
+/* ---------------- the penguin's outings: one at a time, by clear rules ---------------- */
+// Everything that sends the penguin out goes through goOut(name, run, { source, can }):
+//  1. Only one outing at a time.
+//  2. Outings the page starts by itself (source 'auto') are skipped while the penguin is out or
+//     while something you asked for is waiting.
+//  3. Outings you ask for (a tap, backstage: source 'ask') wait their turn. If the penguin is out,
+//     your newest request waits (a newer one replaces it) and starts a moment after the penguin is
+//     home, for up to 2 minutes. Asking for the outing that's running or already waiting does nothing.
+//     If it can't happen yet (can() is false, e.g. the triathlon has the jetty), it waits as well.
+//  4. Every outing ends cleanly, even after an error: props away, penguin inside, door shut, kayak
+//     and axe back in place. An outing that runs longer than 3 minutes is ended.
+let penguinJob = null, waitingJob = null, routeAbort = false, waitTimer = 0;
+function goOut(name, run, { source = 'auto', can = () => true } = {}) {
+  if (reduceMotion) return Promise.resolve();
+  if (source === 'auto') {
+    if (penguinOut || waitingJob || !heroVisible() || !can()) return Promise.resolve();
+    return runOuting(name, run);
+  }
+  if (penguinJob === name || waitingJob?.name === name) return Promise.resolve();
+  if (penguinOut || !can()) {
+    waitingJob = { name, run, can, until: Date.now() + 120000 };
+    if (!penguinOut) scheduleNext(1000);
+    return Promise.resolve();
+  }
+  return runOuting(name, run);
 }
+async function runOuting(name, run) {
+  penguinOut = true; penguinJob = name; routeAbort = false;
+  const watchdog = setTimeout(() => { routeAbort = true; }, 180000);
+  try { await run(); } catch (err) { console.warn('penguin outing', name, err); }
+  finally {
+    clearTimeout(watchdog);
+    penguinCleanUp();
+    routeAbort = false; penguinOut = false; penguinJob = null;
+    scheduleNext(900); // a short pause at home before the next job
+  }
+}
+function scheduleNext(ms) { clearTimeout(waitTimer); waitTimer = setTimeout(nextJob, ms); }
+function nextJob() {
+  const job = waitingJob;
+  if (penguinOut || !job) return;
+  if (Date.now() > job.until) { waitingJob = null; return; }
+  if (!job.can()) { scheduleNext(1000); return; }
+  waitingJob = null;
+  runOuting(job.name, job.run);
+}
+// back to normal after any outing: nothing left in its flippers, nothing left half-done
+const PG_TEMP = ['out', 'axe', 'basket', 'carrycake', 'carrylogs', 'carrytrophy', 'caught', 'fishing', 'grill', 'inside', 'kayak', 'nightcap',
+  'pageturn', 'pail', 'pouring', 'rake', 'reading', 'rolling', 'selfie', 'shovel', 'snap', 'stargaze', 'steamy', 'watering', 'p1', 'p2', 'p3', 'b1', 'b2', 'b3'];
+function penguinCleanUp() {
+  const pg = penguinEl;
+  pg.classList.remove(...PG_TEMP);
+  pg.querySelector('.pg-waddle').removeAttribute('transform'); pg.querySelector('.pg-waddle').removeAttribute('clip-path');
+  pg.querySelector('.pg-flip').removeAttribute('transform'); pg.querySelector('.pg-ripple').style.opacity = 0;
+  pg.querySelectorAll('.pg-axe, .pg-paddle, .pg-spatula').forEach((el) => el.removeAttribute('transform'));
+  document.documentElement.classList.remove('grilling');
+  kayakMoored.classList.remove('away'); blockAxe.classList.remove('taken'); splitLog.classList.remove('show'); porchLamp.classList.remove('on');
+  if (saunaSession) { saunaSession = false; saunaState(); }
+  placePenguin(1195, 400); // inside
+}
+// the older names, kept for the rest of the code: force = you asked for it
+const penguinSolo = (route, force = false) => goOut(route.name || 'outing', route, { source: force ? 'ask' : 'auto' });
 
 const auroraVisible = () => document.documentElement.classList.contains('aurora-storm') || (lastSky.d > 0.8 && live.overcast < 0.5 && !live.particle);
-async function selfieOuting(force = false) {
-  if (penguinOut || tri || reduceMotion || !heroVisible() || (!force && !auroraVisible())) return;
-  penguinOut = true;
-  await penguinSelfie();
-  penguinOut = false;
-}
+const selfieOuting = (force = false) => goOut('penguinSelfie', penguinSelfie, { source: force ? 'ask' : 'auto', can: () => !tri && (force || auroraVisible()) });
 
 // rain poncho, woolly hat and scarf, or sunglasses, from the real weather in Vienna
 function cyclistGear() {
@@ -1999,10 +2050,14 @@ boatState();
 const hockey = $('#hockey'), hockeyPlayers = [...hockey.querySelectorAll('.player')], puckEl = hockey.querySelector('.puck');
 let hockeyOn = false;
 hockeyPlayers.forEach((pl) => pl.querySelector('.hit').addEventListener('click', () => earnBadge('hockey')));
-async function iceHockey(force = false) {
-  if (hockeyOn || penguinOut || reduceMotion || !heroVisible()) return;
+function iceHockey(force = false) {
+  if (hockeyOn || reduceMotion) return;
   if (!force && (!live.frozen || lastSky.d > 0.5)) return;
-  hockeyOn = true; penguinOut = true;
+  return goOut('hockey', hockeyGame, { source: force ? 'ask' : 'auto' });
+}
+async function hockeyGame() {
+  hockeyOn = true;
+  try {
   $('#skater').classList.add('away');
   hockey.classList.add('on');
   const R = { x0: 1008, x1: 1264, y0: 464, y1: 482 }, mouth = [465.5, 474];
@@ -2050,14 +2105,16 @@ async function iceHockey(force = false) {
         hockeyPlayers[i].setAttribute('transform', `translate(${p.x.toFixed(1)} ${(p.y - jump).toFixed(1)}) scale(${p.dir} 1)`);
       });
       puckEl.setAttribute('transform', `translate(${puck.x.toFixed(1)} ${puck.y.toFixed(1)})`);
-      if (t - t0 < 38000) requestAnimationFrame(step); else done();
+      if (t - t0 < 38000 && !routeAbort) requestAnimationFrame(step); else done();
     };
     requestAnimationFrame(step);
   });
-  hockey.classList.remove('on');
-  $('#skater').classList.remove('away');
   await referee;
-  penguinOut = false; hockeyOn = false;
+  } finally {
+    hockey.classList.remove('on');
+    $('#skater').classList.remove('away');
+    hockeyOn = false;
+  }
 }
 
 /* ---------------- the penguin under the footer ---------------- */
@@ -2239,10 +2296,10 @@ if (params.has('ride')) setTimeout(() => ride({ force: true }), 800);
 if (params.has('triathlon')) setTimeout(() => triathlon(true), 800);
 if (params.has('xc')) setTimeout(() => xcSki(true), 800);
 if (params.has('plane')) setTimeout(() => flyPlane(true), 800);
-if (params.has('bbq')) setTimeout(penguinGrill, 800);
-if (params.has('penguin')) setTimeout(() => (live.frozen ? penguinSlide() : penguinWalk()), 800);
-if (params.has('fishing')) setTimeout(penguinFish, 800);
-if (params.has('swim')) setTimeout(penguinSwim, 800);
+if (params.has('bbq')) setTimeout(() => penguinSolo(penguinGrill, true), 800);
+if (params.has('penguin')) setTimeout(() => penguinSolo(live.frozen ? penguinSlide : penguinWalk, true), 800);
+if (params.has('fishing')) setTimeout(() => penguinSolo(penguinFish, true), 800);
+if (params.has('swim')) setTimeout(() => penguinSolo(penguinSwim, true), 800);
 if (params.has('smlm')) setTimeout(() => (lastSky.d >= 0.75 ? smlmShow() : toast('The microscope only works at night.')), 900);
 if (params.has('timelapse')) setTimeout(() => timelapse(params.get('timelapse') === 'year' ? 'year' : ''), 900);
 // a pretend ISS pass from west-south-west to east over 40 seconds (preview and backstage)

@@ -589,7 +589,9 @@ kbd {
 .pg-cht { display: none; }
 .penguin.p1 .c1, .penguin.p2 .c1, .penguin.p2 .c2, .penguin.p3 .pg-cht { display: inline; }
 .cht.picked { display: none; }
-/* tap targets for the penguin's jobs */
+/* tap targets for the penguin's jobs; a ring shows that a tap arrived */
+.tap-ring { fill: none; stroke: rgba(255, 255, 255, .85); stroke-width: .5; pointer-events: none; transform-box: fill-box; transform-origin: center; animation: tap-ring .6s ease-out forwards; }
+@keyframes tap-ring { from { transform: scale(.4); opacity: 1; } to { transform: scale(3); opacity: 0; } }
 .tap-leaves, .tap-pathsnow { display: none; }
 [data-season="autumn"] .tap-leaves { display: inline; }
 [data-pathsnow="yes"] .tap-pathsnow { display: inline; }

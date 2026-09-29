@@ -557,6 +557,7 @@ function fitLandscape() {
     applyZoom();
     setPan(panX ?? 1440 - panWidth); // start at the cottage end
   }
+  panHooks.forEach((fn) => fn()); // the scene was laid out again (e.g. once the web font has loaded)
 }
 
 // Landscape units → screen pixels: x = a·u + e, y = d·v + f. getScreenCTM ignores CSS transforms in
