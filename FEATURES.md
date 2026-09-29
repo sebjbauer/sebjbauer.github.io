@@ -278,7 +278,7 @@ Images go in the `notes/` folder too. Or just send the text to Claude and ask it
 
 ## Last updated
 
-The footer shows "Last updated 24 September 2026", the date of the latest push to GitHub (read from the GitHub API; if that isn't reachable, the line is simply left out).
+The footer shows "Last updated 24 September 2026", the date of the latest push to GitHub. The GitHub Action writes that date into the page when it builds (so visitors never have to ask GitHub's API, which allows only 60 requests an hour per network); the local preview still asks the API, and if that isn't reachable the line is simply left out.
 
 ## Visitor statistics (GoatCounter)
 

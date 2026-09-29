@@ -1089,12 +1089,14 @@ async function renderNotes() {
   $('.nav nav a[href="#talks"]').insertAdjacentHTML('afterend', '<a href="#notes">Notes</a>');
 }
 
-// "Last updated 24 September 2026": the date of the latest push to GitHub
+// "Last updated 24 September 2026": the date of the latest push. The GitHub Action writes it into
+// the page (data-built); only without it (the local preview) is GitHub's API asked, which allows
+// just 60 requests an hour from one network.
 async function showLastUpdated() {
   try {
-    const res = await fetch(`https://api.github.com/repos/${SITE.repo}/commits?per_page=1`);
-    const [latest] = await res.json();
-    const date = new Date(latest.commit.committer.date);
+    const built = $('#lastUpdated').dataset.built;
+    const date = new Date(built || (await (await fetch(`https://api.github.com/repos/${SITE.repo}/commits?per_page=1`)).json())[0].commit.committer.date);
+    if (isNaN(date)) return;
     $('#lastUpdated').textContent = `Last updated ${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: TZ })}`;
     $('#lastUpdated').dateTime = date.toISOString();
   } catch { /* offline or rate-limited: just leave it out */ }
