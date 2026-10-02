@@ -1097,6 +1097,14 @@ const BACKSTAGE = [
       setTimeout(() => { scrollTo({ top: document.documentElement.scrollHeight }); setTimeout(peekOut, 400); }, 1600);
     }],
   ]],
+  ['The farm', [
+    ['ploughing (gulls)', show({ sky: 'day', season: 'autumn', weather: 'clear' }, () => { farmPreview = { state: 'stubble', job: 'plough' }; renderField(true); goOut('farmRun', farmRun, { source: 'ask' }); })],
+    ['sowing', show({ sky: 'day', season: 'spring', weather: 'clear' }, () => { farmPreview = { state: 'furrows', job: 'sow' }; renderField(true); goOut('farmRun', farmRun, { source: 'ask' }); })],
+    ['watering the field', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => { farmPreview = { state: 'growing', grow: 0.6, job: 'tend' }; renderField(true); goOut('farmRun', farmRun, { source: 'ask' }); })],
+    ['harvest', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => { farmPreview = { state: 'ripe', job: 'harvest' }; renderField(true); goOut('farmRun', farmRun, { source: 'ask' }); })],
+    ['field through the year', () => { const steps = [['furrows'], ['sown'], ['growing', 0.3], ['growing', 0.7], ['ripe'], ['stubble'], ['furrows']]; let i = 0; show({ sky: 'day', season: 'summer', weather: 'clear' }, () => { const tick = () => { const [state, grow] = steps[i++]; farmPreview = { state, grow, job: null }; renderField(true); if (i < steps.length) setTimeout(tick, 1600); }; tick(); }, 600)(); }],
+    ['picnic', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => { picnicPreview = true; picnicState(); goOut('penguinPicnic', penguinPicnic, { source: 'ask' }); })],
+  ]],
   ['Animals', [
     ['moo', () => COMMANDS.moo()],
     ['deer', show({ sky: 'dusk' })],
@@ -1156,7 +1164,7 @@ const BACKSTAGE_SPOTS = {
   moose: '#moose', 'cow on the road': '#cows', moo: '#cows', deer: '#deer', owl: '#owl', fireflies: 1240,
   'hot-air balloon': '#balloon', ufo: '#ufo', 'chairlift and skier': '#skier', 'iss pass': '#iss',
   ripples: 1120, 'glowing plankton': 1120, 'jumping fish': 1080, ducks: '#ducks', 'night fishing': '#rowboat',
-  orca: '#orca .orca-dir', 'ice skater': '#skater', 'ice hockey': 1080, beaver: '#beaver', 'ice from the shore': 1120, 'long shadows': 1230,
+  orca: '#orca .orca-dir', 'field through the year': 754, 'ice skater': '#skater', 'ice hockey': 1080, beaver: '#beaver', 'ice from the shore': 1120, 'long shadows': 1230,
   'tent and campfire': '#camp', snowman: '#snowman', 'melting snowman': '#snowman', 'path lights': 1255,
   'swedish flag (6 june)': '#flagpole', 'austrian flag (26 october)': '#flagpole', 'stove and smoke': 1195,
   'woodpile through the winter': 1215, 'blueberry pie': 1204, 'hare or fox tracks': 1266, 'world penguin day (25 april)': 1265,
@@ -1188,11 +1196,11 @@ HIDDEN.push('backstage', 'show');
 /* ---------------- live: back to the real sky ---------------- */
 // "live" resets everything that can be simulated (time of day, season, weather, holiday, the
 // fractal forest). While anything is simulated, a "live" button shows in the terminal's header.
-const simulating = () => forcedHour !== null || !!skyPlace || !!flagPreview || forcedSeason !== null || !!simulated || !!forcedHoliday || fractalOn || !!snowPreview || berryPreview || woodPreview !== null || trackPreview || penguinDayPreview;
+const simulating = () => forcedHour !== null || !!skyPlace || !!flagPreview || forcedSeason !== null || !!simulated || !!forcedHoliday || fractalOn || !!snowPreview || berryPreview || !!farmPreview || picnicPreview || woodPreview !== null || trackPreview || penguinDayPreview;
 COMMANDS.live = () => {
   const was = simulating();
   COMMANDS.season('live'); COMMANDS.holiday('live'); COMMANDS.sky('live');
-  fractalForest(false); snowPreview = null; waitingJob = null; berryPreview = false; woodPreview = null; trackPreview = false; penguinDayPreview = false; trophyPreview = false; trophyState(); skyPlace = skyDate = null; flagPreview = null;
+  fractalForest(false); snowPreview = null; waitingJob = null; farmPreview = null; picnicPreview = false; renderField(true); picnicState(); berryPreview = false; woodPreview = null; trackPreview = false; penguinDayPreview = false; trophyPreview = false; trophyState(); skyPlace = skyDate = null; flagPreview = null;
   COMMANDS.weather('live'); // fetches the real weather (async)
   paintSky(); updateLiveButton();
   return was ? `Back to live: the real time, season and weather in ${esc(base().city)}.` : `Already live: this is the real sky over ${esc(base().city)}.`;

@@ -324,7 +324,7 @@ The page scrolls to the top, stars start blinking one at a time and each blink l
 
 ## Trail badges
 
-Terminal command `badges`: shows which of the 38 badges the visitor has found, with hints for the rest. The browser remembers them.
+Terminal command `badges`: shows which of the 39 badges the visitor has found, with hints for the rest. The browser remembers them.
 
 | Badge | How to get it |
 |---|---|
@@ -362,6 +362,7 @@ Terminal command `badges`: shows which of the 38 badges the visitor has found, w
 | Errand runner | Send the penguin on five different jobs by tapping things (sauna, woodpile, grill, kayak, …) |
 | Busy beaver | Tap the beaver lodge on the far shore (open water) |
 | Orca! | Tap the orca's fin when it crosses the lake (it leaps) |
+| Farmer | A farm job done: tap the field in the meadow (or watch the penguin do one) |
 | Night catch | Click the rowing boat at night (the angler lands a fish) |
 | Chalk talk | Run `equation of the day` |
 | Airy disk | Run `psf` |
@@ -545,6 +546,8 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 | **Sunglasses** | When the real UV index is 6 or more ("high" on the WHO scale; Open-Meteo, live), the penguin wears sunglasses. The terminal's `weather` shows the UV index. Weather preset `weather sunny` (UV 7.5). | backstage: *sunglasses (high UV)* |
 | **Beaver lodge** | A lodge of sticks and mud on the far shore of the lake. It grows through the autumn (September to November, as beavers build and plaster it before winter) and is a bit smaller in July and August. From October to March a raft of branches lies beside it (the winter food cache, stuck in the mud under the ice). Snow on top in winter, and on very cold days (−8 °C or colder) a thin wisp of warm air from the vent. | always |
 | **Beaver** | Around sunset (from sunset to an hour and a half after) and just before sunrise, when the lake has no ice, the beaver swims out from the lodge on a curve, with a branch in its mouth in autumn. Its wake opens at 19.5° on each side: Kelvin's angle, the same for any duck, beaver or ship at any speed. At the end it slaps its tail (ripples) and dives. | `?beaver`, backstage: *beaver* |
+| **The farm** | A field in the Austrian meadow between the forest edge and the road, with a small hay barn (Heustadel) and a red tractor by the lake's left end. The field follows the calendar: ploughed furrows in winter (snow on them when it snows), sown from late March, green and growing taller from May (yellowing towards July), golden and ripe from 20 July, straw stubble with three round bales after the harvest, ploughed again from mid-September. When a job is due, the penguin walks there along the far shore of the lake and does it, and the field changes right behind it: **sowing** (25 Mar – 20 Apr, by hand with a seed bag), **watering** (May – mid July, with the can), **harvest** (20 Jul – 10 Aug, on the tractor with a reel; the bales appear afterwards), **ploughing** (15 Sep – 15 Oct, tractor and plough, with gulls following in autumn). Each job is done once a year per visitor (remembered in the browser); until then the field waits for it. Tap the field: the job that's due, or a walk round it. Badge *Farmer*. | backstage: *The farm* group (ploughing, sowing, watering, harvest, field through the year) |
+| **Picnic** | Warm (18 °C or more), dry weekend days, 11:00–17:00, spring and summer: a red checked blanket and a basket in the meadow by the lake's left end, and now and then the penguin has a picnic there with a sandwich. Tap the blanket. | backstage: *picnic* |
 | **Orca** | Not realistic, on purpose: every 4 to 9 minutes (open water only), an orca surfaces in the open middle of the lake, swims a gentle curve (about 20 seconds) between the little jetty on the left and the big one on the right, and dives away. It's drawn in true scale (about 7.5 m, 35 units, next to the 6 m cottage at 30 and the beaver at 4.5) and looks like the real animal: blunt head, white eye patch, white chin and belly with the flank patch sweeping up, grey saddle behind the tall dorsal fin, flipper and flukes. Swimming, only its back and the fin show above the water; every few seconds it sinks and comes back up with a puff of breath. Tap the fin: it dives, leaps clear of the water (about 12 units high), splashes back in and swims on. Badge *Orca!*. | `?orca`, backstage: *orca* |
 | **Cows** | Three black-and-white cows with cowbells graze on the meadow between the tree line and the road: they eat (head down), then amble to fresh grass. In winter (or below 3 °C) they wear red scarves; at night they lie down. | `?season=winter` for scarves |
 | **UFO** | Very rarely after dark (clear sky), a UFO swoops in, beams up one of the cows, looks at it on board for a moment, puts it back facing the other way, and zooms off. Click the UFO: badge *Close encounter*. | `?ufo` (works any time) |

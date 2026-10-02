@@ -589,6 +589,35 @@ kbd {
 .pg-cht { display: none; }
 .penguin.p1 .c1, .penguin.p2 .c1, .penguin.p2 .c2, .penguin.p3 .pg-cht { display: inline; }
 .cht.picked { display: none; }
+/* the farm (gadgets.js): the field, the barn, the tractor, gulls, picnic. Fading with the light
+   (opacity follows --flower-o), so at night they sink into the dark meadow like everything else */
+.farm > g, .farm > path:not(.hit) { opacity: max(.3, var(--flower-o, 1)); }
+.field-soil { fill: #8A6A47; } .field-furrow { fill: none; stroke: #6B4F33; stroke-width: .45; }
+[data-season="winter"] .field-soil { fill: #DCE4E8; } [data-season="winter"] .field-furrow { stroke: #B9C5CC; }
+.field-sprout { fill: none; stroke: #7FB24C; stroke-width: .5; stroke-linecap: round; stroke-dasharray: .01 2.2; }
+.field-crop { fill: none; stroke-linecap: round; }
+.field-soil.straw { fill: #CDB57A; } .field-stubble { fill: none; stroke: #A88E4E; stroke-width: .25; }
+.field-bale { fill: #E2C26C; stroke: #A9883E; stroke-width: .25; } .field-bale-spiral { fill: none; stroke: #B49248; stroke-width: .22; }
+.barn-wall { fill: #7A5534; } .barn-planks { stroke: #5E3F25; stroke-width: .25; fill: none; } .barn-roof { fill: #4B3A30; } .barn-door { fill: #4A311E; }
+.tr-body, .tr-fender { fill: #C0392B; } .tr-seat, .tr-pipe { fill: #2B2B2B; } .tr-steer { stroke: #2B2B2B; stroke-width: .3; fill: none; }
+.tr-tyre { fill: #1E1E1E; } .tr-hub { fill: #E6E2D6; } .tr-spokes { stroke: #9A958A; stroke-width: .25; }
+.tr-plough path { stroke: #4A4A4A; stroke-width: .45; fill: none; stroke-linecap: round; } .tr-reel circle { fill: none; stroke: #C9A33E; stroke-width: .35; } .tr-reel-spokes { stroke: #C9A33E; stroke-width: .25; }
+.tr-plough, .tr-reel, .tr-puffs { display: none; }
+.tractor.ploughing .tr-plough, .tractor.reaping .tr-reel { display: inline; }
+.tractor.running .tr-puffs { display: inline; }
+.tractor.running .tr-puffs circle { fill: rgba(120, 120, 120, .55); animation: tr-puff 1s ease-out infinite; }
+.tractor.running .tr-puffs circle:nth-child(2) { animation-delay: .5s; }
+@keyframes tr-puff { from { opacity: .8; transform: translate(0, 0); } to { opacity: 0; transform: translate(-1.5px, -2.5px); } }
+.gulls { display: none; } .gulls.on { display: inline; } .gulls path { fill: none; stroke: #F4F4F2; stroke-width: .35; stroke-linecap: round; }
+.picnic { display: none; } [data-picnic="yes"] .picnic { display: inline; }
+.pn-cloth { fill: #D84A3A; } .pn-check { stroke: #F4F4F2; stroke-width: .35; fill: none; } .pn-bk { fill: #A0784A; } .pn-bkh { fill: none; stroke: #7A5634; stroke-width: .3; }
+.pg-seedbag, .pg-sandwich { display: none; }
+.penguin.sowing .pg-seedbag, .penguin.picnic .pg-sandwich { display: inline; }
+.pg-sack { fill: #CDB58A; } .pg-strap { stroke: #8F7650; stroke-width: .3; } .pg-seeds circle { fill: #E7D9A8; opacity: 0; }
+.penguin.sowing .pg-seeds circle { animation: pg-seed .7s linear infinite; } .penguin.sowing .pg-seeds circle:nth-child(2) { animation-delay: .23s; } .penguin.sowing .pg-seeds circle:nth-child(3) { animation-delay: .46s; }
+@keyframes pg-seed { from { opacity: 1; transform: translate(0, 0); } to { opacity: 0; transform: translate(1.5px, 2.5px); } }
+.pg-sandwich path { fill: #E9C98A; stroke: #A9874E; stroke-width: .15; }
+.penguin.bite .pg-sandwich { transform: translate(-.6px, -1.6px); }
 /* the orca: a fin on the lake now and then; tap it and it leaps (gadgets.js) */
 .orca { display: none; }
 .orca.on { display: inline; }
