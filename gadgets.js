@@ -901,22 +901,28 @@ const orca = $('#orca'), orcaDir = orca.querySelector('.orca-dir'), orcaBody = o
 // breathe it sinks and comes back up; when it leaps, the whole animal comes out in an arc.
 const ORCA_CRUISE = 6.3; // how far down it swims: the back just breaks the surface
 let orcaOn = false, orcaLeapAt = 0;
-const orcaY = (x) => 478 + 8 * (x - 945) / 485; // in front of the rowing boat and the jetty
+// It stays in the open middle of the lake, between the little jetty on the left (x 930–958) and the
+// big one on the right (from x 1293): it surfaces out there, swims a gentle curve and dives away.
 function orcaSwim(force = false) {
   if (orcaOn || reduceMotion || live.ice > 0.2) return;
   if (!force && (!heroVisible() || ['penguinKayak', 'penguinSwim', 'penguinSauna'].includes(penguinJob))) return;
   orcaOn = true; orcaLeapAt = 0;
-  const dir = Math.random() < 0.5 ? 1 : -1, x0 = dir > 0 ? 930 : 1445, speed = 11.5 * dir; // units per second (about 2.5 m/s)
-  let x = x0, last = 0, drawn = 0, t0 = 0, lastC = 0, splashed = false, surfaced = false;
+  const dir = Math.random() < 0.5 ? 1 : -1, r = (a, b) => a + Math.random() * (b - a);
+  const west = [r(985, 1010), r(462, 468)], east = [r(1228, 1250), r(462, 468)], mid = [r(1060, 1180), r(458, 463)];
+  const [p0, p2] = dir > 0 ? [west, east] : [east, west];
+  const at = (u) => [0, 1].map((i) => (1 - u) ** 2 * p0[i] + 2 * (1 - u) * u * mid[i] + u * u * p2[i]);
+  const len = Math.hypot(p2[0] - p0[0], p2[1] - p0[1]) * 1.05, speed = 11.5; // units per second (about 2.5 m/s)
+  let u = 0, x = p0[0], y = p0[1], last = 0, drawn = 0, t0 = 0, lastC = 0, splashed = false, surfaced = false;
   orcaDir.setAttribute('transform', dir < 0 ? 'scale(-1 1)' : '');
   orca.classList.add('on');
   const step = (t) => {
     if (!t0) t0 = last = t;
-    const dt = Math.min(0.1, (t - last) / 1000); last = t;
     const leaping = orcaLeapAt && t - orcaLeapAt < 3600;
     if (!leaping && t - drawn < 33) { requestAnimationFrame(step); return; } // 30 frames a second while it just cruises
     drawn = t;
-    x += speed * dt * (leaping ? 1.5 : 1);
+    const dt = Math.min(0.1, (t - last) / 1000); last = t; // (measured only on frames it draws, so no time is lost)
+    u = Math.min(1, u + speed * dt * (leaping ? 1.5 : 1) / len);
+    [x, y] = at(u);
     let body = `translate(0 ${ORCA_CRUISE})`;
     if (leaping) { // dive (0.5 s), under (0.4 s), leap (1.5 s), under (0.6 s), back up (0.6 s)
       const e = (t - orcaLeapAt) / 1000;
@@ -926,22 +932,25 @@ function orcaSwim(force = false) {
       else if (e < 2.4) {
         const k = (e - 0.9) / 1.5, lift = Math.sin(Math.PI * k);
         body = `translate(${(-14 + 28 * k).toFixed(2)} ${(18 - lift * 30).toFixed(2)}) rotate(${(-40 + 80 * k).toFixed(1)} 0 -3.2)`;
-        if (!surfaced && k > 0.08) { surfaced = true; if (typeof ripples !== 'undefined') ripples.add(x - 8 * dir, orcaY(x), 0.9, 1); }
-        if (!splashed && k > 0.9) { splashed = true; bigSplash(x + 12 * dir, orcaY(x)); if (typeof ripples !== 'undefined') ripples.add(x + 12 * dir, orcaY(x), 1.3, 1.6); }
+        if (!surfaced && k > 0.08) { surfaced = true; if (typeof ripples !== 'undefined') ripples.add(x - 8 * dir, y, 0.9, 1); }
+        if (!splashed && k > 0.9) { splashed = true; bigSplash(x + 12 * dir, y); if (typeof ripples !== 'undefined') ripples.add(x + 12 * dir, y, 1.3, 1.6); }
       } else body = `translate(0 ${(ORCA_CRUISE + 10 * (1 - (e - 3) / 0.6)).toFixed(2)})`;
     } else {
       surfaced = splashed = false;
       orca.classList.remove('under');
       // it breathes: about 5 s at the surface, 1.5 s under, a puff of breath as it comes up
       const c = ((t - t0) / 1000) % 6.5;
-      const down = c < 5 ? 0 : c < 5.5 ? (c - 5) / 0.5 * 10 : c < 6 ? 10 : 10 * (1 - (c - 6) / 0.5);
+      let down = c < 5 ? 0 : c < 5.5 ? (c - 5) / 0.5 * 10 : c < 6 ? 10 : 10 * (1 - (c - 6) / 0.5);
+      // it comes up out in the lake at the start, and dives away at the end
+      const rise = Math.min(1, (t - t0) / 900), sink = Math.min(1, (1 - u) * len / 9);
+      down = 10 - (10 - down) * Math.min(rise, sink);
       if (lastC < 6 && c >= 6) { orca.classList.remove('blow'); void orca.getBoundingClientRect(); orca.classList.add('blow'); }
       lastC = c;
       body = `translate(0 ${(ORCA_CRUISE + down).toFixed(2)})`;
     }
     orcaBody.setAttribute('transform', body);
-    orca.setAttribute('transform', `translate(${x.toFixed(2)} ${orcaY(x).toFixed(2)})`);
-    if ((dir > 0 ? x < 1450 : x > 925) && orcaOn) requestAnimationFrame(step);
+    orca.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+    if ((u < 1 || leaping) && orcaOn) requestAnimationFrame(step); // a leap is never cut short
     else { orca.classList.remove('on', 'under', 'blow'); orcaOn = false; }
   };
   requestAnimationFrame(step);
