@@ -778,7 +778,7 @@ const snowAt = (x, y) => snowGround() && y <= 451.6 && !(x > 1171 && x < 1217.5 
 let lastPrint = null, printFoot = 0, trackPreview = false;
 const dot = (g, x, y, rx, ry) => { const e = document.createElementNS(SVGNS, 'ellipse'); e.setAttribute('cx', x.toFixed(2)); e.setAttribute('cy', y.toFixed(2)); e.setAttribute('rx', rx); e.setAttribute('ry', ry); g.appendChild(e); return e; };
 function stepPrint(x, y, pg) {
-  if (pg.classList.contains('shovel') || !snowAt(x, y)) { lastPrint = null; return; }
+  if (pg.classList.contains('shovel') || pg.classList.contains('inside') || !snowAt(x, y)) { lastPrint = null; return; }
   if (!lastPrint) { lastPrint = [x, y]; return; }
   if (Math.hypot(x - lastPrint[0], y - lastPrint[1]) < 1.1) return;
   lastPrint = [x, y];
@@ -977,7 +977,7 @@ if (params.has('orca')) setTimeout(() => orcaSwim(true), 1200);
 //   watering (May – mid July): along the rows with the can
 //   harvest (20 Jul – 10 Aug): with the tractor and a reel; round bales afterwards
 //   ploughing (15 Sep – 15 Oct): with the tractor and a plough, gulls following
-// It walks there along the far shore of the lake. Tap the field: the job that's due (or a walk round it).
+// It goes there through the forest (see outLeft). Tap the field: the job that's due (or a walk round it).
 const FIELD = { x0: 650, x1: 858 };
 const fTop = (x) => 436 + (x - 650) * 0.0553, fBot = (x) => 461.2 + (x - 650) * 0.0399;
 const fP = (x, f) => fTop(x) + f * (fBot(x) - fTop(x)); // a point in the field: f = 0 at the far edge, 1 at the road
@@ -1057,22 +1057,25 @@ function parkTractor() {
   gulls.classList.remove('on');
   tractorX = lastTx = PARK[0];
 }
-// to the farm and back: out of the door to the left, off the veranda, along the far shore
+// To the farm and back, through the forest: out of the door, past the grill to the forest edge,
+// into the trees (out of sight, but still walking, so the phone camera follows), and out of the
+// forest again beside the hay barn. Never across the water.
+const FARM_GATE = [905, 452.5]; // in front of the barn
 const outLeft = [
-  { to: [1188, 448.2], ms: 700, pose: 'walk' },
-  { to: [1176.5, 448.8], ms: 900, pose: 'walk' },
-  { to: [1167, 446.6], ms: 450, pose: 'hop' },
-  { to: [1110, 443.8], ms: 3300, pose: 'walk', fast: true },
-  { to: [1010, 444.2], ms: 5200, pose: 'walk', fast: true },
-  { to: [935, 448.4], ms: 4000, pose: 'walk', fast: true },
+  ...outDoor,
+  { to: [1249, 447.2], ms: 2200, pose: 'walk' },
+  { to: [1253, 445.3], ms: 600, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.add('inside'); } }, // into the trees
+  { to: [1100, 440.5], ms: 7000, pose: 'walk', fast: true },                                              // through the forest (unseen)
+  { to: [914, 441.4], ms: 8400, pose: 'walk', fast: true, tick: (k, pg) => { if (k >= 1) pg.classList.remove('inside'); } }, // out by the barn
+  { to: FARM_GATE, ms: 1100, pose: 'walk' },
 ];
 const homeLeft = [
-  { to: [1010, 444.2], ms: 4000, pose: 'walk', fast: true },
-  { to: [1110, 443.8], ms: 5200, pose: 'walk', fast: true },
-  { to: [1167, 446.6], ms: 3300, pose: 'walk', fast: true },
-  { to: [1176.5, 448.8], ms: 450, pose: 'hop' },
-  { to: [1188, 448.2], ms: 900, pose: 'walk' },
-  { to: [1195, 447], ms: 700, pose: 'walk' },
+  { to: [914, 441.4], ms: 1100, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.add('inside'); } },
+  { to: [1100, 440.5], ms: 8400, pose: 'walk', fast: true },
+  { to: [1253, 445.3], ms: 7000, pose: 'walk', fast: true, tick: (k, pg) => { if (k >= 1) pg.classList.remove('inside'); } },
+  { to: [1249, 447.2], ms: 600, pose: 'walk' },
+  { to: [1220, 450.2], ms: 2200, pose: 'walk' },
+  ...homeAgain,
 ];
 const seat = (gx, gy, dir) => [gx - 3.8 * dir, gy - 4.5]; // where the penguin sits for a tractor ground point
 const ROW = (f) => [FIELD.x1 + 4, fP(FIELD.x1, f) + 1];
@@ -1094,7 +1097,7 @@ function tractorJob({ mode, next, bales = true, onDone }) {
   steps.push({ to: seat(PARK[0] + 8, PARK[1], 1), ms: 2000, pose: 'drive' });               // back to the barn …
   steps.push({ to: seat(PARK[0], PARK[1], -1), ms: 900, pose: 'drive', tick: (k) => { if (k >= 1) { tractor.classList.remove('running', 'ploughing', 'reaping'); gulls.classList.remove('on'); onDone(); } } }); // … and turn to park, facing the field
   steps.push({ to: [880, 452.2], ms: 600, pose: 'hop' });
-  steps.push({ to: [935, 448.4], ms: 2400, pose: 'walk' });
+  steps.push({ to: FARM_GATE, ms: 2400, pose: 'walk' });
   return steps;
 }
 const finishJob = (job) => { store.set(`farm-${job}-${farmYear()}`, '1'); farmPreview = farmPreview && { ...farmPreview, state: { plough: 'furrows', harvest: 'stubble', sow: 'sown' }[job] || farmPreview.state, job: null }; farmRevealClear(); renderField(true); earnBadge('farmer'); };
@@ -1107,7 +1110,7 @@ const farmSow = () => penguinRoute([
   { to: [FIELD.x0 + 2, fP(FIELD.x0, 0.5)], ms: 16000, pose: 'walk', tick: () => farmReveal([[0, 1, FIELD.x1 + 3, pgX]]) },
   { ms: 1, pose: 'wait', tick: (k, pg) => { pg.classList.remove('sowing'); finishJob('sow'); } },
   { to: [FIELD.x1 + 3, fP(FIELD.x1, 0.95) + 1], ms: 11000, pose: 'walk', fast: true },
-  { to: [935, 448.4], ms: 4000, pose: 'walk' },
+  { to: FARM_GATE, ms: 4000, pose: 'walk' },
   ...homeLeft,
 ]);
 // summer: watering along the rows, two stops
@@ -1119,7 +1122,7 @@ const farmTend = () => penguinRoute([
   { to: [710, fP(710, 0.5)], ms: 5000, pose: 'walk' },
   { ms: 3000, pose: 'wait', tick: (k, pg) => { pg.classList.toggle('pouring', k < 1); if (k >= 1) earnBadge('farmer'); } },
   { to: [FIELD.x1 + 3, fP(FIELD.x1, 0.9) + 1], ms: 9000, pose: 'walk', fast: true, tick: (k, pg) => pg.classList.remove('watering') },
-  { to: [935, 448.4], ms: 4000, pose: 'walk' },
+  { to: FARM_GATE, ms: 4000, pose: 'walk' },
   ...homeLeft,
 ]);
 // out of season: just a walk round the field, to see how it's doing
@@ -1128,7 +1131,7 @@ const farmLook = () => penguinRoute([
   { to: [FIELD.x1 + 3, fP(FIELD.x1, 0.5)], ms: 3200, pose: 'walk' },
   { ms: 2000, pose: 'wait' },
   { to: [FIELD.x1 + 3.1, fP(FIELD.x1, 0.5)], ms: 200, pose: 'walk' },
-  { to: [935, 448.4], ms: 3200, pose: 'walk' },
+  { to: FARM_GATE, ms: 3200, pose: 'walk' },
   ...homeLeft,
 ]);
 const FARM_JOBS = { plough: farmPlough, harvest: farmHarvest, sow: farmSow, tend: farmTend };
@@ -1153,16 +1156,14 @@ const picnicState = () => setData('picnic', picnicDay() ? 'yes' : 'no');
 skyHooks.push(picnicState); picnicState();
 const penguinPicnic = () => penguinRoute([
   ...outLeft,
-  { to: [922, 456], ms: 1600, pose: 'walk' },
-  { to: [916, 471], ms: 1600, pose: 'walk' },                // across the end of the road
+  { to: [916, 471], ms: 2400, pose: 'walk' },                // across the end of the road
   { to: [890, 491.5], ms: 2800, pose: 'walk' },
   { to: [884.5, 493.4], ms: 600, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.add('picnic'); } },
   { ms: 22000, pose: 'sit', tick: (k, pg) => pg.classList.toggle('bite', Math.sin(k * 22000 / 900) > 0.6) }, // a bite now and then
   { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.remove('picnic', 'bite') },
   { to: [890, 491.5], ms: 600, pose: 'walk' },
   { to: [916, 471], ms: 2800, pose: 'walk' },
-  { to: [922, 456], ms: 1600, pose: 'walk' },
-  { to: [935, 448.4], ms: 1200, pose: 'walk' },
+  { to: FARM_GATE, ms: 2400, pose: 'walk' },
   ...homeLeft,
 ]);
 onTap(picnicSpot.querySelector('.hit'), () => errand('picnic', penguinPicnic, picnicDay));
