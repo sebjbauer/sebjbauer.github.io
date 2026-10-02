@@ -592,12 +592,15 @@ kbd {
 /* the farm (gadgets.js): the field, the barn, the tractor, gulls, picnic. Fading with the light
    (opacity follows --flower-o), so at night they sink into the dark meadow like everything else */
 .farm > g, .farm > path:not(.hit) { opacity: max(.3, var(--flower-o, 1)); }
-.field-soil { fill: #8A6A47; } .field-furrow { fill: none; stroke: #6B4F33; stroke-width: .45; }
-[data-season="winter"] .field-soil { fill: #DCE4E8; } [data-season="winter"] .field-furrow { stroke: #B9C5CC; }
-.field-sprout { fill: none; stroke: #7FB24C; stroke-width: .5; stroke-linecap: round; stroke-dasharray: .01 2.2; }
-.field-crop { fill: none; stroke-linecap: round; }
-.field-soil.straw { fill: #CDB57A; } .field-stubble { fill: none; stroke: #A88E4E; stroke-width: .25; }
-.field-bale { fill: #E2C26C; stroke: #A9883E; stroke-width: .25; } .field-bale-spiral { fill: none; stroke: #B49248; stroke-width: .22; }
+.field-soil { fill: color-mix(in srgb, #6E4B2D 52%, var(--ground, #86B061)); stroke: color-mix(in srgb, #4F7A34 30%, var(--ground, #86B061)); stroke-width: 1.4; stroke-linejoin: round; paint-order: stroke; }
+.field-soil.straw { fill: color-mix(in srgb, #D8BE80 70%, var(--ground, #86B061)); }
+.field-furrow { fill: none; stroke: color-mix(in srgb, #3F2A18 50%, var(--ground, #86B061)); stroke-linecap: round; }
+[data-season="winter"] .field-soil { fill: color-mix(in srgb, #8C7A66 18%, var(--ground)); } [data-season="winter"] .field-furrow { stroke: color-mix(in srgb, #6E6458 25%, var(--ground)); }
+.field-sprout { fill: none; stroke: color-mix(in srgb, #79B04A 85%, var(--ground, #86B061)); stroke-linecap: round; stroke-dasharray: .01 2.2; }
+.field-crop path { fill: none; stroke: color-mix(in srgb, var(--crop) 82%, var(--ground, #86B061)); stroke-linecap: round; }
+.field-stubble { fill: none; stroke: color-mix(in srgb, #9A7F45 70%, var(--ground, #86B061)); stroke-width: .25; }
+.field-bale { fill: color-mix(in srgb, #E2C26C 85%, var(--ground, #86B061)); stroke: #A9883E; stroke-width: .25; } .field-bale-spiral { fill: none; stroke: #B49248; stroke-width: .22; }
+.field-shrub circle { fill: color-mix(in srgb, #3E6B3F 80%, var(--ground, #86B061)); }
 .barn-wall { fill: #7A5534; } .barn-planks { stroke: #5E3F25; stroke-width: .25; fill: none; } .barn-roof { fill: #4B3A30; } .barn-door { fill: #4A311E; }
 .tr-body, .tr-fender { fill: #C0392B; } .tr-seat, .tr-pipe { fill: #2B2B2B; } .tr-steer { stroke: #2B2B2B; stroke-width: .3; fill: none; }
 .tr-tyre { fill: #1E1E1E; } .tr-hub { fill: #E6E2D6; } .tr-spokes { stroke: #9A958A; stroke-width: .25; }

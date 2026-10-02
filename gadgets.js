@@ -978,28 +978,63 @@ if (params.has('orca')) setTimeout(() => orcaSwim(true), 1200);
 //   harvest (20 Jul – 10 Aug): with the tractor and a reel; round bales afterwards
 //   ploughing (15 Sep – 15 Oct): with the tractor and a plough, gulls following
 // It goes there through the forest (see outLeft). Tap the field: the job that's due (or a walk round it).
-const FIELD = { x0: 650, x1: 858 };
-const fTop = (x) => 436 + (x - 650) * 0.0553, fBot = (x) => 461.2 + (x - 650) * 0.0399;
-const fP = (x, f) => fTop(x) + f * (fBot(x) - fTop(x)); // a point in the field: f = 0 at the far edge, 1 at the road
+const FIELD = { x0: 652, x1: 856 };
+// The field follows the land: its back edge runs along the meadow's contour (a bit below the forest
+// edge, clear of the tent and the trees), its front edge along the curve of the road. Rows curve with
+// it, closer together towards the back (perspective).
+const roadEl = $('#road');
+const roadYs = (() => {
+  const len = roadEl.getTotalLength(), pts = [];
+  for (let i = 0; i <= 160; i++) { const p = roadEl.getPointAtLength(len * i / 160); if (p.x > 560 && p.x < 960) pts.push([p.x, p.y]); }
+  return pts.sort((u, v) => u[0] - v[0]);
+})();
+const roadY = (x) => {
+  const i = roadYs.findIndex((p) => p[0] >= x);
+  if (i <= 0) return (roadYs[0] || [0, 470])[1];
+  const [x0, y0] = roadYs[i - 1], [x1, y1] = roadYs[i];
+  return y0 + (y1 - y0) * (x - x0) / (x1 - x0 || 1);
+};
+const fTop = (x) => groundY(x) + 15, fBot = (x) => roadY(x) - 5.5;
+const fP = (x, f) => fTop(x) + f * (fBot(x) - fTop(x)); // a point in the field: f = 0 at the back edge, 1 at the road
+const xL = (f) => FIELD.x0 + 5 * f, xR = (f) => FIELD.x1 - 5 * (1 - f); // the ends lean a little, as seen from the side
 const FURROWS = 11;
+const rowF = (i) => ((i + 0.5) / FURROWS) ** 1.25; // rows closer together further away
+const along = (f, a, b, step = 6) => { // a row as a smooth polyline from x = a to b
+  const pts = [], n = Math.max(2, Math.ceil(Math.abs(b - a) / step));
+  for (let k = 0; k <= n; k++) { const x = a + (b - a) * k / n; pts.push(`${x.toFixed(1)} ${fP(x, f).toFixed(2)}`); }
+  return `M${pts.join(' L')}`;
+};
+function fieldOutline() { // the field with softly rounded corners
+  const top = [], bot = [];
+  for (let x = xL(0) + 3; x <= xR(0) - 3; x += 6) top.push([x, fTop(x)]);
+  for (let x = xR(1) - 3; x >= xL(1) + 3; x -= 6) bot.push([x, fBot(x)]);
+  const c = (x, y) => `${x.toFixed(1)} ${y.toFixed(2)}`;
+  return `M${c(...top[0])} ` + top.slice(1).map((p) => `L${c(...p)}`).join(' ')
+    + ` Q${c(xR(0), fTop(xR(0)))} ${c(xR(0.12), fP(xR(0.12), 0.12))} L${c(xR(0.88), fP(xR(0.88), 0.88))} Q${c(xR(1), fBot(xR(1)))} ${c(...bot[0])} `
+    + bot.slice(1).map((p) => `L${c(...p)}`).join(' ')
+    + ` Q${c(xL(1), fBot(xL(1)))} ${c(xL(0.88), fP(xL(0.88), 0.88))} L${c(xL(0.12), fP(xL(0.12), 0.12))} Q${c(xL(0), fTop(xL(0)))} ${c(...top[0])} Z`;
+}
+// a few shrubs where the field meets the meadow, so it doesn't end in a hard line
+const FIELD_SHRUBS = [[656, -1.2, 2.6], [663, -0.8, 1.9], [846, -0.9, 2.3], [852, -1.3, 2.9], [741, -1.4, 1.7]];
 function fieldSVG(state, grow = 1, bales = true) {
-  const { x0, x1 } = FIELD, rows = [...Array(FURROWS)].map((_, i) => (i + 0.5) / FURROWS);
-  const line = (f, a = x0, b = x1) => `M${a} ${fP(a, f).toFixed(2)} L${b} ${fP(b, f).toFixed(2)}`;
-  let out = `<path class="field-soil${state === 'stubble' ? ' straw' : ''}" d="M${x0} ${fTop(x0).toFixed(2)} L${x1} ${fTop(x1).toFixed(2)} L${x1} ${fBot(x1).toFixed(2)} L${x0} ${fBot(x0).toFixed(2)} Z"/>`;
-  if (state === 'furrows' || state === 'sown') out += `<path class="field-furrow" d="${rows.map((f) => line(f)).join(' ')}"/>`;
-  if (state === 'sown') out += `<path class="field-sprout" d="${rows.map((f) => line(f, x0 + 2, x1 - 2)).join(' ')}"/>`;
+  const rows = [...Array(FURROWS)].map((_, i) => rowF(i));
+  const width = (f, w) => (w * (0.65 + 0.55 * f)).toFixed(2); // thicker towards the front
+  let out = `<path class="field-soil${state === 'stubble' ? ' straw' : ''}" d="${fieldOutline()}"/>`;
+  if (state === 'furrows' || state === 'sown') out += rows.map((f) => `<path class="field-furrow" stroke-width="${width(f, 0.5)}" d="${along(f, xL(f) + 1, xR(f) - 1)}"/>`).join('');
+  if (state === 'sown') out += rows.map((f) => `<path class="field-sprout" stroke-width="${width(f, 0.55)}" d="${along(f, xL(f) + 2, xR(f) - 2)}"/>`).join('');
   if (state === 'growing' || state === 'ripe') {
     const g = state === 'ripe' ? 1 : Math.max(0.12, grow);
-    const colour = state === 'ripe' ? '#D8B04C' : `hsl(${(105 - 35 * Math.max(0, g - 0.6) / 0.4).toFixed(0)} 45% ${(40 + 6 * g).toFixed(0)}%)`;
-    out += `<path class="field-crop" d="${rows.map((f) => line(f, x0 + 1, x1 - 1)).join(' ')}" stroke="${colour}" stroke-width="${(0.6 + 1.6 * g).toFixed(2)}"/>`;
+    const crop = state === 'ripe' ? '#D6AE4A' : `hsl(${(102 - 34 * Math.max(0, g - 0.6) / 0.4).toFixed(0)} 42% ${(38 + 6 * g).toFixed(0)}%)`;
+    out += `<g class="field-crop" style="--crop: ${crop}">` + rows.map((f) => `<path stroke-width="${width(f, 0.55 + 1.5 * g)}" d="${along(f, xL(f) + 1, xR(f) - 1)}"/>`).join('') + '</g>';
   }
   if (state === 'stubble') {
     let d = '';
-    rows.forEach((f) => { for (let x = x0 + 2; x < x1 - 1; x += 3.2) { const y = fP(x, f); d += `M${x.toFixed(1)} ${y.toFixed(2)} v-.8 `; } });
+    rows.forEach((f) => { const h = (0.5 + 0.5 * f).toFixed(2); for (let x = xL(f) + 2; x < xR(f) - 1; x += 2.6 + 1.4 * (1 - f)) d += `M${x.toFixed(1)} ${fP(x, f).toFixed(2)} v-${h} `; });
     out += `<path class="field-stubble" d="${d}"/>`;
-    // round bales, about 1.5 m across (7 units): the round face towards us, with its wound spiral
-    if (bales) out += [[688, 0.3], [748, 0.72], [810, 0.38]].map(([x, f]) => { const y = fP(x, f) + 1, r = 3.3; return `<circle class="field-bale" cx="${x}" cy="${(y - r).toFixed(2)}" r="${r}"/><path class="field-bale-spiral" d="M${x} ${(y - r).toFixed(2)} m-2.2 0 a2.2 2.2 0 1 1 2.2 2.2 a1.4 1.4 0 1 1 -1.2 -1.5 a.7 .7 0 1 1 .7 .5"/>`; }).join('');
+    // round bales, about 1.5 m across (7 units) at the front, smaller further back
+    if (bales) out += [[690, 0.3], [748, 0.72], [810, 0.42]].map(([x, f]) => { const y = fP(x, f) + 0.8, r = 2.6 + 0.9 * f; return `<circle class="field-bale" cx="${x}" cy="${(y - r).toFixed(2)}" r="${r.toFixed(2)}"/><path class="field-bale-spiral" d="M${x} ${(y - r).toFixed(2)} m-${(r * 0.66).toFixed(2)} 0 a${(r * 0.66).toFixed(2)} ${(r * 0.66).toFixed(2)} 0 1 1 ${(r * 0.66).toFixed(2)} ${(r * 0.66).toFixed(2)} a${(r * 0.42).toFixed(2)} ${(r * 0.42).toFixed(2)} 0 1 1 -${(r * 0.36).toFixed(2)} -${(r * 0.45).toFixed(2)}"/>`; }).join('');
   }
+  out += FIELD_SHRUBS.map(([x, dy, r]) => { const y = fTop(x) + dy; return `<g class="field-shrub"><circle cx="${x}" cy="${(y - r * 0.7).toFixed(2)}" r="${r}"/><circle cx="${(x + r * 0.8).toFixed(1)}" cy="${(y - r * 0.4).toFixed(2)}" r="${(r * 0.7).toFixed(2)}"/></g>`; }).join('');
   return out;
 }
 const MD = () => { const [, m, d] = shownDate(12).toLocaleDateString('en-CA', { timeZone: TZ }).split('-').map(Number); return m * 100 + d; };
@@ -1029,8 +1064,11 @@ function renderField(force) {
 }
 skyHooks.push(() => renderField()); renderField();
 // the part of the field done so far: bands (f0..f1) from x = a to x = b
-function farmReveal(bands) {
-  revealPath.setAttribute('d', bands.map(([f0, f1, a, b]) => { const [l, r] = [Math.min(a, b), Math.max(a, b)]; return `M${l.toFixed(1)} ${fP(l, f0).toFixed(2)} L${r.toFixed(1)} ${fP(r, f0).toFixed(2)} L${r.toFixed(1)} ${fP(r, f1).toFixed(2)} L${l.toFixed(1)} ${fP(l, f1).toFixed(2)} Z`; }).join(' '));
+function farmReveal(bands) { // the part done so far: bands between rows f0 and f1, from x = a to x = b
+  revealPath.setAttribute('d', bands.map(([f0, f1, a, b]) => {
+    const [l, r] = [Math.min(a, b), Math.max(a, b)], n = Math.max(1, Math.ceil((r - l) / 6)), xs = [...Array(n + 1)].map((_, k) => l + (r - l) * k / n);
+    return `M${xs.map((x) => `${x.toFixed(1)} ${(fP(x, f0) - 0.6).toFixed(2)}`).join(' L')} L${xs.reverse().map((x) => `${x.toFixed(1)} ${(fP(x, f1) + 0.6).toFixed(2)}`).join(' L')} Z`;
+  }).join(' '));
 }
 function farmRevealClear() { fieldAfter.innerHTML = ''; revealPath.setAttribute('d', ''); farmBusy = false; }
 
@@ -1091,7 +1129,10 @@ function tractorJob({ mode, next, bales = true, onDone }) {
   pass.forEach(([f0, f1, row, dir], i) => {
     const from = dir < 0 ? FIELD.x1 + 2 : FIELD.x0 - 2, to = dir < 0 ? FIELD.x0 - 2 : FIELD.x1 + 2;
     if (i > 0) steps.push({ to: seat(from + 8, fP(from, row) + 1, dir), ms: 1400, pose: 'drive' }); // turn into the next row
-    steps.push({ to: seat(to, fP(to, row) + 1, dir), ms: 13000, pose: 'drive', tick: () => { farmReveal([...done, [f0, f1, from, tractorX]]); } });
+    for (let k = 1; k <= 8; k++) { // along the curved row, in short legs
+      const x = from + (to - from) * k / 8;
+      steps.push({ to: seat(x, fP(x, row) + 1, dir), ms: 13000 / 8, pose: 'drive', tick: () => { farmReveal([...done, [f0, f1, from, tractorX]]); } });
+    }
     steps.push({ ms: 1, pose: 'drive', tick: () => { done = [...done, [f0, f1, FIELD.x0 - 3, FIELD.x1 + 3]]; farmReveal(done); } });
   });
   steps.push({ to: seat(PARK[0] + 8, PARK[1], 1), ms: 2000, pose: 'drive' });               // back to the barn …
@@ -1107,9 +1148,9 @@ const farmHarvest = () => penguinRoute([...outLeft, ...tractorJob({ mode: 'reapi
 const farmSow = () => penguinRoute([
   ...outLeft,
   { to: [FIELD.x1 + 3, fP(FIELD.x1, 0.5)], ms: 3200, pose: 'walk', tick: (k, pg) => { if (k >= 1) { farmBusy = true; pg.classList.add('sowing'); fieldAfter.innerHTML = fieldSVG('sown'); farmReveal([]); } } },
-  { to: [FIELD.x0 + 2, fP(FIELD.x0, 0.5)], ms: 16000, pose: 'walk', tick: () => farmReveal([[0, 1, FIELD.x1 + 3, pgX]]) },
+  ...[...Array(8)].map((_, k) => { const x = FIELD.x1 + 3 - (FIELD.x1 - FIELD.x0 + 1) * (k + 1) / 8; return { to: [x, fP(x, 0.5)], ms: 2000, pose: 'walk', tick: () => farmReveal([[0, 1, FIELD.x1 + 3, pgX]]) }; }),
   { ms: 1, pose: 'wait', tick: (k, pg) => { pg.classList.remove('sowing'); finishJob('sow'); } },
-  { to: [FIELD.x1 + 3, fP(FIELD.x1, 0.95) + 1], ms: 11000, pose: 'walk', fast: true },
+  ...[...Array(5)].map((_, k) => { const x = FIELD.x0 + 2 + (FIELD.x1 + 1 - FIELD.x0) * (k + 1) / 5; return { to: [x, fP(x, 0.97) + 1], ms: 2200, pose: 'walk', fast: true }; }),
   { to: FARM_GATE, ms: 4000, pose: 'walk' },
   ...homeLeft,
 ]);
@@ -1117,11 +1158,15 @@ const farmSow = () => penguinRoute([
 const farmTend = () => penguinRoute([
   ...outLeft,
   { to: [FIELD.x1 + 3, fP(FIELD.x1, 0.5)], ms: 3200, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.add('watering'); } },
-  { to: [790, fP(790, 0.5)], ms: 5000, pose: 'walk' },
+  { to: [822, fP(822, 0.5)], ms: 2400, pose: 'walk' },
+  { to: [790, fP(790, 0.5)], ms: 2400, pose: 'walk' },
   { ms: 3000, pose: 'wait', tick: (k, pg) => pg.classList.toggle('pouring', k < 1) },
-  { to: [710, fP(710, 0.5)], ms: 5000, pose: 'walk' },
+  { to: [750, fP(750, 0.5)], ms: 2600, pose: 'walk' },
+  { to: [710, fP(710, 0.5)], ms: 2600, pose: 'walk' },
   { ms: 3000, pose: 'wait', tick: (k, pg) => { pg.classList.toggle('pouring', k < 1); if (k >= 1) earnBadge('farmer'); } },
-  { to: [FIELD.x1 + 3, fP(FIELD.x1, 0.9) + 1], ms: 9000, pose: 'walk', fast: true, tick: (k, pg) => pg.classList.remove('watering') },
+  { to: [740, fP(740, 0.97) + 1], ms: 1600, pose: 'walk', tick: (k, pg) => pg.classList.remove('watering') },
+  { to: [800, fP(800, 0.97) + 1], ms: 2600, pose: 'walk', fast: true },
+  { to: [FIELD.x1 + 3, fP(FIELD.x1, 0.9) + 1], ms: 2600, pose: 'walk', fast: true },
   { to: FARM_GATE, ms: 4000, pose: 'walk' },
   ...homeLeft,
 ]);
@@ -1137,6 +1182,7 @@ const farmLook = () => penguinRoute([
 const FARM_JOBS = { plough: farmPlough, harvest: farmHarvest, sow: farmSow, tend: farmTend };
 // the job is chosen when the outing starts (a tap may wait its turn), so a job is never done twice
 const farmRun = () => { const job = farmPlan().job; return (job ? FARM_JOBS[job] : farmLook)(); };
+$('#fieldHit').setAttribute('d', fieldOutline()); // tap anywhere on the field
 onTap($('#fieldHit'), () => errand('farm', farmRun));
 every(150, 360, () => { const { job } = farmPlan(); if (job && lastSky.d < 0.45 && !live.particle && Math.random() < (job === 'tend' ? 0.25 : 0.5)) goOut('farmRun', farmRun); });
 parkTractor();
