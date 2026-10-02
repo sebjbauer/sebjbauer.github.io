@@ -895,54 +895,59 @@ $('.hero').addEventListener('click', (e) => {
 // Not realistic at all, and that's fine: now and then (every 4 to 9 minutes, open water only) a tall
 // black fin glides across the lake, sinking every few seconds and coming back up with a puff of
 // breath. Tap it: the orca dives, leaps out of the water in an arc, splashes back in and swims on.
-const orca = $('#orca'), orcaDir = orca.querySelector('.orca-dir'), orcaFin = orca.querySelector('.orca-fin'), orcaBody = orca.querySelector('.orca-body');
+const orca = $('#orca'), orcaDir = orca.querySelector('.orca-dir'), orcaBody = orca.querySelector('.orca-body');
+// The orca is one drawing in true scale. Cruising, it swims just below the surface (only the top of
+// its back and the dorsal fin show above the water, the rest is cut off at the waterline); to
+// breathe it sinks and comes back up; when it leaps, the whole animal comes out in an arc.
+const ORCA_CRUISE = 6.3; // how far down it swims: the back just breaks the surface
 let orcaOn = false, orcaLeapAt = 0;
 const orcaY = (x) => 478 + 8 * (x - 945) / 485; // in front of the rowing boat and the jetty
 function orcaSwim(force = false) {
   if (orcaOn || reduceMotion || live.ice > 0.2) return;
   if (!force && (!heroVisible() || ['penguinKayak', 'penguinSwim', 'penguinSauna'].includes(penguinJob))) return;
   orcaOn = true; orcaLeapAt = 0;
-  const dir = Math.random() < 0.5 ? 1 : -1, x0 = dir > 0 ? 945 : 1430, speed = 11.5 * dir; // units per second
-  let x = x0, last = 0, drawn = 0, t0 = 0, lastC = 0;
+  const dir = Math.random() < 0.5 ? 1 : -1, x0 = dir > 0 ? 930 : 1445, speed = 11.5 * dir; // units per second (about 2.5 m/s)
+  let x = x0, last = 0, drawn = 0, t0 = 0, lastC = 0, splashed = false, surfaced = false;
   orcaDir.setAttribute('transform', dir < 0 ? 'scale(-1 1)' : '');
   orca.classList.add('on');
   const step = (t) => {
     if (!t0) t0 = last = t;
     const dt = Math.min(0.1, (t - last) / 1000); last = t;
-    const leaping = orcaLeapAt && t - orcaLeapAt < 3200;
+    const leaping = orcaLeapAt && t - orcaLeapAt < 3600;
     if (!leaping && t - drawn < 33) { requestAnimationFrame(step); return; } // 30 frames a second while it just cruises
     drawn = t;
-    x += speed * dt * (leaping ? 1.6 : 1);
-    let finDown = 0;
-    if (leaping) { // dive (0.4 s), under (0.3 s), leap (1.3 s), under (0.6 s), fin back up (0.6 s)
+    x += speed * dt * (leaping ? 1.5 : 1);
+    let body = `translate(0 ${ORCA_CRUISE})`;
+    if (leaping) { // dive (0.5 s), under (0.4 s), leap (1.5 s), under (0.6 s), back up (0.6 s)
       const e = (t - orcaLeapAt) / 1000;
-      orca.classList.toggle('leap', e >= 0.7 && e < 2);
-      orca.classList.toggle('under', e < 2.6);
-      if (e < 0.4) finDown = e / 0.4 * 8;
-      else if (e < 0.7 || (e >= 2 && e < 2.6)) finDown = 8;
-      else if (e < 2) {
-        const k = (e - 0.7) / 1.3;
-        orcaBody.setAttribute('transform', `translate(${(-6 + 12 * k).toFixed(2)} ${(-Math.sin(Math.PI * k) * 10 + 3).toFixed(2)}) rotate(${(-38 + 76 * k).toFixed(1)})`);
-        if (!orca.dataset.out && k > 0.05) { orca.dataset.out = '1'; if (typeof ripples !== 'undefined') ripples.add(x - 4 * dir, orcaY(x), 0.6, 0.8); }
-      } else finDown = 8 * (1 - (e - 2.6) / 0.6);
-      if (e >= 2 && orca.dataset.out) { delete orca.dataset.out; bigSplash(x + 3 * dir, orcaY(x)); }
+      orca.classList.toggle('under', e < 3);
+      if (e < 0.5) body = `translate(0 ${(ORCA_CRUISE + e / 0.5 * 10).toFixed(2)})`;
+      else if (e < 0.9 || (e >= 2.4 && e < 3)) body = `translate(0 ${ORCA_CRUISE + 10})`;
+      else if (e < 2.4) {
+        const k = (e - 0.9) / 1.5, lift = Math.sin(Math.PI * k);
+        body = `translate(${(-14 + 28 * k).toFixed(2)} ${(18 - lift * 30).toFixed(2)}) rotate(${(-40 + 80 * k).toFixed(1)} 0 -3.2)`;
+        if (!surfaced && k > 0.08) { surfaced = true; if (typeof ripples !== 'undefined') ripples.add(x - 8 * dir, orcaY(x), 0.9, 1); }
+        if (!splashed && k > 0.9) { splashed = true; bigSplash(x + 12 * dir, orcaY(x)); if (typeof ripples !== 'undefined') ripples.add(x + 12 * dir, orcaY(x), 1.3, 1.6); }
+      } else body = `translate(0 ${(ORCA_CRUISE + 10 * (1 - (e - 3) / 0.6)).toFixed(2)})`;
     } else {
-      orca.classList.remove('leap', 'under');
-      // it comes up to breathe: about 5 s at the surface, 1.5 s under, a puff of breath as it surfaces
+      surfaced = splashed = false;
+      orca.classList.remove('under');
+      // it breathes: about 5 s at the surface, 1.5 s under, a puff of breath as it comes up
       const c = ((t - t0) / 1000) % 6.5;
-      finDown = c < 5 ? 0 : c < 5.5 ? (c - 5) / 0.5 * 8 : c < 6 ? 8 : 8 * (1 - (c - 6) / 0.5);
+      const down = c < 5 ? 0 : c < 5.5 ? (c - 5) / 0.5 * 10 : c < 6 ? 10 : 10 * (1 - (c - 6) / 0.5);
       if (lastC < 6 && c >= 6) { orca.classList.remove('blow'); void orca.getBoundingClientRect(); orca.classList.add('blow'); }
       lastC = c;
+      body = `translate(0 ${(ORCA_CRUISE + down).toFixed(2)})`;
     }
-    orcaFin.setAttribute('transform', finDown ? `translate(0 ${finDown.toFixed(2)})` : '');
+    orcaBody.setAttribute('transform', body);
     orca.setAttribute('transform', `translate(${x.toFixed(2)} ${orcaY(x).toFixed(2)})`);
-    if ((dir > 0 ? x < 1432 : x > 943) && orcaOn) requestAnimationFrame(step);
-    else { orca.classList.remove('on', 'leap', 'under', 'blow'); orcaOn = false; }
+    if ((dir > 0 ? x < 1450 : x > 925) && orcaOn) requestAnimationFrame(step);
+    else { orca.classList.remove('on', 'under', 'blow'); orcaOn = false; }
   };
   requestAnimationFrame(step);
 }
 onTap(orca.querySelector('.hit'), () => {
-  if (!orcaOn || (orcaLeapAt && performance.now() - orcaLeapAt < 3200)) return;
+  if (!orcaOn || (orcaLeapAt && performance.now() - orcaLeapAt < 3600)) return;
   orcaLeapAt = performance.now();
   earnBadge('orca');
 });
