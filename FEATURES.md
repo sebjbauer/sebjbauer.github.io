@@ -181,9 +181,12 @@ On phones the whole scene (sky, sun, moon, stars, aurora, clouds, birds, landsca
 Everything that sends the penguin out (its own daily life, your taps, backstage) goes through one scheduler (`goOut` in gadgets.js):
 1. **One outing at a time.**
 2. **Its own outings** (sauna on cold days, chanterelles in autumn, …) are skipped while it's out, or while something you asked for is waiting.
-3. **Taps and backstage wait their turn.** If the penguin is out, your newest request waits (a newer tap replaces it) and starts about a second after the penguin is home, for up to 2 minutes. Tapping the thing that's already happening (or already waiting) does nothing, so a double tap never sends it twice. If a job can't happen yet (the kayak while a triathlon has the jetty), it waits too. Backstage shows a short note when a scene has to wait; `live` drops a waiting job.
+3. **Taps and backstage wait their turn.** If the penguin is out, your newest request waits (a newer tap replaces it) and starts about a second after the penguin is home, for up to 5 minutes (a farm job alone takes about 1.5). Tapping the thing that's already happening (or already waiting) does nothing, so a double tap never sends it twice. If a job can't happen yet (the kayak while a triathlon has the jetty), it waits too. Backstage shows a short note when a scene has to wait; `live` drops a waiting job.
 4. **Every outing ends cleanly, even after an error:** props away, penguin inside, door shut, kayak moored, axe in the block, sauna off. An outing that runs longer than 3 minutes is ended.
 5. **Every tap shows that it arrived:** a small white ring spreads from the thing you tapped.
+6. **Every outing starts clean:** nothing left over from the one before, and the penguin's place on the screen measured afresh.
+
+If the penguin ever seems to be missing: type `penguin` in the terminal. It says what it's doing, what's waiting, whether it's drawn and where (in the picture or not), which is what I need to find the cause.
 
 ## Life in the landscape
 

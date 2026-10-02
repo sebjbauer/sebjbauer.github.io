@@ -243,7 +243,8 @@ let spriteM = null;
 function spriteMatrix() { // landscape units → pixels in the hero (the phone view stretches x and y differently)
   if (spriteM) return spriteM;
   const m = landMatrix(fxSvg), hero = fxSvg.parentNode.getBoundingClientRect();
-  if (!m || !(m.a > 0) || !(m.d > 0)) return { a: 1, d: 1, e: -9999, f: -9999 }; // not laid out yet: measure again next time
+  if (!m || !(m.a > 0.05) || !(m.d > 0.05) || !(hero.width > 10)) return { a: 1, d: 1, e: -9999, f: -9999 }; // not laid out (or mid-pinch): measure again next time
+  if (heroWorld.style.transform.includes('scale')) return { ...m, e: m.e - hero.left, f: m.f - hero.top }; // during a pinch: use it, but don't keep it
   spriteM = { a: m.a, d: m.d, e: m.e - hero.left, f: m.f - hero.top };
   const k = SPRITE;
   Object.assign(pgSprite.style, { width: `${40 * m.a * k}px`, height: `${32 * m.d * k}px`, left: `${-20 * m.a * k}px`, top: `${-24 * m.d * k}px`, transformOrigin: `${20 * m.a * k}px ${24 * m.d * k}px` });
@@ -1429,7 +1430,7 @@ function goOut(name, run, { source = 'auto', can = () => true } = {}) {
   }
   if (penguinJob === name || waitingJob?.name === name) return Promise.resolve();
   if (penguinOut || !can()) {
-    waitingJob = { name, run, can, until: Date.now() + 120000 };
+    waitingJob = { name, run, can, until: Date.now() + 300000 }; // waits up to 5 minutes (a farm job takes about 1.5)
     if (!penguinOut) scheduleNext(1000);
     return Promise.resolve();
   }
@@ -1437,6 +1438,9 @@ function goOut(name, run, { source = 'auto', can = () => true } = {}) {
 }
 async function runOuting(name, run) {
   penguinOut = true; penguinJob = name; routeAbort = false;
+  // a clean start: nothing left over from before, and the penguin's place on the screen measured afresh
+  penguinEl.classList.remove(...PG_TEMP);
+  spriteM = null;
   const watchdog = setTimeout(() => { routeAbort = true; }, 180000);
   try { await run(); } catch (err) { console.warn('penguin outing', name, err); }
   finally {
@@ -1471,6 +1475,17 @@ function penguinCleanUp() {
   if (typeof parkTractor === 'function') { parkTractor(); farmRevealClear(); renderField(); }
   placePenguin(1195, 400); // inside
 }
+// `penguin` in the terminal: what it's doing, what's waiting, and whether it can be seen (for bug reports)
+COMMANDS.penguin = () => {
+  const out = penguinEl.classList.contains('out'), cs = getComputedStyle(penguinEl), hero = $('.hero').getBoundingClientRect();
+  const r = penguinEl.getBoundingClientRect(), x = r.left - hero.left, y = r.top - hero.top;
+  const inView = out && x > -r.width && x < hero.width && y > -r.height && y < hero.height;
+  const name = (n) => n.replace(/^penguin|^farm/, '').toLowerCase() || 'outing';
+  return `Penguin: ${penguinJob ? `out (${name(penguinJob)})` : 'at home'}${waitingJob ? `, next: ${name(waitingJob.name)} (waits ${Math.max(0, Math.round((waitingJob.until - Date.now()) / 1000))} s more)` : ''}
+  ${out ? `drawn: ${+cs.opacity > 0.05 ? 'yes' : 'no (hidden)'} · in the picture: ${inView ? 'yes' : 'no'} · at ${Math.round(x)},${Math.round(y)} px · ${Math.round(r.width)}×${Math.round(r.height)} px` : 'inside the cottage'}
+  landscape x ${pgX.toFixed(0)} · view ${panWidth ? `${panX.toFixed(0)}–${(panX + panWidth).toFixed(0)}` : 'all'} · classes: ${penguinEl.getAttribute('class')}`;
+};
+HIDDEN.push('penguin');
 // the older names, kept for the rest of the code: force = you asked for it
 const penguinSolo = (route, force = false) => goOut(route.name || 'outing', route, { source: force ? 'ask' : 'auto' });
 
