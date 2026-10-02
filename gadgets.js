@@ -1099,22 +1099,40 @@ function parkTractor() {
 // into the trees (out of sight, but still walking, so the phone camera follows), and out of the
 // forest again beside the hay barn. Never across the water.
 const FARM_GATE = [905, 452.5]; // in front of the barn
+// Behind the cottage (no trees there, the clearing) it is out of sight; along the far shore it walks
+// just behind the first row of trees (y 446, the trees stand at 449), which are drawn once more in
+// front of it (#landscapeFront), so it shows only now and then between the trunks.
 const outLeft = [
   ...outDoor,
-  { to: [1249, 447.2], ms: 2200, pose: 'walk' },
-  { to: [1253, 445.3], ms: 600, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.add('inside'); } }, // into the trees
-  { to: [1100, 440.5], ms: 7000, pose: 'walk', fast: true },                                              // through the forest (unseen)
-  { to: [914, 441.4], ms: 8400, pose: 'walk', fast: true, tick: (k, pg) => { if (k >= 1) pg.classList.remove('inside'); } }, // out by the barn
+  { to: [1249, 447.6], ms: 2200, pose: 'walk' },
+  { to: [1252, 446.2], ms: 500, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.add('inside'); } }, // behind the cottage
+  { to: [1158, 446], ms: 4400, pose: 'walk', fast: true, tick: (k, pg) => { if (k >= 1) pg.classList.remove('inside'); } },
+  { to: [1040, 446], ms: 5400, pose: 'walk', fast: true },                                                       // behind the trees
+  { to: [936, 446.4], ms: 4800, pose: 'walk', fast: true },
+  { to: [918, 447.8], ms: 900, pose: 'walk' },                                                                   // out of the forest
   { to: FARM_GATE, ms: 1100, pose: 'walk' },
 ];
 const homeLeft = [
-  { to: [914, 441.4], ms: 1100, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.add('inside'); } },
-  { to: [1100, 440.5], ms: 8400, pose: 'walk', fast: true },
-  { to: [1253, 445.3], ms: 7000, pose: 'walk', fast: true, tick: (k, pg) => { if (k >= 1) pg.classList.remove('inside'); } },
-  { to: [1249, 447.2], ms: 600, pose: 'walk' },
+  { to: [918, 447.8], ms: 1100, pose: 'walk' },
+  { to: [936, 446.4], ms: 900, pose: 'walk' },
+  { to: [1040, 446], ms: 4800, pose: 'walk', fast: true },
+  { to: [1158, 446], ms: 5400, pose: 'walk', fast: true, tick: (k, pg) => { if (k >= 1) pg.classList.add('inside'); } },
+  { to: [1252, 446.2], ms: 4400, pose: 'walk', fast: true, tick: (k, pg) => { if (k >= 1) pg.classList.remove('inside'); } },
+  { to: [1249, 447.6], ms: 500, pose: 'walk' },
   { to: [1220, 450.2], ms: 2200, pose: 'walk' },
   ...homeAgain,
 ];
+// keep the copy of the shoreline trees in front in step with the real ones (seasons, the fractal forest)
+const frontTrees = $('#frontTrees'), frontLeafy = $('#frontLeafy');
+function buildFrontTrees() {
+  const near = (x) => x > 915 && x < 1170;
+  frontTrees.replaceChildren(...[...$('#trees').children].filter((el) => { const b = el.getBBox(); return near(b.x + b.width / 2); }).map((el) => el.cloneNode(true)));
+  frontTrees.setAttribute('class', $('#trees').getAttribute('class') || '');
+  frontLeafy.replaceChildren(...[...$('#leafy').children].filter((el) => near(+(el.getAttribute('cx') ?? (+el.getAttribute('x') + 1.5)))).map((el) => el.cloneNode(true)));
+}
+new MutationObserver(buildFrontTrees).observe($('#trees'), { childList: true, attributes: true, attributeFilter: ['class'] });
+new MutationObserver(buildFrontTrees).observe($('#leafy'), { childList: true });
+buildFrontTrees();
 const seat = (gx, gy, dir) => [gx - 3.8 * dir, gy - 4.5]; // where the penguin sits for a tractor ground point
 const ROW = (f) => [FIELD.x1 + 4, fP(FIELD.x1, f) + 1];
 // a tractor job: on, two passes along the field (left along the far half, right along the near half), back

@@ -946,6 +946,10 @@ async function copyTo(btn, text) {
   setTimeout(() => { btn.textContent = label; btn.classList.remove('copied'); }, 1800);
 }
 
+// Photos also come as WebP (a third smaller), with the original as the fallback. cv/tex2web.py only
+// lists a WebP (p.webp) when the file really exists, so a missing one never shows a broken image.
+const webp = (p) => (p.webp ? `<picture><source srcset="${esc(p.webp)}" type="image/webp">` : '');
+
 // Publications grouped by year, your name in bold
 function renderPublications() {
   const years = [...new Set(SITE.publications.map((p) => p.year))].sort((a, b) => b - a);
@@ -956,7 +960,7 @@ function renderPublications() {
       <h3>${y}</h3>
       <ol>${SITE.publications.filter((p) => p.year === y).map((p) => `
         <li data-p="${SITE.publications.indexOf(p)}"${p.image ? ' class="has-img"' : ''}>
-          ${p.image ? `<a class="pub-img" href="${esc(linkOf(p))}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"${p.imagecredit ? ` title="${esc(p.imagecredit)}"` : ''}><img src="${esc(p.image)}" alt="" loading="lazy" decoding="async"></a>` : ''}
+          ${p.image ? `<a class="pub-img" href="${esc(linkOf(p))}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"${p.imagecredit ? ` title="${esc(p.imagecredit)}"` : ''}>${webp(p)}<img src="${esc(p.image)}" alt="" loading="lazy" decoding="async">${p.webp ? '</picture>' : ''}</a>` : ''}
           <div class="pub-text">
           <a class="pub-title" href="${esc(linkOf(p))}" target="_blank" rel="noopener">${esc(p.title)}</a>
           <p class="pub-authors">${bold(p.authors)}</p>

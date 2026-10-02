@@ -819,7 +819,7 @@ function beaverSwim(force = false) {
   beaverOut = true;
   beaver.classList.toggle('branch', currentSeason() === 'autumn');
   // from the lodge out into the bay and along, on a gentle curve (clear of the rowing boat)
-  const p0 = [1082, 452.8], p1 = [1030 + Math.random() * 40, 463 + Math.random() * 5], p2 = [1055 + Math.random() * 35, 468 + Math.random() * 3];
+  const p0 = [1082, 454.2], p1 = [1030 + Math.random() * 40, 463 + Math.random() * 5], p2 = [1055 + Math.random() * 35, 468 + Math.random() * 3];
   const at = (t) => [0, 1].map((i) => (1 - t) ** 2 * p0[i] + 2 * (1 - t) * t * p1[i] + t * t * p2[i]);
   const T = 16000, t0 = performance.now();
   let drawn = 0;

@@ -34,6 +34,15 @@ jobs:
           root_file: cv.tex
           working_directory: cv
 
+      - name: WebP copies of the photos (a third smaller)
+        run: | # never fails the build: without cwebp the site just uses the originals
+          (sudo apt-get update -qq && sudo apt-get install -y -qq webp) > /dev/null 2>&1 || true
+          if command -v cwebp > /dev/null; then
+            for f in images/pubs/*.jpg images/pubs/*.jpeg images/pubs/*.png; do
+              [ -f "$f" ] && cwebp -quiet -q 80 -m 6 "$f" -o "${f%.*}.webp" || true
+            done
+          fi
+
       - name: Read the CV into website data
         run: python3 cv/tex2web.py
 

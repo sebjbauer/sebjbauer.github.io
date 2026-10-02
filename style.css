@@ -140,10 +140,10 @@ kbd {
 .l-far { fill: var(--far); transition: fill 1.5s; }
 .l-mid { fill: var(--mid); transition: fill 1.5s; }
 .l-near { fill: var(--ground, var(--bg)); transition: fill .6s; }
-#leafy { display: none; }
-#leafy .trunk { fill: var(--tree); }
-#leafy .l1 { fill: var(--leaf-1); } #leafy .l2 { fill: var(--leaf-2); } #leafy .l3 { fill: var(--leaf-3); }
-[data-season="spring"] #leafy, [data-season="summer"] #leafy, [data-season="autumn"] #leafy { display: inline; }
+#leafy, #frontLeafy { display: none; }
+#leafy .trunk, #frontLeafy .trunk { fill: var(--tree); }
+#leafy .l1, #frontLeafy .l1 { fill: var(--leaf-1); } #leafy .l2, #frontLeafy .l2 { fill: var(--leaf-2); } #leafy .l3, #frontLeafy .l3 { fill: var(--leaf-3); }
+[data-season="spring"] #leafy, [data-season="summer"] #leafy, [data-season="autumn"] #leafy, [data-season="spring"] #frontLeafy, [data-season="summer"] #frontLeafy, [data-season="autumn"] #frontLeafy { display: inline; }
 #flowers { display: none; opacity: var(--flower-o, 1); }
 [data-season="spring"] #flowers { display: inline; }
 #flowers .f1 circle { fill: #F4D35E; } #flowers .f2 circle { fill: #FFFFFF; }
@@ -168,8 +168,9 @@ kbd {
   animation: spin 80s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-#trees path { fill: var(--tree); }
-#trees.fractal path { fill: none; stroke: var(--tree); stroke-width: .8; stroke-linecap: round; }
+#trees path, #frontTrees path { fill: var(--tree); }
+.landscape.front { pointer-events: none; }
+#trees.fractal path, #frontTrees.fractal path { fill: none; stroke: var(--tree); stroke-width: .8; stroke-linecap: round; }
 .l-snow { fill: var(--snow); transition: fill 1.5s; }
 .l-cross { stroke: var(--snow); stroke-width: 2; fill: none; }
 .l-lake { fill: var(--lake); transition: fill 1.5s; }
@@ -889,6 +890,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px); }
 .about { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 36px; align-items: start; }
 /* round portrait inside a thin ring */
 .photo { aspect-ratio: 1; border-radius: 50%; padding: 5px; border: 1px solid var(--line-strong); }
+.photo picture, .pub-img picture { display: contents; }
 .photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; border-radius: 50%; display: block; }
 .about p { margin: 0 0 16px; max-width: 62ch; color: var(--muted); }
 .about .now { color: var(--text); font-size: 17px; margin: 0 0 22px; }
