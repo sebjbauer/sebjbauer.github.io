@@ -324,7 +324,7 @@ The page scrolls to the top, stars start blinking one at a time and each blink l
 
 ## Trail badges
 
-Terminal command `badges`: shows which of the 37 badges the visitor has found, with hints for the rest. The browser remembers them.
+Terminal command `badges`: shows which of the 38 badges the visitor has found, with hints for the rest. The browser remembers them.
 
 | Badge | How to get it |
 |---|---|
@@ -361,6 +361,7 @@ Terminal command `badges`: shows which of the 37 badges the visitor has found, w
 | Löyly | Tap the sauna during a sauna session (a big puff of steam) |
 | Errand runner | Send the penguin on five different jobs by tapping things (sauna, woodpile, grill, kayak, …) |
 | Busy beaver | Tap the beaver lodge on the far shore (open water) |
+| Orca! | Tap the orca's fin when it crosses the lake (it leaps) |
 | Night catch | Click the rowing boat at night (the angler lands a fish) |
 | Chalk talk | Run `equation of the day` |
 | Airy disk | Run `psf` |
@@ -544,6 +545,7 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 | **Sunglasses** | When the real UV index is 6 or more ("high" on the WHO scale; Open-Meteo, live), the penguin wears sunglasses. The terminal's `weather` shows the UV index. Weather preset `weather sunny` (UV 7.5). | backstage: *sunglasses (high UV)* |
 | **Beaver lodge** | A lodge of sticks and mud on the far shore of the lake. It grows through the autumn (September to November, as beavers build and plaster it before winter) and is a bit smaller in July and August. From October to March a raft of branches lies beside it (the winter food cache, stuck in the mud under the ice). Snow on top in winter, and on very cold days (−8 °C or colder) a thin wisp of warm air from the vent. | always |
 | **Beaver** | Around sunset (from sunset to an hour and a half after) and just before sunrise, when the lake has no ice, the beaver swims out from the lodge on a curve, with a branch in its mouth in autumn. Its wake opens at 19.5° on each side: Kelvin's angle, the same for any duck, beaver or ship at any speed. At the end it slaps its tail (ripples) and dives. | `?beaver`, backstage: *beaver* |
+| **Orca** | Not realistic, on purpose: every 4 to 9 minutes (open water only), a tall black fin glides across the lake, in front of the rowing boat and the jetty. Every few seconds it sinks and comes back up with a puff of breath. Tap the fin: the orca dives, leaps out of the water in an arc (black and white, eye patch, tail flukes), splashes back in and swims on. Badge *Orca!*. | `?orca`, backstage: *orca* |
 | **Cows** | Three black-and-white cows with cowbells graze on the meadow between the tree line and the road: they eat (head down), then amble to fresh grass. In winter (or below 3 °C) they wear red scarves; at night they lie down. | `?season=winter` for scarves |
 | **UFO** | Very rarely after dark (clear sky), a UFO swoops in, beams up one of the cows, looks at it on board for a moment, puts it back facing the other way, and zooms off. Click the UFO: badge *Close encounter*. | `?ufo` (works any time) |
 | **Penguin's aurora selfie** | On clear nights when the northern lights are out (and right after solving the riddle), now and then the penguin walks to the end of the jetty, holds up its phone and takes two flash selfies. | `?selfie&sky=night` |

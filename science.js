@@ -1065,6 +1065,7 @@ const BACKSTAGE = [
     ['ice skater', show({ sky: 'day', season: 'winter', weather: 'frost' })],
     ['ice hockey', show({ sky: 'day', season: 'winter', weather: 'frost' }, () => iceHockey(true))],
     ['beaver', show({ sky: 'dusk', season: 'autumn', weather: 'clear' }, () => beaverSwim(true), 1200)],
+    ['orca', show({ sky: 'day', season: 'summer', weather: 'clear' }, () => orcaSwim(true), 1000)],
   ]],
   ['The penguin', [
     ['walk', show({}, () => penguinSolo(penguinWalk, true))],
@@ -1155,7 +1156,7 @@ const BACKSTAGE_SPOTS = {
   moose: '#moose', 'cow on the road': '#cows', moo: '#cows', deer: '#deer', owl: '#owl', fireflies: 1240,
   'hot-air balloon': '#balloon', ufo: '#ufo', 'chairlift and skier': '#skier', 'iss pass': '#iss',
   ripples: 1120, 'glowing plankton': 1120, 'jumping fish': 1080, ducks: '#ducks', 'night fishing': '#rowboat',
-  'ice skater': '#skater', 'ice hockey': 1080, beaver: '#beaver', 'ice from the shore': 1120, 'long shadows': 1230,
+  orca: '#orca .orca-dir', 'ice skater': '#skater', 'ice hockey': 1080, beaver: '#beaver', 'ice from the shore': 1120, 'long shadows': 1230,
   'tent and campfire': '#camp', snowman: '#snowman', 'melting snowman': '#snowman', 'path lights': 1255,
   'swedish flag (6 june)': '#flagpole', 'austrian flag (26 october)': '#flagpole', 'stove and smoke': 1195,
   'woodpile through the winter': 1215, 'blueberry pie': 1204, 'hare or fox tracks': 1266, 'world penguin day (25 april)': 1265,
