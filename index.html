@@ -117,7 +117,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap"></noscript>
-  <link rel="stylesheet" href="style.css?v=20261002215924">
+  <link rel="stylesheet" href="style.css?v=20261003213746">
 </head>
 <body>
 <a class="skip-link" href="#about">Skip to content</a>
@@ -369,6 +369,31 @@
 
   <!-- small moving details live in their own light layer, so the big landscape never has to redraw -->
   <svg class="landscape fx" id="landscapeFx" viewBox="0 0 1440 520" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <!-- (drawn first: everything on the road and the meadow in front of it stays in front) the farm in the Austrian meadow: a field the penguin works through the year, a hay barn and its tractor; a picnic spot by the lake (gadgets.js) -->
+    <g class="farm" id="farm">
+      <defs><clipPath id="farmReveal" clipPathUnits="userSpaceOnUse"><path id="farmRevealPath" d=""/></clipPath></defs>
+      <g id="fieldBase"></g>
+      <g id="fieldAfter" clip-path="url(#farmReveal)"></g>
+      <path class="hit" id="fieldHit" d=""/>
+      <!-- a small Austrian hay barn (Heustadel) -->
+      <g class="barn" transform="translate(895 450.5) scale(1.45)"><path class="barn-wall" d="M-8 0 V-8 H8 V0 Z"/><path class="barn-roof" d="M-9.6 -7.6 L0 -13.4 L9.6 -7.6 Z"/><path class="barn-planks" d="M-5 0 V-8 M-2 0 V-8 M1 0 V-8 M4 0 V-8"/><path class="barn-door" d="M-3.2 0 V-5.4 H3.2 V0 Z"/></g>
+      <!-- the tractor (a little red Steyr): the penguin drives it; plough behind, reel in front for the harvest -->
+      <g class="tractor" id="tractor" transform="translate(873 452) scale(-1 1)">
+        <g class="tr-plough"><path d="M-5.6 -2.4 L-11.5 -1.2 M-8 -1.9 L-8.8 0 M-10.6 -1.4 L-11.4 0.2"/></g>
+        <g class="tr-reel"><circle cx="8.6" cy="-3.4" r="2.1"/><g class="tr-reel-spokes"><path d="M8.6 -5.5 V-1.3 M6.5 -3.4 H10.7 M7.1 -4.9 L10.1 -1.9 M7.1 -1.9 L10.1 -4.9"/></g></g>
+        <path class="tr-body" d="M-1.2 -5.6 H5.6 Q6.8 -5.6 6.8 -4.4 V-2.4 H-1.2 Z"/>
+        <path class="tr-fender" d="M-7.2 -3.4 Q-6.8 -7.4 -3.6 -7.6 Q-.6 -7.4 -.2 -3.4 Z"/>
+        <rect class="tr-seat" x="-5.2" y="-6.9" width="2.8" height=".8" rx=".3"/>
+        <path class="tr-steer" d="M-1.4 -5.6 L-.6 -8.2 M-1.6 -8.3 H.4"/>
+        <rect class="tr-pipe" x="4.6" y="-8.6" width=".55" height="3"/>
+        <g class="tr-puffs"><circle cx="4.9" cy="-9.4" r=".7"/><circle cx="4.3" cy="-10.6" r=".6"/></g>
+        <g class="tr-wheel tr-rear" transform="translate(-3.6 -3)"><circle class="tr-tyre" r="3"/><circle class="tr-hub" r="1.2"/><path class="tr-spokes" d="M0 -2.2 V2.2 M-2.2 0 H2.2"/></g>
+        <g class="tr-wheel tr-front" transform="translate(5 -1.7)"><circle class="tr-tyre" r="1.7"/><circle class="tr-hub" r=".7"/><path class="tr-spokes" d="M0 -1.2 V1.2 M-1.2 0 H1.2"/></g>
+      </g>
+      <g class="gulls" id="gulls"><path d="M-1.8 0 Q-.9 -1 0 0 Q.9 -1 1.8 0"/><path d="M-1.6 0 Q-.8 -.9 0 0 Q.8 -.9 1.6 0"/><path d="M-1.5 0 Q-.75 -.85 0 0 Q.75 -.85 1.5 0"/></g>
+      <!-- picnic blanket and basket (warm weekend days) -->
+      <g class="picnic" id="picnic" transform="translate(884 494) scale(1.6)"><path class="pn-cloth" d="M-7 1.4 L-5 -1.6 L7 -1.6 L9 1.4 Z"/><path class="pn-check" d="M-5 -.1 H8 M-2 -1.6 L-2.8 1.4 M1 -1.6 L.6 1.4 M4 -1.6 L4.2 1.4 M7 -1.6 L7.6 1.4"/><g class="pn-basket" transform="translate(5.6 -.6)"><path class="pn-bk" d="M-1.5 0 H1.5 L1.2 -1.8 H-1.2 Z"/><path class="pn-bkh" d="M-1 -1.8 Q0 -3.4 1 -1.8"/></g><rect class="hit" x="-8" y="-4" width="18" height="6"/></g>
+    </g>
     <!-- cows grazing on the meadow (gadgets.js draws them) and, very rarely, a UFO -->
     <g id="cows"></g>
     <g class="ufo" id="ufo">
@@ -400,6 +425,28 @@
     <g class="skater" id="skater"><g class="sk-glide"><g transform="translate(1000 470)"><g class="sk-flip figure"><g class="sk-spin">
       <path d="M-3.5 0 H3.5"/><path d="M0 -1 L1 -6 L-5 -3.5"/><path d="M1 -6 L3 -11"/><path d="M-1.5 -9.5 L3 -10.3 L7.5 -9"/><circle cx="3.8" cy="-13" r="1.6"/><path class="scarf" d="M2.6 -11.4 l-3 1"/><rect class="hit" x="-8" y="-17" width="18" height="19"/>
     </g></g></g></g></g>
+    <!-- now and then an orca's fin crosses the lake; tap it and the orca dives, leaps and swims on (gadgets.js) -->
+    <defs><clipPath id="orcaClip" clipPathUnits="userSpaceOnUse"><rect x="-60" y="-60" width="120" height="60.3"/></clipPath></defs>
+    <g class="orca" id="orca"><g class="orca-dir">
+      <path class="orca-wake" d="M-3 .3 L-26 -3.3 M-3 .5 L-26 4.3"/>
+      <g clip-path="url(#orcaClip)">
+        <!-- drawn in true scale (about 7.5 m: 34 units, like the 6 m cottage at 30): head to the right, belly at y = 0 -->
+        <g class="orca-body">
+          <path class="orca-black" d="M17 -2.6 Q16.7 -5.3 13 -6.1 C8 -6.9 2 -7.3 -2 -6.9 C-6 -6.4 -10 -5 -13 -3.7 L-14.6 -3.3 L-18.6 -4.1 Q-17.6 -3.2 -18.4 -2.4 L-14.6 -2.5 C-11 -1.6 -6 -.2 0 0 C6 .2 11 -.4 14.6 -1.4 Q16.7 -1.8 17 -2.6 Z"/>
+          <path class="orca-black" d="M3.4 -7.1 Q1.6 -10.6 -.4 -14.6 Q-.9 -10.8 -2.2 -7 Z"/>
+          <path class="orca-black" d="M9.6 -1.1 Q8.6 1.7 6.2 2.6 Q5.2 1.5 6.9 -.6 Z"/>
+          <path class="orca-saddle" d="M-2.4 -6.9 Q-5.6 -6.5 -7.8 -5.3 Q-4.6 -5.5 -1.6 -6.3 Z"/>
+          <path class="orca-white" d="M15.6 -1.6 Q12 -.7 6 -.6 Q2 -.4 -3 -.7 Q-1 -1.6 3 -1.8 Q9.5 -2.1 15.6 -1.6 Z"/>
+          <path class="orca-white" d="M-3 -.8 Q-6.2 -1.7 -8.8 -3.7 Q-5.6 -3.4 -1.8 -1.9 Z"/>
+          <ellipse class="orca-white" cx="10.3" cy="-4.7" rx="2.3" ry=".72" transform="rotate(-8 10.3 -4.7)"/>
+        </g>
+      </g>
+      <g class="orca-blow"><circle cx="6.4" cy="-1.6" r="1.1"/><circle cx="5.6" cy="-3.2" r="1"/><circle cx="7.3" cy="-3.4" r=".9"/></g>
+      <rect class="hit" x="-10" y="-11" width="20" height="12"/>
+    </g></g>
+    <!-- a beaver lodge on the far shore: it grows through the autumn, with a raft of branches (the winter food) beside it (science.js) -->
+    <g class="beaver-lodge" id="beaverLodge" transform="translate(1075 452.3)"><rect class="hit" x="-9" y="-6.5" width="26" height="9"/><g class="bl-cache"><path d="M8.6 .7 L14.8 1.5 M9.8 1.8 L13.9 .3 M11.2 1.9 L15.9 2.2 M12 .4 l1 -.9 M13.4 1.9 l.9 -.8"/></g><g class="bl-grow"><path class="bl-mound" d="M-8 0 Q-7 -3.8 -2 -5 Q1.5 -5.6 4.5 -4.2 Q7.6 -2.6 8 0 Z"/><path class="bl-sticks" d="M-6.5 -1 L-3 -3.6 M-4 -.5 L-1 -4.4 M-1 -.6 L1.8 -4.9 M2 -.8 L4.8 -3.6 M4.5 -.4 L7 -2 M-7 -2 L-4.5 -4.2 M0 -3 L3.8 -4.6"/><path class="bl-snow" d="M-5.4 -3.5 Q-1 -5.9 3 -5.1 Q5.6 -4.3 6.8 -2.7 Q2 -3.9 -5.4 -3.5 Z"/><path class="bl-steam" d="M-.2 -5.6 q.7 -1 0 -2 q-.7 -1 0 -2"/></g></g>
+    <g class="beaver" id="beaver"><g class="bv-wake-g"><path class="bv-wake" d="M0 0 L-12 -4.24 M0 0 L-12 4.24"/></g><g class="bv-body"><ellipse class="bv-back" cx="-1.7" cy=".15" rx="1.9" ry=".45"/><ellipse class="bv-head" cx="0" cy="-.2" rx="1.1" ry=".62"/><circle class="bv-ear" cx="-.45" cy="-.75" r=".22"/><circle class="bv-eye" cx=".45" cy="-.36" r=".12"/><path class="bv-branch" d="M.9 0 L4.6 -.9 M3.1 -.55 l.6 -.8 M2.2 -.35 l.5 .6"/></g></g>
     <!-- ducks on the summer lake: the ducklings each chase the one in front (a pursuit curve, science.js) -->
     <g class="ducks" id="ducks">
       <g class="duck" transform="translate(1100 470)"><g class="dk-flip"><ellipse class="dk-body" cx="0" cy="-1.6" rx="4.2" ry="2"/><circle class="dk-head" cx="3.6" cy="-4" r="1.6"/><path class="dk-beak" d="M5 -4.1 l1.8 0.5 -1.8 0.4Z"/></g></g>
@@ -425,14 +472,6 @@
       </g>
     </g>
     <!-- a moose crossing the road on the Swedish side, now and then (with an "Älgvarning" sign) -->
-    <g class="alg-sign" id="algSign" transform="translate(744 471)">
-      <path class="sign-post" d="M0 0 V-9"/>
-      <path class="sign-board" d="M0 -17.5 L5 -9 L-5 -9 Z"/>
-      <g class="sign-moose" transform="translate(-1.3 -10.3) scale(.2)">
-        <path d="M-8.5 -9.5 Q-9 -13.5 -5 -14 L3 -15 Q6.5 -16.5 8 -13.5 L8.5 -10 Q0 -8 -8.5 -9.5 Z M6 -13.5 L9.5 -17 L14.5 -15 Q15.6 -13.8 14.2 -13.1 L11 -13.6 L8.5 -11.5 Z M9.2 -16.8 C8.4 -19.6 5.8 -20.4 4.6 -19.4 L6.4 -17.2 Z M10.4 -17.2 C11.2 -20 13.6 -21 15 -20.2 L13.2 -17.9 Z"/>
-        <path class="l" d="M-6.5 -9.8 V0 M-4.8 -9.8 V0 M5 -10.4 V0 M6.6 -10.4 V0"/>
-      </g>
-    </g>
     <g class="moose" id="moose"><g class="ms-flip">
       <path class="ms-legs" d=""/>
       <path class="ms-body" d="M-8.5 -9.5 Q-9 -13.5 -5 -14 L3 -15 Q6.5 -16.5 8 -13.5 L8.5 -10 Q0 -8 -8.5 -9.5 Z"/>
@@ -455,13 +494,6 @@
           <g class="sm-hat"><rect x="-2.2" y="-18.7" width="4.4" height=".7"/><rect x="-1.5" y="-21.6" width="3" height="3"/></g></g>
       </g>
       <rect class="hit" x="-9" y="-23" width="18" height="24"/>
-    </g>
-    <!-- an owl in the Swedish forest: two eyes blink at night; tap them and it flies off -->
-    <g class="owl" id="owl" transform="translate(1062 426)">
-      <g class="owl-eyes"><circle cx="-1" cy="0" r=".7"/><circle cx="1" cy="0" r=".7"/></g>
-      <g class="owl-bird"><ellipse class="owl-body" cx="0" cy="1.4" rx="2.1" ry="2.8"/><path class="owl-body" d="M-1.8 -.8 L-1.4 -2.6 L-.6 -1.2 Z M1.8 -.8 L1.4 -2.6 L.6 -1.2 Z"/>
-        <path class="owl-wing" d="M-1.8 .6 Q-5.5 -1.5 -6.8 1.6 Q-4 1 -1.8 2.4 Z M1.8 .6 Q5.5 -1.5 6.8 1.6 Q4 1 1.8 2.4 Z"/><circle class="owl-eye" cx="-.8" cy=".2" r=".5"/><circle class="owl-eye" cx=".8" cy=".2" r=".5"/></g>
-      <rect class="hit" x="-5" y="-4" width="10" height="8"/>
     </g>
     <!-- sauna smoke, and the hole in the ice (vak) the penguin plunges into -->
     <g class="sauna-smoke"><circle cx="1348" cy="430.6" r="1.8"/><circle cx="1348" cy="430.6" r="2.2"/><circle cx="1348" cy="430.6" r="2.6"/></g>
@@ -549,6 +581,14 @@
       <g class="rollers"><circle cx="-4.6" cy="0.9" r=".9"/><circle cx="3.4" cy="0.9" r=".9"/></g>
       <rect class="hit" x="-9" y="-16" width="18" height="18"/>
     </g></g>
+    <g class="alg-sign" id="algSign" transform="translate(744 492)">
+      <path class="sign-post" d="M0 0 V-9"/>
+      <path class="sign-board" d="M0 -17.5 L5 -9 L-5 -9 Z"/>
+      <g class="sign-moose" transform="translate(-1.3 -10.3) scale(.2)">
+        <path d="M-8.5 -9.5 Q-9 -13.5 -5 -14 L3 -15 Q6.5 -16.5 8 -13.5 L8.5 -10 Q0 -8 -8.5 -9.5 Z M6 -13.5 L9.5 -17 L14.5 -15 Q15.6 -13.8 14.2 -13.1 L11 -13.6 L8.5 -11.5 Z M9.2 -16.8 C8.4 -19.6 5.8 -20.4 4.6 -19.4 L6.4 -17.2 Z M10.4 -17.2 C11.2 -20 13.6 -21 15 -20.2 L13.2 -17.9 Z"/>
+        <path class="l" d="M-6.5 -9.8 V0 M-4.8 -9.8 V0 M5 -10.4 V0 M6.6 -10.4 V0"/>
+      </g>
+    </g>
 
     <!-- flagpole by the cottage: Swedish flag on 6 June, Austrian flag on 26 October, pennant otherwise -->
     <g class="flagpole" id="flagpole">
@@ -589,58 +629,11 @@
     <g class="split-log" id="splitLog" transform="translate(1225.4 446.8)"><g class="half l"><rect x="-.6" y="-1.5" width=".6" height="1.5"/></g><g class="half r"><rect x="0" y="-1.5" width=".6" height="1.5"/></g></g>
     <!-- a blueberry pie cooling on the window sill after the berry picking (gadgets.js) -->
     <g class="pie" id="pie" transform="translate(1203.8 440.6)"><rect class="hit" x="-2.2" y="-1.7" width="4.4" height="2.1"/><ellipse class="pie-dish" cx="0" cy="0" rx="2" ry=".32"/><path class="pie-left" d="M-1.6 -.1 Q-1.6 -1.1 0 -1.15 Q.6 -1.15 .6 -1.13 V-.1 Z"/><path class="pie-right" d="M.6 -1.13 Q1.6 -1.05 1.6 -.1 H.6 Z"/><rect class="pie-cut" x=".45" y="-1.1" width=".3" height="1"/><path class="pie-lattice" d="M-1 -.95 L-.4 -.2 M-.2 -1.1 L.4 -.25 M-1.3 -.6 H.6"/><path class="pie-lattice r" d="M.6 -1.1 L1.2 -.3 M.6 -.6 H1.4"/><g class="pie-steam"><path d="M-.6 -1.5 q.4 -.6 0 -1.2 q-.4 -.6 0 -1.2"/><path d="M.5 -1.5 q.4 -.6 0 -1.2 q-.4 -.6 0 -1.2"/></g></g>
-    <!-- the farm in the Austrian meadow: a field the penguin works through the year, a hay barn and its tractor; a picnic spot by the lake (gadgets.js) -->
-    <g class="farm" id="farm">
-      <defs><clipPath id="farmReveal" clipPathUnits="userSpaceOnUse"><path id="farmRevealPath" d=""/></clipPath></defs>
-      <g id="fieldBase"></g>
-      <g id="fieldAfter" clip-path="url(#farmReveal)"></g>
-      <path class="hit" id="fieldHit" d=""/>
-      <!-- a small Austrian hay barn (Heustadel) -->
-      <g class="barn" transform="translate(895 450.5) scale(1.45)"><path class="barn-wall" d="M-8 0 V-8 H8 V0 Z"/><path class="barn-roof" d="M-9.6 -7.6 L0 -13.4 L9.6 -7.6 Z"/><path class="barn-planks" d="M-5 0 V-8 M-2 0 V-8 M1 0 V-8 M4 0 V-8"/><path class="barn-door" d="M-3.2 0 V-5.4 H3.2 V0 Z"/></g>
-      <!-- the tractor (a little red Steyr): the penguin drives it; plough behind, reel in front for the harvest -->
-      <g class="tractor" id="tractor" transform="translate(873 452) scale(-1 1)">
-        <g class="tr-plough"><path d="M-5.6 -2.4 L-11.5 -1.2 M-8 -1.9 L-8.8 0 M-10.6 -1.4 L-11.4 0.2"/></g>
-        <g class="tr-reel"><circle cx="8.6" cy="-3.4" r="2.1"/><g class="tr-reel-spokes"><path d="M8.6 -5.5 V-1.3 M6.5 -3.4 H10.7 M7.1 -4.9 L10.1 -1.9 M7.1 -1.9 L10.1 -4.9"/></g></g>
-        <path class="tr-body" d="M-1.2 -5.6 H5.6 Q6.8 -5.6 6.8 -4.4 V-2.4 H-1.2 Z"/>
-        <path class="tr-fender" d="M-7.2 -3.4 Q-6.8 -7.4 -3.6 -7.6 Q-.6 -7.4 -.2 -3.4 Z"/>
-        <rect class="tr-seat" x="-5.2" y="-6.9" width="2.8" height=".8" rx=".3"/>
-        <path class="tr-steer" d="M-1.4 -5.6 L-.6 -8.2 M-1.6 -8.3 H.4"/>
-        <rect class="tr-pipe" x="4.6" y="-8.6" width=".55" height="3"/>
-        <g class="tr-puffs"><circle cx="4.9" cy="-9.4" r=".7"/><circle cx="4.3" cy="-10.6" r=".6"/></g>
-        <g class="tr-wheel tr-rear" transform="translate(-3.6 -3)"><circle class="tr-tyre" r="3"/><circle class="tr-hub" r="1.2"/><path class="tr-spokes" d="M0 -2.2 V2.2 M-2.2 0 H2.2"/></g>
-        <g class="tr-wheel tr-front" transform="translate(5 -1.7)"><circle class="tr-tyre" r="1.7"/><circle class="tr-hub" r=".7"/><path class="tr-spokes" d="M0 -1.2 V1.2 M-1.2 0 H1.2"/></g>
-      </g>
-      <g class="gulls" id="gulls"><path d="M-1.8 0 Q-.9 -1 0 0 Q.9 -1 1.8 0"/><path d="M-1.6 0 Q-.8 -.9 0 0 Q.8 -.9 1.6 0"/><path d="M-1.5 0 Q-.75 -.85 0 0 Q.75 -.85 1.5 0"/></g>
-      <!-- picnic blanket and basket (warm weekend days) -->
-      <g class="picnic" id="picnic" transform="translate(884 494) scale(1.6)"><path class="pn-cloth" d="M-7 1.4 L-5 -1.6 L7 -1.6 L9 1.4 Z"/><path class="pn-check" d="M-5 -.1 H8 M-2 -1.6 L-2.8 1.4 M1 -1.6 L.6 1.4 M4 -1.6 L4.2 1.4 M7 -1.6 L7.6 1.4"/><g class="pn-basket" transform="translate(5.6 -.6)"><path class="pn-bk" d="M-1.5 0 H1.5 L1.2 -1.8 H-1.2 Z"/><path class="pn-bkh" d="M-1 -1.8 Q0 -3.4 1 -1.8"/></g><rect class="hit" x="-8" y="-4" width="18" height="6"/></g>
-    </g>
     <!-- 25 April, World Penguin Day: the colony from the 404 page visits (gadgets.js) -->
     <defs><g id="pgMini"><ellipse class="pg-black" cx="0" cy="-5.2" rx="3.4" ry="5.2"/><ellipse class="pg-white" cx="1" cy="-4.8" rx="2.1" ry="3.9"/><circle class="pg-black" cx="0.4" cy="-10.6" r="2.7"/><circle class="pg-white" cx="1.5" cy="-11.2" r="0.55"/><path class="pg-orange" d="M2.8 -10.8 l2.2 0.6 -2.2 0.5Z"/><path class="pg-black" d="M-2.8 -7.4 q-1.9 3.2 -0.4 5.3 q0.8 -2.6 0.4 -5.3Z"/><ellipse class="pg-orange" cx="-0.9" cy="0" rx="1.4" ry="0.55"/><ellipse class="pg-orange" cx="1.5" cy="0" rx="1.4" ry="0.55"/></g></defs>
     <g class="visitors" id="visitors"></g>
-    <!-- a beaver lodge on the far shore: it grows through the autumn, with a raft of branches (the winter food) beside it (science.js) -->
-    <g class="beaver-lodge" id="beaverLodge" transform="translate(1075 452.3)"><rect class="hit" x="-9" y="-6.5" width="26" height="9"/><g class="bl-cache"><path d="M8.6 .7 L14.8 1.5 M9.8 1.8 L13.9 .3 M11.2 1.9 L15.9 2.2 M12 .4 l1 -.9 M13.4 1.9 l.9 -.8"/></g><g class="bl-grow"><path class="bl-mound" d="M-8 0 Q-7 -3.8 -2 -5 Q1.5 -5.6 4.5 -4.2 Q7.6 -2.6 8 0 Z"/><path class="bl-sticks" d="M-6.5 -1 L-3 -3.6 M-4 -.5 L-1 -4.4 M-1 -.6 L1.8 -4.9 M2 -.8 L4.8 -3.6 M4.5 -.4 L7 -2 M-7 -2 L-4.5 -4.2 M0 -3 L3.8 -4.6"/><path class="bl-snow" d="M-5.4 -3.5 Q-1 -5.9 3 -5.1 Q5.6 -4.3 6.8 -2.7 Q2 -3.9 -5.4 -3.5 Z"/><path class="bl-steam" d="M-.2 -5.6 q.7 -1 0 -2 q-.7 -1 0 -2"/></g></g>
-    <g class="beaver" id="beaver"><g class="bv-wake-g"><path class="bv-wake" d="M0 0 L-12 -4.24 M0 0 L-12 4.24"/></g><g class="bv-body"><ellipse class="bv-back" cx="-1.7" cy=".15" rx="1.9" ry=".45"/><ellipse class="bv-head" cx="0" cy="-.2" rx="1.1" ry=".62"/><circle class="bv-ear" cx="-.45" cy="-.75" r=".22"/><circle class="bv-eye" cx=".45" cy="-.36" r=".12"/><path class="bv-branch" d="M.9 0 L4.6 -.9 M3.1 -.55 l.6 -.8 M2.2 -.35 l.5 .6"/></g></g>
     <!-- every badge found: the penguin puts a trophy on the veranda (gadgets.js) -->
     <g class="trophy" id="trophy" transform="translate(1178.6 448.3) scale(1.1)"><path class="tr-cup" d="M-1.3 -3.4 H1.3 Q1.3 -1.2 0 -.9 Q-1.3 -1.2 -1.3 -3.4 Z M-1.3 -3 q-.9 .1 -.6 1 q.2 .4 .7 .3 M1.3 -3 q.9 .1 .6 1 q-.2 .4 -.7 .3"/><path class="tr-stem" d="M-.25 -.9 H.25 V.1 H-.25 Z M-.8 .1 H.8 V.5 H-.8 Z"/><circle class="tr-shine" cx="-.55" cy="-2.7" r=".25"/></g>
-    <!-- now and then an orca's fin crosses the lake; tap it and the orca dives, leaps and swims on (gadgets.js) -->
-    <defs><clipPath id="orcaClip" clipPathUnits="userSpaceOnUse"><rect x="-60" y="-60" width="120" height="60.3"/></clipPath></defs>
-    <g class="orca" id="orca"><g class="orca-dir">
-      <path class="orca-wake" d="M-3 .3 L-26 -3.3 M-3 .5 L-26 4.3"/>
-      <g clip-path="url(#orcaClip)">
-        <!-- drawn in true scale (about 7.5 m: 34 units, like the 6 m cottage at 30): head to the right, belly at y = 0 -->
-        <g class="orca-body">
-          <path class="orca-black" d="M17 -2.6 Q16.7 -5.3 13 -6.1 C8 -6.9 2 -7.3 -2 -6.9 C-6 -6.4 -10 -5 -13 -3.7 L-14.6 -3.3 L-18.6 -4.1 Q-17.6 -3.2 -18.4 -2.4 L-14.6 -2.5 C-11 -1.6 -6 -.2 0 0 C6 .2 11 -.4 14.6 -1.4 Q16.7 -1.8 17 -2.6 Z"/>
-          <path class="orca-black" d="M3.4 -7.1 Q1.6 -10.6 -.4 -14.6 Q-.9 -10.8 -2.2 -7 Z"/>
-          <path class="orca-black" d="M9.6 -1.1 Q8.6 1.7 6.2 2.6 Q5.2 1.5 6.9 -.6 Z"/>
-          <path class="orca-saddle" d="M-2.4 -6.9 Q-5.6 -6.5 -7.8 -5.3 Q-4.6 -5.5 -1.6 -6.3 Z"/>
-          <path class="orca-white" d="M15.6 -1.6 Q12 -.7 6 -.6 Q2 -.4 -3 -.7 Q-1 -1.6 3 -1.8 Q9.5 -2.1 15.6 -1.6 Z"/>
-          <path class="orca-white" d="M-3 -.8 Q-6.2 -1.7 -8.8 -3.7 Q-5.6 -3.4 -1.8 -1.9 Z"/>
-          <ellipse class="orca-white" cx="10.3" cy="-4.7" rx="2.3" ry=".72" transform="rotate(-8 10.3 -4.7)"/>
-        </g>
-      </g>
-      <g class="orca-blow"><circle cx="6.4" cy="-1.6" r="1.1"/><circle cx="5.6" cy="-3.2" r="1"/><circle cx="7.3" cy="-3.4" r=".9"/></g>
-      <rect class="hit" x="-10" y="-11" width="20" height="12"/>
-    </g></g>
     <!-- a kayak moored at the end of the jetty in summer -->
     <rect class="hit" id="jettyHit" x="1293" y="448.5" width="18" height="25.5"/>
     <g class="kayak-moored" id="kayakMoored" transform="translate(1312 474.5) scale(1.4)"><rect class="hit" x="-13" y="-3.2" width="26" height="5"/><path class="pg-hull" d="M-12.5 -1.5 Q-7 .7 0 .8 Q7 .7 12.5 -1.5 Q0 -.9 -12.5 -1.5 Z"/><path class="pg-rim" d="M-3 -1.3 h6"/><path class="pg-shaft" d="M-6.5 -2 L6.5 -2"/></g>
@@ -678,8 +671,16 @@
   <!-- the far shore's trees once more, drawn in front of the penguin: on its way to the farm it walks
        behind them. Clipped to that stretch of forest, so nothing in front of the trees is covered. -->
   <svg class="landscape front" id="landscapeFront" viewBox="0 0 1440 520" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-    <defs><clipPath id="frontClip" clipPathUnits="userSpaceOnUse"><rect x="924" y="370" width="238" height="78"/></clipPath></defs>
+    <!-- (a gap at the beaver lodge, and only down to y 447, so the lodge on the shore stays in front) -->
+    <defs><clipPath id="frontClip" clipPathUnits="userSpaceOnUse"><rect x="924" y="370" width="140" height="77"/><rect x="1094" y="370" width="68" height="77"/></clipPath></defs>
     <g clip-path="url(#frontClip)"><g id="frontTrees"></g><g id="frontLeafy"></g></g>
+    <!-- an owl in the Swedish forest: two eyes blink at night; tap them and it flies off -->
+    <g class="owl" id="owl" transform="translate(1062 426)">
+      <g class="owl-eyes"><circle cx="-1" cy="0" r=".7"/><circle cx="1" cy="0" r=".7"/></g>
+      <g class="owl-bird"><ellipse class="owl-body" cx="0" cy="1.4" rx="2.1" ry="2.8"/><path class="owl-body" d="M-1.8 -.8 L-1.4 -2.6 L-.6 -1.2 Z M1.8 -.8 L1.4 -2.6 L.6 -1.2 Z"/>
+        <path class="owl-wing" d="M-1.8 .6 Q-5.5 -1.5 -6.8 1.6 Q-4 1 -1.8 2.4 Z M1.8 .6 Q5.5 -1.5 6.8 1.6 Q4 1 1.8 2.4 Z"/><circle class="owl-eye" cx="-.8" cy=".2" r=".5"/><circle class="owl-eye" cx=".8" cy=".2" r=".5"/></g>
+      <rect class="hit" x="-5" y="-4" width="10" height="8"/>
+    </g>
   </svg>
 
   <canvas class="weather" id="weather" aria-hidden="true"></canvas>
@@ -836,11 +837,11 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="notes.js?v=20261002215924"></script>
+<script src="notes.js?v=20261003213746"></script>
 <script src="cv-data.js?v=local"></script>
-<script src="script.js?v=20261002215924"></script>
-<script src="extras.js?v=20261002215924"></script>
-<script src="gadgets.js?v=20261002215924"></script>
-<script src="science.js?v=20261002215924"></script>
+<script src="script.js?v=20261003213746"></script>
+<script src="extras.js?v=20261003213746"></script>
+<script src="gadgets.js?v=20261003213746"></script>
+<script src="science.js?v=20261003213746"></script>
 </body>
 </html>

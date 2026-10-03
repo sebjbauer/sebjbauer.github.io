@@ -141,6 +141,10 @@ Based on the date in Vienna.
 | Easter Sunday | Calculated each year (2026: 5 April, 2027: 28 March) | Coloured eggs and a bunny in the meadow, greeting "Happy Easter · Frohe Ostern · Glad påsk." |
 | Midsommar | Swedish Midsummer Eve (Friday 19–25 June) and the Saturday after | Flower-covered maypole next to the cottage, greeting "Happy Midsummer · Glad midsommar!" |
 
+## What's in front of what
+
+The moving things are drawn back to front: the farm first (so riders, skiers, the moose and cows on the road pass in front of the field and the barn), the orca and the beaver behind the ducks and the rowing boat, the owl in front of the shoreline trees (it sits in one). The moose comes out of the forest edge, crosses the field and the road, and its warning sign stands on the near side of the road.
+
 ## The far shore
 
 The lake's far edge runs a little below the tree line (y ≈ 451–455), so a strip of shore separates the trees from the water all along: no water shows behind the trees. The beaver lodge sits at that waterline.

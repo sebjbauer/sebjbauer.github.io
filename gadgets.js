@@ -2499,7 +2499,7 @@ function mooseCrossing(force = false) {
   if (!force && (lastSky.d > 0.85 || Math.random() > 0.35)) return;
   mooseOut = true; roadBusy = true; mooseHurry = false;
   const down = Math.random() < 0.5; // out of the forest towards the meadow, or the other way
-  const A = [772, 451], B = [818, 507], [from, to] = down ? [A, B] : [B, A];
+  const A = [772, groundY(772) + 3], B = [818, 507], [from, to] = down ? [A, B] : [B, A]; // from the forest edge, across the field and the road
   const dir = to[0] > from[0] ? 1 : -1, len = Math.hypot(to[0] - from[0], to[1] - from[1]);
   let onRoadAt = 0.5, best = Infinity; // how far along its path the moose stands on the road
   for (let k = 0; k <= 1; k += 0.01) {
