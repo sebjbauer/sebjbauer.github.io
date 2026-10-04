@@ -476,6 +476,10 @@ const treeSpots = []; // [x, y, height] of every pine, in landscape units
 // Height of the meadow's top edge at x (landscape units), sampled from the top edge only
 // (the full outline also runs down the sides and along the bottom of the picture).
 let groundY = () => 446;
+// Perspective: how much bigger a thing standing at landscape height y looks than at yRef (lower in the
+// picture is nearer, so bigger). The ground and the lake recede towards a horizon at y ≈ 376; the
+// penguin, the tractor, the figures on the road and everything on the lake grow at this one rate.
+const perspective = (y, yRef = 447) => (y - 376) / (yRef - 376);
 function renderTrees() {
   const ground = $('#groundPath');
   const top = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -514,10 +518,14 @@ function renderTrees() {
   });
   $('#leafy').innerHTML = leafy;
 
-  // spring flowers in the foreground meadow
+  // spring flowers in the foreground meadow (not on the road, in the field or in the farmyard)
+  const road = $('#road'), roadLen = road.getTotalLength(), roadAt = {};
+  for (let s = 0; s <= 800; s++) { const pt = road.getPointAtLength((s / 800) * roadLen); roadAt[Math.round(pt.x)] = pt.y; }
+  const ry = (x) => { for (let d = 0; d < 20; d++) { if (roadAt[x + d] !== undefined) return roadAt[x + d]; if (roadAt[x - d] !== undefined) return roadAt[x - d]; } return 470; };
   let flowers = '';
   for (let i = 0; i < 90; i++) {
-    const x = Math.round(10 + rnd() * 900), gy = groundY(x), y = gy + 8 + rnd() * (512 - gy - 8), c = 1 + Math.floor(rnd() * 4), r = 1.3 + rnd() * 1.1;
+    const x = Math.round(10 + rnd() * 888), gy = groundY(x), y = gy + 8 + rnd() * (512 - gy - 8), c = 1 + Math.floor(rnd() * 4), r = 1.3 + rnd() * 1.1;
+    if (Math.abs(y - ry(x)) < 5.5 || (x > 645 && y < ry(x))) continue;
     flowers += `<g class="f${c}" transform="translate(${x} ${y.toFixed(1)})"><g class="petals">` +
       [0, 72, 144, 216, 288].map((a) => `<circle cx="${(Math.cos(a * Math.PI / 180) * r * 1.3).toFixed(2)}" cy="${(Math.sin(a * Math.PI / 180) * r * 1.3).toFixed(2)}" r="${r.toFixed(2)}"/>`).join('') +
       `</g><circle class="c" r="${(r * 0.8).toFixed(2)}"/></g>`;

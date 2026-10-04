@@ -192,7 +192,7 @@ const ripples = (() => {
 // The mother duck paddles around the lake; each duckling always swims straight towards the
 // one in front. The paths they trace are pursuit curves (Bouguer, 1732).
 (function ducks() {
-  const group = $('#ducks'), birds = [...group.querySelectorAll('.duck')], flips = birds.map((b) => b.querySelector('.dk-flip'));
+  const group = $('#ducks'), birds = [...document.querySelectorAll('.ducks .duck')], flips = birds.map((b) => b.querySelector('.dk-flip')); // (the mother first)
   const AREA = { x0: 968, x1: 1268, y0: 460, y1: 482 };
   const P = [[1100, 470 / SQUASH], [1087, 471 / SQUASH], [1076, 471 / SQUASH]]; // lake seen from above
   const facing = [1, 1, 1], SPEED = 5, GAP = 11;
@@ -222,7 +222,8 @@ const ripples = (() => {
     if (t - drawn > 33) { // 30 frames a second is plenty for ducks
       drawn = t;
       birds.forEach((b, i) => {
-        b.setAttribute('transform', `translate(${P[i][0].toFixed(1)} ${(P[i][1] * SQUASH).toFixed(1)})`);
+        const y = P[i][1] * SQUASH;
+        b.setAttribute('transform', `translate(${P[i][0].toFixed(1)} ${y.toFixed(1)}) scale(${perspective(y, 471).toFixed(3)})`);
         flips[i].setAttribute('transform', facing[i] < 0 ? 'scale(-1 1)' : '');
       });
     }
@@ -687,6 +688,7 @@ placeNorthStars(lastSky);
 const SHADOW_SHAPES = {
   shCottage: { y: 447, pts: [[1180, 0], [1210, 0], [1175, 16], [1215, 16], [1195, 30], [1203, 31], [1207, 31]] },
   shSauna: { y: 448.6, pts: [[1331, 0], [1351, 0], [1329, 9.4], [1353, 9.4], [1341, 16], [1348, 17.2]] },
+  shBarn: { y: 450.5, pts: [[883.4, 0], [906.6, 0], [881.1, 11], [908.9, 11], [895, 19.4]] }, // the hay barn by the field
   shSnowman: { y: 448.2, pts: [[1357.8, 0], [1366.2, 0], [1357.6, 4], [1366.4, 4], [1358.8, 10.8], [1365.2, 10.8], [1359.8, 16], [1364.2, 16], [1360.6, 21.5], [1363.4, 21.5]] },
 };
 const hull = (pts) => { // convex hull (monotone chain) of a few points
@@ -830,7 +832,7 @@ function beaverSwim(force = false) {
     drawn = now;
     const t = Math.min(1, (now - t0) / T), [x, y] = at(t), [x2, y2] = at(Math.min(1, t + 0.01));
     const ground = Math.atan2((y2 - y) / 0.45, x2 - x) * 180 / Math.PI; // direction on the water (the lake is seen flattened)
-    beaver.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+    beaver.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${perspective(y, 463).toFixed(3)})`);
     bvWake.setAttribute('transform', `scale(1 .45) rotate(${ground.toFixed(1)})`);
     bvBody.setAttribute('transform', x2 < x ? 'scale(-1 1)' : '');
     if (t < 1) { requestAnimationFrame(frame); return; }
@@ -842,6 +844,55 @@ function beaverSwim(force = false) {
 }
 every(40, 110, () => beaverSwim());
 if (params.has('beaver')) setTimeout(() => beaverSwim(true), 1200);
+
+/* ---------------- what's in front: on the lake, and of the penguin ---------------- */
+// Things on the water are drawn back to front by how far out they are (further down the picture is
+// nearer), sorted again ten times a second: the beaver lodge, the orca, the beaver, each duck, the
+// triathlete, the rowing boat and the skater. They only move
+// in the drawing when that order changes. The penguin has a layer of its own above everything, so
+// whatever is nearer than it and right beside it (a duck while it swims, a cyclist on the road below
+// the field it works, the moose crossing) goes into the front layer for as long as that lasts.
+(function depthOrder() {
+  const yOf = (el) => +(/translate\(\s*[-\d.]+[ ,]+([-\d.]+)/.exec(el?.getAttribute('transform') || '') || [0, 0, 0])[1];
+  const frontLayer = $('#landscapeFront'), owl = $('#owl');
+  const lake = [
+    [$('#beaverLodge'), () => 452.3],
+    [$('#orca'), yOf],
+    [$('#beaver'), yOf],
+    ...[...document.querySelectorAll('.ducks')].map((g) => [g, () => yOf(g.firstElementChild)]), // each duck on its own
+    [$('#swimmer'), yOf],
+    [$('#rowboat'), (el) => 476 + yOf(el.querySelector('.rb-drift'))],
+    [$('#skater'), () => 470],
+  ];
+  const others = [[$('#cyclist'), yOf], [$('#runner'), yOf], [$('#xc'), yOf], [$('#moose'), yOf], ...[...$('#visitors').children].map((v) => [v, yOf, $('#visitorsFront')])];
+  const inOrder = (els) => els.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+  const sortInPlace = (els, depth) => { // the same places in the drawing, farthest first
+    const want = [...els].sort((a, b) => depth(a) - depth(b));
+    if (want.every((el, i) => el === els[i])) return;
+    const marks = els.map((el) => { const m = document.createComment(''); el.before(m); return m; });
+    want.forEach((el, i) => marks[i].replaceWith(el));
+  };
+  const span = (el) => { // its left and right edge in landscape units (null while hidden)
+    const r = el.getBoundingClientRect();
+    return r.width && getComputedStyle(el).visibility !== 'hidden' && +getComputedStyle(el).opacity > 0
+      ? [screenToLand($('#landscape'), r.left, 0).x, screenToLand($('#landscape'), r.right, 0).x] : null;
+  };
+  const home = new Map(); // in the front layer → the place it came from
+  setInterval(() => {
+    if (!heroVisible() || reduceMotion) return;
+    const pg = $('#penguin'), out = pg.classList.contains('out') && !pg.classList.contains('inside');
+    const all = [...lake, ...others], depth = new Map(all.map(([el, f]) => [el, f(el)]));
+    all.forEach(([el, , into]) => {
+      let ahead = false;
+      if (out && depth.get(el) > pgY + 0.1) { const s = span(el); ahead = !!s && s[0] < pgX + 20 && s[1] > pgX - 20; }
+      if (ahead && !home.has(el)) { const m = document.createComment(''); el.before(m); home.set(el, m); if (into) into.append(el); else frontLayer.insertBefore(el, owl); }
+      else if (!ahead && home.has(el)) { home.get(el).replaceWith(el); home.delete(el); }
+    });
+    sortInPlace(inOrder(lake.map(([el]) => el).filter((el) => !home.has(el))), (el) => depth.get(el));
+    const fronts = all.map(([el]) => el).filter((el) => home.has(el)); // (sorted within each group they're in)
+    new Set(fronts.map((el) => el.parentNode)).forEach((parent) => sortInPlace(inOrder(fronts.filter((el) => el.parentNode === parent)), (el) => depth.get(el)));
+  }, 100);
+})();
 
 /* ---------------- equation of the day ---------------- */
 // Terminal "equation of the day": one equation a day, as LaTeX, taking turns between famous ones,

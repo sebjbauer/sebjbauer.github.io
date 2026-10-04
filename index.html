@@ -117,7 +117,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Martian+Mono:wght@400&display=swap"></noscript>
-  <link rel="stylesheet" href="style.css?v=20261003213746">
+  <link rel="stylesheet" href="style.css?v=202610041710">
 </head>
 <body>
 <a class="skip-link" href="#about">Skip to content</a>
@@ -281,6 +281,20 @@
 
     <!-- a strip of shore in front of the cottage, with a gravel path to the jetty -->
     <path class="l-near shore" d="M1158 445.4 L1307 445.4 Q1304 448.6 1297 449.9 Q1236 451.9 1171 450.5 Q1162 449 1158 445.4 Z"/>
+    <!-- holiday decorations: Christmas tree and midsommar pole (on the shore strip, so drawn before the rocks, lamps and grill in front of them) -->
+    <g class="special special-christmas">
+      <path class="xmas-tree" d="M1238 402 L1229 418 L1233 418 L1226 432 L1231 432 L1223 447 L1253 447 L1245 432 L1250 432 L1243 418 L1247 418 Z"/>
+      <path class="xmas-star" d="M1238 396 l1.6 3.4 3.7 .5 -2.7 2.6 .7 3.7 -3.3 -1.8 -3.3 1.8 .7 -3.7 -2.7 -2.6 3.7 -.5 Z"/>
+      <circle class="b1" cx="1236" cy="414" r="1.6"/><circle class="b2" cx="1241" cy="424" r="1.6"/><circle class="b3" cx="1232" cy="428" r="1.6"/>
+      <circle class="b1" cx="1244" cy="438" r="1.6"/><circle class="b2" cx="1230" cy="441" r="1.6"/><circle class="b3" cx="1238" cy="435" r="1.6"/>
+    </g>
+    <g class="special special-midsommar">
+      <path class="pole" d="M1162 447 V404 M1150 412 H1174"/>
+      <circle class="ring" cx="1152" cy="420" r="5"/><circle class="ring" cx="1172" cy="420" r="5"/>
+      <path class="greens" d="M1162 406 V446"/>
+      <circle class="bloom" cx="1152" cy="415" r="1.4"/><circle class="bloom" cx="1172" cy="425" r="1.4"/><circle class="bloom y" cx="1162" cy="410" r="1.4"/>
+      <circle class="bloom y" cx="1149" cy="424" r="1.2"/><circle class="bloom" cx="1162" cy="430" r="1.3"/><circle class="bloom y" cx="1175" cy="417" r="1.2"/>
+    </g>
     <!-- a small rocky beach left of the cottage, where the penguin climbs out after a swim -->
     <g class="rocks">
       <path d="M1143 451.2 Q1144 446.6 1149 447.2 Q1152.5 448.2 1151.5 451.4 Z"/>
@@ -323,9 +337,9 @@
     </g>
     <!-- shadows of the cottage, the sauna and the snowman, cast by the real sun (science.js): on the land,
          across the deck, and faintly on the water -->
-    <clipPath id="landClip"><path d="M1158 445.4 L1307 445.4 Q1304 448.6 1297 449.9 Q1236 451.9 1171 450.5 Q1162 449 1158 445.4 Z"/><path d="M1306 445.4 L1373 445.4 Q1369 448.5 1361 449.5 L1320 449.8 Q1310 449.3 1306 445.4 Z"/><rect x="930" y="430" width="510" height="15.6"/><rect x="1172" y="446" width="46" height="4"/></clipPath>
-    <g class="shadows" clip-path="url(#landClip)"><path id="shCottage"/><path id="shSauna"/><path id="shSnowman"/></g>
-    <g class="shadows on-water" clip-path="url(#lakeClip)"><use href="#shCottage"/><use href="#shSauna"/><use href="#shSnowman"/></g>
+    <clipPath id="landClip"><path d="M1158 445.4 L1307 445.4 Q1304 448.6 1297 449.9 Q1236 451.9 1171 450.5 Q1162 449 1158 445.4 Z"/><path d="M1306 445.4 L1373 445.4 Q1369 448.5 1361 449.5 L1320 449.8 Q1310 449.3 1306 445.4 Z"/><rect x="930" y="430" width="510" height="15.6"/><rect x="1172" y="446" width="46" height="4"/><path d="M846 438 L928 438 L928 480 L846 480 Z"/></clipPath>
+    <g class="shadows" clip-path="url(#landClip)"><path id="shCottage"/><path id="shSauna"/><path id="shSnowman"/><path id="shBarn"/></g>
+    <g class="shadows on-water" clip-path="url(#lakeClip)"><use href="#shCottage"/><use href="#shSauna"/><use href="#shSnowman"/><use href="#shBarn"/></g>
     <!-- lamps along the path: lit after dark, with their reflections in the water -->
     <g class="path-lights">
       <g transform="translate(1221 450.0)"><path class="post" d="M0 0 V-3"/><circle class="halo" cy="-3.4" r="3"/><circle class="head" cy="-3.4" r=".75"/><path class="refl" d="M0 1.8 V6.5"/></g>
@@ -344,20 +358,7 @@
       <path d="M1227.5 439.3 A5.5 4.2 0 0 1 1238.5 439.3 Z" class="bbq-lid"/>
     </g>
 
-    <!-- holiday decorations: Christmas tree, midsommar pole, Easter eggs and bunny -->
-    <g class="special special-christmas">
-      <path class="xmas-tree" d="M1238 402 L1229 418 L1233 418 L1226 432 L1231 432 L1223 447 L1253 447 L1245 432 L1250 432 L1243 418 L1247 418 Z"/>
-      <path class="xmas-star" d="M1238 396 l1.6 3.4 3.7 .5 -2.7 2.6 .7 3.7 -3.3 -1.8 -3.3 1.8 .7 -3.7 -2.7 -2.6 3.7 -.5 Z"/>
-      <circle class="b1" cx="1236" cy="414" r="1.6"/><circle class="b2" cx="1241" cy="424" r="1.6"/><circle class="b3" cx="1232" cy="428" r="1.6"/>
-      <circle class="b1" cx="1244" cy="438" r="1.6"/><circle class="b2" cx="1230" cy="441" r="1.6"/><circle class="b3" cx="1238" cy="435" r="1.6"/>
-    </g>
-    <g class="special special-midsommar">
-      <path class="pole" d="M1162 447 V404 M1150 412 H1174"/>
-      <circle class="ring" cx="1152" cy="420" r="5"/><circle class="ring" cx="1172" cy="420" r="5"/>
-      <path class="greens" d="M1162 406 V446"/>
-      <circle class="bloom" cx="1152" cy="415" r="1.4"/><circle class="bloom" cx="1172" cy="425" r="1.4"/><circle class="bloom y" cx="1162" cy="410" r="1.4"/>
-      <circle class="bloom y" cx="1149" cy="424" r="1.2"/><circle class="bloom" cx="1162" cy="430" r="1.3"/><circle class="bloom y" cx="1175" cy="417" r="1.2"/>
-    </g>
+    <!-- (the Easter eggs and bunny are in the meadow; the Christmas tree and the midsommar pole are further up, behind the rocks, lamps and grill) -->
     <g class="special special-easter" id="easter"></g>
 
     <path class="l-near" d="M900 486 C1100 481 1300 490 1440 485 L1440 520 L900 520 Z"/>
@@ -421,38 +422,6 @@
     </g>
     <g class="smoke"><circle cx="1206" cy="414" r="2.5"/><circle cx="1206" cy="414" r="3"/><circle cx="1206" cy="414" r="3.5"/></g>
       <g id="xmasLights" class="xmas-lights"></g>
-    <!-- ice skater on the frozen lake -->
-    <g class="skater" id="skater"><g class="sk-glide"><g transform="translate(1000 470)"><g class="sk-flip figure"><g class="sk-spin">
-      <path d="M-3.5 0 H3.5"/><path d="M0 -1 L1 -6 L-5 -3.5"/><path d="M1 -6 L3 -11"/><path d="M-1.5 -9.5 L3 -10.3 L7.5 -9"/><circle cx="3.8" cy="-13" r="1.6"/><path class="scarf" d="M2.6 -11.4 l-3 1"/><rect class="hit" x="-8" y="-17" width="18" height="19"/>
-    </g></g></g></g></g>
-    <!-- now and then an orca's fin crosses the lake; tap it and the orca dives, leaps and swims on (gadgets.js) -->
-    <defs><clipPath id="orcaClip" clipPathUnits="userSpaceOnUse"><rect x="-60" y="-60" width="120" height="60.3"/></clipPath></defs>
-    <g class="orca" id="orca"><g class="orca-dir">
-      <path class="orca-wake" d="M-3 .3 L-26 -3.3 M-3 .5 L-26 4.3"/>
-      <g clip-path="url(#orcaClip)">
-        <!-- drawn in true scale (about 7.5 m: 34 units, like the 6 m cottage at 30): head to the right, belly at y = 0 -->
-        <g class="orca-body">
-          <path class="orca-black" d="M17 -2.6 Q16.7 -5.3 13 -6.1 C8 -6.9 2 -7.3 -2 -6.9 C-6 -6.4 -10 -5 -13 -3.7 L-14.6 -3.3 L-18.6 -4.1 Q-17.6 -3.2 -18.4 -2.4 L-14.6 -2.5 C-11 -1.6 -6 -.2 0 0 C6 .2 11 -.4 14.6 -1.4 Q16.7 -1.8 17 -2.6 Z"/>
-          <path class="orca-black" d="M3.4 -7.1 Q1.6 -10.6 -.4 -14.6 Q-.9 -10.8 -2.2 -7 Z"/>
-          <path class="orca-black" d="M9.6 -1.1 Q8.6 1.7 6.2 2.6 Q5.2 1.5 6.9 -.6 Z"/>
-          <path class="orca-saddle" d="M-2.4 -6.9 Q-5.6 -6.5 -7.8 -5.3 Q-4.6 -5.5 -1.6 -6.3 Z"/>
-          <path class="orca-white" d="M15.6 -1.6 Q12 -.7 6 -.6 Q2 -.4 -3 -.7 Q-1 -1.6 3 -1.8 Q9.5 -2.1 15.6 -1.6 Z"/>
-          <path class="orca-white" d="M-3 -.8 Q-6.2 -1.7 -8.8 -3.7 Q-5.6 -3.4 -1.8 -1.9 Z"/>
-          <ellipse class="orca-white" cx="10.3" cy="-4.7" rx="2.3" ry=".72" transform="rotate(-8 10.3 -4.7)"/>
-        </g>
-      </g>
-      <g class="orca-blow"><circle cx="6.4" cy="-1.6" r="1.1"/><circle cx="5.6" cy="-3.2" r="1"/><circle cx="7.3" cy="-3.4" r=".9"/></g>
-      <rect class="hit" x="-10" y="-11" width="20" height="12"/>
-    </g></g>
-    <!-- a beaver lodge on the far shore: it grows through the autumn, with a raft of branches (the winter food) beside it (science.js) -->
-    <g class="beaver-lodge" id="beaverLodge" transform="translate(1075 452.3)"><rect class="hit" x="-9" y="-6.5" width="26" height="9"/><g class="bl-cache"><path d="M8.6 .7 L14.8 1.5 M9.8 1.8 L13.9 .3 M11.2 1.9 L15.9 2.2 M12 .4 l1 -.9 M13.4 1.9 l.9 -.8"/></g><g class="bl-grow"><path class="bl-mound" d="M-8 0 Q-7 -3.8 -2 -5 Q1.5 -5.6 4.5 -4.2 Q7.6 -2.6 8 0 Z"/><path class="bl-sticks" d="M-6.5 -1 L-3 -3.6 M-4 -.5 L-1 -4.4 M-1 -.6 L1.8 -4.9 M2 -.8 L4.8 -3.6 M4.5 -.4 L7 -2 M-7 -2 L-4.5 -4.2 M0 -3 L3.8 -4.6"/><path class="bl-snow" d="M-5.4 -3.5 Q-1 -5.9 3 -5.1 Q5.6 -4.3 6.8 -2.7 Q2 -3.9 -5.4 -3.5 Z"/><path class="bl-steam" d="M-.2 -5.6 q.7 -1 0 -2 q-.7 -1 0 -2"/></g></g>
-    <g class="beaver" id="beaver"><g class="bv-wake-g"><path class="bv-wake" d="M0 0 L-12 -4.24 M0 0 L-12 4.24"/></g><g class="bv-body"><ellipse class="bv-back" cx="-1.7" cy=".15" rx="1.9" ry=".45"/><ellipse class="bv-head" cx="0" cy="-.2" rx="1.1" ry=".62"/><circle class="bv-ear" cx="-.45" cy="-.75" r=".22"/><circle class="bv-eye" cx=".45" cy="-.36" r=".12"/><path class="bv-branch" d="M.9 0 L4.6 -.9 M3.1 -.55 l.6 -.8 M2.2 -.35 l.5 .6"/></g></g>
-    <!-- ducks on the summer lake: the ducklings each chase the one in front (a pursuit curve, science.js) -->
-    <g class="ducks" id="ducks">
-      <g class="duck" transform="translate(1100 470)"><g class="dk-flip"><ellipse class="dk-body" cx="0" cy="-1.6" rx="4.2" ry="2"/><circle class="dk-head" cx="3.6" cy="-4" r="1.6"/><path class="dk-beak" d="M5 -4.1 l1.8 0.5 -1.8 0.4Z"/></g></g>
-      <g class="duck" transform="translate(1087 471)"><g class="dk-flip"><ellipse class="dk-body" cx="0" cy="-1.6" rx="3.6" ry="1.8"/><circle class="dk-head2" cx="3.1" cy="-3.6" r="1.4"/><path class="dk-beak" d="M4.3 -3.7 l1.6 0.4 -1.6 0.4Z"/></g></g>
-      <g class="duck" transform="translate(1076 471)"><g class="dk-flip"><ellipse class="dk-body" cx="0" cy="-1.4" rx="3" ry="1.5"/><circle class="dk-head2" cx="2.6" cy="-3.1" r="1.2"/><path class="dk-beak" d="M3.6 -3.2 l1.4 0.4 -1.4 0.3Z"/></g></g>
-    </g>
     <!-- glints on the lake below the sun, or a moonlight path when the moon is bright (science.js) -->
     <g class="glints" id="glints" clip-path="url(#lakeClip)"></g>
     <!-- a tent in the forest on summer evenings: campfire until late, a headlamp glowing inside until midnight -->
@@ -505,33 +474,6 @@
     <g class="snow-angel" id="snowAngel" transform="translate(1216 462)">
       <path d="M-5.2 -1.8 Q0 -4.6 5.2 -1.8 Q0 -2.4 -5.2 -1.8 Z M-4.6 1.8 Q0 4.4 4.6 1.8 Q0 2.4 -4.6 1.8 Z"/><ellipse cx="0" cy="0" rx="3.6" ry="1.5"/><circle cx="4.6" cy="0" r="1.2"/>
     </g>
-    <!-- night fishing: a rowing boat with a lantern drifts on the lake (not in winter) -->
-    <g class="rowboat" id="rowboat" transform="translate(1110 476)"><g class="rb-drift"><g class="rb-rock">
-      <path class="rb-refl" d="M-7.2 3.6 q.5 1.4 0 2.8 q-.5 1.4 0 2.8 q.5 1.4 0 2.6"/>
-      <ellipse class="rb-shadow" cx=".5" cy="3.1" rx="11.5" ry=".9"/>
-      <path class="rb-oar" d="M-3.4 -1.6 L-10.5 3.2"/><ellipse class="rb-blade" cx="-11" cy="3.5" rx="1.6" ry=".55" transform="rotate(-34 -11 3.5)"/>
-      <path class="rb-hull" d="M-11.2 -1.6 Q-10.6 1.8 -6.8 2.8 L6.4 2.8 Q10.6 2 12 -2.2 Z"/>
-      <path class="rb-plank" d="M-10.6 .4 Q0 1.2 11 -.4"/>
-      <path class="rb-rim" d="M-11.6 -1.6 L12.3 -2.3"/>
-      <path class="rb-jacket" d="M-.8 -1.8 L-.8 -5.8 Q0 -7.2 1.4 -6.4 L2.2 -1.8 Z"/>
-      <path class="rb-arm" d="M1 -5.2 L3.6 -4.2"/>
-      <circle class="rb-head" cx=".5" cy="-8.1" r="1.3"/><path class="rb-hat" d="M-.9 -8.5 Q.5 -10.4 1.9 -8.5 Z"/>
-      <path class="rb-rod" d="M3.4 -4.1 Q8 -8.2 13.6 -10.8"/><path class="rb-line" d="M13.6 -10.8 Q14.6 -4 14.4 1.1"/><circle class="rb-float" cx="14.4" cy="1.4" r=".55"/>
-      <path class="rb-post" d="M-9 -1.6 V-6.6 H-7.6 V-6"/>
-      <path class="rb-catch" d="M13.2 -7.6 q1.3 -2.4 0 -4.4 q-1.3 2 0 4.4 Z M13.2 -7.6 l-1 1.4 h2 Z"/>
-      <circle class="rb-halo" cx="-7.6" cy="-4.9" r="4"/><circle class="rb-halo" cx="-7.6" cy="-4.9" r="2.4"/><rect class="rb-lamp" x="-8.3" y="-6" width="1.4" height="1.9" rx=".4"/>
-      <rect class="hit" x="-12" y="-12" width="27" height="15"/>
-    </g></g></g>
-    <!-- ice hockey on the frozen lake, with the penguin as referee (gadgets.js) -->
-    <g class="hockey" id="hockey">
-      <path class="net" d="M1006 465 h-4 v9 h4 M1003 466 v7 M1004.5 465.3 v8.4"/>
-      <path class="net" d="M1266 465 h4 v9 h-4 M1269 466 v7 M1267.5 465.3 v8.4"/>
-      <g class="player red"><rect class="hit" x="-3" y="-15" width="13" height="16"/><g class="figure"><path d="M-2 0 L-.5 -3.5 L0 -7 L2 -4 L1.5 0"/><path class="jersey" d="M0 -7 L2 -11"/><path d="M2 -11 L4 -7.5"/><path class="stick" d="M4 -7.5 L8 -.3 H10"/><circle cx="3" cy="-12.6" r="1.35"/></g></g>
-      <g class="player blue"><rect class="hit" x="-3" y="-15" width="13" height="16"/><g class="figure"><path d="M-2 0 L-.5 -3.5 L0 -7 L2 -4 L1.5 0"/><path class="jersey" d="M0 -7 L2 -11"/><path d="M2 -11 L4 -7.5"/><path class="stick" d="M4 -7.5 L8 -.3 H10"/><circle cx="3" cy="-12.6" r="1.35"/></g></g>
-      <ellipse class="puck" cx="0" cy="0" rx="1" ry=".45"/>
-    </g>
-    <!-- a fish jumping on summer evenings (science.js) -->
-    <g class="fish" id="fish"><path d="M-3 0 Q0 -1.9 3 0 Q0 1.9 -3 0 Z M-2.6 0 L-5.2 -1.6 L-5.2 1.6 Z"/></g>
     <!-- cyclist on the valley road -->
     <g class="cyclist" id="cyclist"><g class="cy-flip figure">
       <circle class="wheel" cx="-5" cy="-3.2" r="3.2"/><circle class="wheel" cx="5.5" cy="-3.2" r="3.2"/>
@@ -557,11 +499,6 @@
       <circle cx="0" cy="-12.6" r="1.4"/><path d="M0 -11 V-5 M0 -5 L-1 0 M0 -5 L1 0"/>
       <path class="arms-down" d="M0 -10.2 L-1.4 -6.4 M0 -10.2 L1.4 -6.4"/>
       <path class="arms-up" d="M0 -10.2 L-1 -15.6 M0 -10.2 L1 -15.6"/>
-    </g></g>
-    <g class="splash" id="splash"><circle cx="-2" cy="0" r=".6"/><circle cx="0" cy="0" r=".7"/><circle cx="2" cy="0" r=".6"/><circle cx="-1" cy="0" r=".5"/><circle cx="1.2" cy="0" r=".5"/></g>
-    <g class="swimmer" id="swimmer"><g class="figure">
-      <ellipse class="water" cx="0" cy="0.4" rx="6.5" ry="1.1"/><circle cx="-1.2" cy="-1.4" r="1.4"/><path class="stroke-a" d="M0 -0.6 Q-3 -4.6 -6 -1"/><path class="stroke-b" d="M0 -0.6 Q2.6 -3.6 5 -0.4"/>
-      <rect class="hit" x="-8" y="-8" width="16" height="11"/>
     </g></g>
     <g class="runner" id="runner"><g class="figure">
       <circle cx="1.6" cy="-14.4" r="1.6"/><path d="M1.2 -12.6 L0 -7.4"/>
@@ -619,11 +556,11 @@
     <g class="winboxes" id="winboxes"><path class="wb-stems" d="M1183.7 440.6 V440.2 M1186.2 440.6 V440.2 M1188.7 440.6 V440.2"/><g class="wb-flowers"><circle class="wf1" cx="1183.70" cy="440.1" r=".62"/><circle class="wf2" cx="1184.95" cy="440.1" r=".62"/><circle class="wf3" cx="1186.20" cy="440.1" r=".62"/><circle class="wf1" cx="1187.45" cy="440.1" r=".62"/><circle class="wf2" cx="1188.70" cy="440.1" r=".62"/></g><rect class="wb-box" x="1182.8" y="440.5" width="6.8" height="1.4"/><path class="wb-stems" d="M1201.3 440.6 V440.2 M1203.8 440.6 V440.2 M1206.3 440.6 V440.2"/><g class="wb-flowers"><circle class="wf1" cx="1201.30" cy="440.1" r=".62"/><circle class="wf2" cx="1202.55" cy="440.1" r=".62"/><circle class="wf3" cx="1203.80" cy="440.1" r=".62"/><circle class="wf1" cx="1205.05" cy="440.1" r=".62"/><circle class="wf2" cx="1206.30" cy="440.1" r=".62"/></g><rect class="wb-box" x="1200.4" y="440.5" width="6.8" height="1.4"/></g>
     <!-- autumn leaves on the grass by the path; the penguin rakes them into a pile -->
     <g class="leaves" id="leaves"><ellipse class="lf" data-x="1224.5" data-y="447.9" cx="1224.5" cy="447.9" rx=".75" ry=".42" fill="#D2691E" transform="rotate(-40 1224.5 447.9)"/><ellipse class="lf" data-x="1228" data-y="448.6" cx="1228" cy="448.6" rx=".75" ry=".42" fill="#B8452B" transform="rotate(-3 1228 448.6)"/><ellipse class="lf" data-x="1231.6" data-y="447.2" cx="1231.6" cy="447.2" rx=".75" ry=".42" fill="#E3A33B" transform="rotate(34 1231.6 447.2)"/><ellipse class="lf" data-x="1235" data-y="448.8" cx="1235" cy="448.8" rx=".75" ry=".42" fill="#C0562A" transform="rotate(-9 1235 448.8)"/><ellipse class="lf" data-x="1238.8" data-y="447.6" cx="1238.8" cy="447.6" rx=".75" ry=".42" fill="#D2691E" transform="rotate(28 1238.8 447.6)"/><ellipse class="lf" data-x="1243" data-y="448.9" cx="1243" cy="448.9" rx=".75" ry=".42" fill="#B8452B" transform="rotate(-15 1243 448.9)"/><ellipse class="lf" data-x="1246.4" data-y="447.4" cx="1246.4" cy="447.4" rx=".75" ry=".42" fill="#E3A33B" transform="rotate(22 1246.4 447.4)"/><ellipse class="lf" data-x="1250" data-y="448.5" cx="1250" cy="448.5" rx=".75" ry=".42" fill="#C0562A" transform="rotate(-21 1250 448.5)"/><ellipse class="lf" data-x="1254.2" data-y="447.1" cx="1254.2" cy="447.1" rx=".75" ry=".42" fill="#D2691E" transform="rotate(16 1254.2 447.1)"/><ellipse class="lf" data-x="1266" data-y="448.7" cx="1266" cy="448.7" rx=".75" ry=".42" fill="#B8452B" transform="rotate(-27 1266 448.7)"/><ellipse class="lf" data-x="1269.6" data-y="447.3" cx="1269.6" cy="447.3" rx=".75" ry=".42" fill="#E3A33B" transform="rotate(10 1269.6 447.3)"/><ellipse class="lf" data-x="1273.4" data-y="448.6" cx="1273.4" cy="448.6" rx=".75" ry=".42" fill="#C0562A" transform="rotate(-33 1273.4 448.6)"/><ellipse class="lf" data-x="1277" data-y="447.5" cx="1277" cy="447.5" rx=".75" ry=".42" fill="#D2691E" transform="rotate(4 1277 447.5)"/><ellipse class="lf" data-x="1281" data-y="448.9" cx="1281" cy="448.9" rx=".75" ry=".42" fill="#B8452B" transform="rotate(-39 1281 448.9)"/><ellipse class="lf" data-x="1284.6" data-y="447.6" cx="1284.6" cy="447.6" rx=".75" ry=".42" fill="#E3A33B" transform="rotate(-2 1284.6 447.6)"/><ellipse class="lf" data-x="1288.4" data-y="448.4" cx="1288.4" cy="448.4" rx=".75" ry=".42" fill="#C0562A" transform="rotate(35 1288.4 448.4)"/></g>
-    <g class="leafpile" id="leafPile" transform="translate(1261 448.6) scale(0)"><ellipse rx="4.4" ry="1.9" cy="-.9" fill="#B8452B"/><ellipse rx="3.4" ry="1.5" cx="-.8" cy="-1.6" fill="#D2691E"/><ellipse rx="2.2" ry="1" cx=".9" cy="-2.3" fill="#E3A33B"/></g>
+    <g class="leafpile" id="leafPile" transform="translate(1264 448.6) scale(0)"><ellipse rx="4.4" ry="1.9" cy="-.9" fill="#B8452B"/><ellipse rx="3.4" ry="1.5" cx="-.8" cy="-1.6" fill="#D2691E"/><ellipse rx="2.2" ry="1" cx=".9" cy="-2.3" fill="#E3A33B"/></g>
     <!-- fresh snow on the path after a snowfall; the penguin shovels it off -->
     <path class="path-snow" id="pathSnow" d="M1216 449.7 C1240 450.3 1272 450.2 1297 449.4"/>
     <!-- 16 November: a birthday cake on the veranda (gadgets.js) -->
-    <g class="cake" id="cake" transform="translate(1210.5 449.3)"><g class="cake-plate"><ellipse cx="0" cy="0" rx="2.6" ry=".45"/></g><rect class="cake-body" x="-1.9" y="-2" width="3.8" height="2"/><rect class="cake-icing" x="-1.95" y="-2.25" width="3.9" height=".6" rx=".25"/><g class="cake-candles"><path d="M-1 -2.2 V-3.3 M0 -2.2 V-3.5 M1 -2.2 V-3.3"/></g><g class="cake-flames"><ellipse cx="-1" cy="-3.7" rx=".28" ry=".45"/><ellipse cx="0" cy="-3.9" rx=".28" ry=".45"/><ellipse cx="1" cy="-3.7" rx=".28" ry=".45"/></g><rect class="hit" x="-4" y="-6" width="8" height="7"/></g>
+    <g class="cake" id="cake" transform="translate(1209.6 447)"><g class="cake-plate"><ellipse cx="0" cy="0" rx="2.6" ry=".45"/></g><rect class="cake-body" x="-1.9" y="-2" width="3.8" height="2"/><rect class="cake-icing" x="-1.95" y="-2.25" width="3.9" height=".6" rx=".25"/><g class="cake-candles"><path d="M-1 -2.2 V-3.3 M0 -2.2 V-3.5 M1 -2.2 V-3.3"/></g><g class="cake-flames"><ellipse cx="-1" cy="-3.7" rx=".28" ry=".45"/><ellipse cx="0" cy="-3.9" rx=".28" ry=".45"/><ellipse cx="1" cy="-3.7" rx=".28" ry=".45"/></g><rect class="hit" x="-4" y="-6" width="8" height="7"/></g>
     <!-- the axe rests in the chopping block; a log on the block splits in two (gadgets.js) -->
     <g class="block-axe" id="blockAxe" transform="translate(1225.4 446.8) rotate(35)"><path class="axe-handle" d="M0 0 L-4.2 0"/><path class="axe-head" d="M-.2 -.9 L.9 -.8 L.9 .6 L-.2 .5 Z"/></g>
     <g class="split-log" id="splitLog" transform="translate(1225.4 446.8)"><g class="half l"><rect x="-.6" y="-1.5" width=".6" height="1.5"/></g><g class="half r"><rect x="0" y="-1.5" width=".6" height="1.5"/></g></g>
@@ -633,10 +570,68 @@
     <defs><g id="pgMini"><ellipse class="pg-black" cx="0" cy="-5.2" rx="3.4" ry="5.2"/><ellipse class="pg-white" cx="1" cy="-4.8" rx="2.1" ry="3.9"/><circle class="pg-black" cx="0.4" cy="-10.6" r="2.7"/><circle class="pg-white" cx="1.5" cy="-11.2" r="0.55"/><path class="pg-orange" d="M2.8 -10.8 l2.2 0.6 -2.2 0.5Z"/><path class="pg-black" d="M-2.8 -7.4 q-1.9 3.2 -0.4 5.3 q0.8 -2.6 0.4 -5.3Z"/><ellipse class="pg-orange" cx="-0.9" cy="0" rx="1.4" ry="0.55"/><ellipse class="pg-orange" cx="1.5" cy="0" rx="1.4" ry="0.55"/></g></defs>
     <g class="visitors" id="visitors"></g>
     <!-- every badge found: the penguin puts a trophy on the veranda (gadgets.js) -->
-    <g class="trophy" id="trophy" transform="translate(1178.6 448.3) scale(1.1)"><path class="tr-cup" d="M-1.3 -3.4 H1.3 Q1.3 -1.2 0 -.9 Q-1.3 -1.2 -1.3 -3.4 Z M-1.3 -3 q-.9 .1 -.6 1 q.2 .4 .7 .3 M1.3 -3 q.9 .1 .6 1 q-.2 .4 -.7 .3"/><path class="tr-stem" d="M-.25 -.9 H.25 V.1 H-.25 Z M-.8 .1 H.8 V.5 H-.8 Z"/><circle class="tr-shine" cx="-.55" cy="-2.7" r=".25"/></g>
-    <!-- a kayak moored at the end of the jetty in summer -->
+    <g class="trophy" id="trophy" transform="translate(1177.1 448.3) scale(1.1)"><path class="tr-cup" d="M-1.3 -3.4 H1.3 Q1.3 -1.2 0 -.9 Q-1.3 -1.2 -1.3 -3.4 Z M-1.3 -3 q-.9 .1 -.6 1 q.2 .4 .7 .3 M1.3 -3 q.9 .1 .6 1 q-.2 .4 -.7 .3"/><path class="tr-stem" d="M-.25 -.9 H.25 V.1 H-.25 Z M-.8 .1 H.8 V.5 H-.8 Z"/><circle class="tr-shine" cx="-.55" cy="-2.7" r=".25"/></g>
+    <!-- ON THE LAKE: drawn after everything on the shore (the far shore, the cottage, the veranda), and sorted by
+         depth among each other a few times a second (science.js) -->
+    <!-- a beaver lodge on the far shore: it grows through the autumn, with a raft of branches (the winter food) beside it (science.js) -->
+    <g class="beaver-lodge" id="beaverLodge" transform="translate(1075 452.3)"><rect class="hit" x="-9" y="-6.5" width="26" height="9"/><g class="bl-cache"><path d="M8.6 .7 L14.8 1.5 M9.8 1.8 L13.9 .3 M11.2 1.9 L15.9 2.2 M12 .4 l1 -.9 M13.4 1.9 l.9 -.8"/></g><g class="bl-grow"><path class="bl-mound" d="M-8 0 Q-7 -3.8 -2 -5 Q1.5 -5.6 4.5 -4.2 Q7.6 -2.6 8 0 Z"/><path class="bl-sticks" d="M-6.5 -1 L-3 -3.6 M-4 -.5 L-1 -4.4 M-1 -.6 L1.8 -4.9 M2 -.8 L4.8 -3.6 M4.5 -.4 L7 -2 M-7 -2 L-4.5 -4.2 M0 -3 L3.8 -4.6"/><path class="bl-snow" d="M-5.4 -3.5 Q-1 -5.9 3 -5.1 Q5.6 -4.3 6.8 -2.7 Q2 -3.9 -5.4 -3.5 Z"/><path class="bl-steam" d="M-.2 -5.6 q.7 -1 0 -2 q-.7 -1 0 -2"/></g></g>
+    <!-- now and then an orca's fin crosses the lake; tap it and the orca dives, leaps and swims on (gadgets.js) -->
+    <defs><clipPath id="orcaClip" clipPathUnits="userSpaceOnUse"><rect x="-60" y="-60" width="120" height="60.3"/></clipPath></defs>
+    <g class="orca" id="orca"><g class="orca-dir">
+      <path class="orca-wake" d="M-3 .3 L-26 -3.3 M-3 .5 L-26 4.3"/>
+      <g clip-path="url(#orcaClip)">
+        <!-- drawn in true scale (about 7.5 m: 34 units, like the 6 m cottage at 30): head to the right, belly at y = 0 -->
+        <g class="orca-body">
+          <path class="orca-black" d="M17 -2.6 Q16.7 -5.3 13 -6.1 C8 -6.9 2 -7.3 -2 -6.9 C-6 -6.4 -10 -5 -13 -3.7 L-14.6 -3.3 L-18.6 -4.1 Q-17.6 -3.2 -18.4 -2.4 L-14.6 -2.5 C-11 -1.6 -6 -.2 0 0 C6 .2 11 -.4 14.6 -1.4 Q16.7 -1.8 17 -2.6 Z"/>
+          <path class="orca-black" d="M3.4 -7.1 Q1.6 -10.6 -.4 -14.6 Q-.9 -10.8 -2.2 -7 Z"/>
+          <path class="orca-black" d="M9.6 -1.1 Q8.6 1.7 6.2 2.6 Q5.2 1.5 6.9 -.6 Z"/>
+          <path class="orca-saddle" d="M-2.4 -6.9 Q-5.6 -6.5 -7.8 -5.3 Q-4.6 -5.5 -1.6 -6.3 Z"/>
+          <path class="orca-white" d="M15.6 -1.6 Q12 -.7 6 -.6 Q2 -.4 -3 -.7 Q-1 -1.6 3 -1.8 Q9.5 -2.1 15.6 -1.6 Z"/>
+          <path class="orca-white" d="M-3 -.8 Q-6.2 -1.7 -8.8 -3.7 Q-5.6 -3.4 -1.8 -1.9 Z"/>
+          <ellipse class="orca-white" cx="10.3" cy="-4.7" rx="2.3" ry=".72" transform="rotate(-8 10.3 -4.7)"/>
+        </g>
+      </g>
+      <g class="orca-blow"><circle cx="6.4" cy="-1.6" r="1.1"/><circle cx="5.6" cy="-3.2" r="1"/><circle cx="7.3" cy="-3.4" r=".9"/></g>
+      <rect class="hit" x="-10" y="-11" width="20" height="12"/>
+    </g></g>
+    <g class="beaver" id="beaver"><g class="bv-wake-g"><path class="bv-wake" d="M0 0 L-12 -4.24 M0 0 L-12 4.24"/></g><g class="bv-body"><ellipse class="bv-back" cx="-1.7" cy=".15" rx="1.9" ry=".45"/><ellipse class="bv-head" cx="0" cy="-.2" rx="1.1" ry=".62"/><circle class="bv-ear" cx="-.45" cy="-.75" r=".22"/><circle class="bv-eye" cx=".45" cy="-.36" r=".12"/><path class="bv-branch" d="M.9 0 L4.6 -.9 M3.1 -.55 l.6 -.8 M2.2 -.35 l.5 .6"/></g></g>
+    <!-- ducks on the summer lake: the ducklings each chase the one in front (a pursuit curve, science.js) -->
+    <!-- (each duck in a group of its own, so they can be sorted by depth: science.js) -->
+    <g class="ducks" id="ducks"><g class="duck" transform="translate(1100 470)"><g class="dk-flip"><ellipse class="dk-body" cx="0" cy="-1.6" rx="4.2" ry="2"/><circle class="dk-head" cx="3.6" cy="-4" r="1.6"/><path class="dk-beak" d="M5 -4.1 l1.8 0.5 -1.8 0.4Z"/></g></g></g>
+    <g class="ducks"><g class="duck" transform="translate(1087 471)"><g class="dk-flip"><ellipse class="dk-body" cx="0" cy="-1.6" rx="3.6" ry="1.8"/><circle class="dk-head2" cx="3.1" cy="-3.6" r="1.4"/><path class="dk-beak" d="M4.3 -3.7 l1.6 0.4 -1.6 0.4Z"/></g></g></g>
+    <g class="ducks"><g class="duck" transform="translate(1076 471)"><g class="dk-flip"><ellipse class="dk-body" cx="0" cy="-1.4" rx="3" ry="1.5"/><circle class="dk-head2" cx="2.6" cy="-3.1" r="1.2"/><path class="dk-beak" d="M3.6 -3.2 l1.4 0.4 -1.4 0.3Z"/></g></g></g>
+    <!-- a fish jumping on summer evenings (science.js) -->
+    <g class="fish" id="fish"><path d="M-3 0 Q0 -1.9 3 0 Q0 1.9 -3 0 Z M-2.6 0 L-5.2 -1.6 L-5.2 1.6 Z"/></g>
+    <!-- ice skater on the frozen lake -->
+    <g class="skater" id="skater"><g class="sk-glide"><g transform="translate(1000 470)"><g class="sk-flip figure"><g class="sk-spin">
+      <path d="M-3.5 0 H3.5"/><path d="M0 -1 L1 -6 L-5 -3.5"/><path d="M1 -6 L3 -11"/><path d="M-1.5 -9.5 L3 -10.3 L7.5 -9"/><circle cx="3.8" cy="-13" r="1.6"/><path class="scarf" d="M2.6 -11.4 l-3 1"/><rect class="hit" x="-8" y="-17" width="18" height="19"/>
+    </g></g></g></g></g>
+    <g class="swimmer" id="swimmer"><g class="figure">
+      <ellipse class="water" cx="0" cy="0.4" rx="6.5" ry="1.1"/><circle cx="-1.2" cy="-1.4" r="1.4"/><path class="stroke-a" d="M0 -0.6 Q-3 -4.6 -6 -1"/><path class="stroke-b" d="M0 -0.6 Q2.6 -3.6 5 -0.4"/>
+      <rect class="hit" x="-8" y="-8" width="16" height="11"/>
+    </g></g>
+    <!-- night fishing: a rowing boat with a lantern drifts on the lake (not in winter) -->
+    <g class="rowboat" id="rowboat" transform="translate(1110 476)"><g class="rb-drift"><g class="rb-rock">
+      <path class="rb-refl" d="M-7.2 3.6 q.5 1.4 0 2.8 q-.5 1.4 0 2.8 q.5 1.4 0 2.6"/>
+      <ellipse class="rb-shadow" cx=".5" cy="3.1" rx="11.5" ry=".9"/>
+      <path class="rb-oar" d="M-3.4 -1.6 L-10.5 3.2"/><ellipse class="rb-blade" cx="-11" cy="3.5" rx="1.6" ry=".55" transform="rotate(-34 -11 3.5)"/>
+      <path class="rb-hull" d="M-11.2 -1.6 Q-10.6 1.8 -6.8 2.8 L6.4 2.8 Q10.6 2 12 -2.2 Z"/>
+      <path class="rb-plank" d="M-10.6 .4 Q0 1.2 11 -.4"/>
+      <path class="rb-rim" d="M-11.6 -1.6 L12.3 -2.3"/>
+      <path class="rb-jacket" d="M-.8 -1.8 L-.8 -5.8 Q0 -7.2 1.4 -6.4 L2.2 -1.8 Z"/>
+      <path class="rb-arm" d="M1 -5.2 L3.6 -4.2"/>
+      <circle class="rb-head" cx=".5" cy="-8.1" r="1.3"/><path class="rb-hat" d="M-.9 -8.5 Q.5 -10.4 1.9 -8.5 Z"/>
+      <path class="rb-rod" d="M3.4 -4.1 Q8 -8.2 13.6 -10.8"/><path class="rb-line" d="M13.6 -10.8 Q14.6 -4 14.4 1.1"/><circle class="rb-float" cx="14.4" cy="1.4" r=".55"/>
+      <path class="rb-post" d="M-9 -1.6 V-6.6 H-7.6 V-6"/>
+      <path class="rb-catch" d="M13.2 -7.6 q1.3 -2.4 0 -4.4 q-1.3 2 0 4.4 Z M13.2 -7.6 l-1 1.4 h2 Z"/>
+      <circle class="rb-halo" cx="-7.6" cy="-4.9" r="4"/><circle class="rb-halo" cx="-7.6" cy="-4.9" r="2.4"/><rect class="rb-lamp" x="-8.3" y="-6" width="1.4" height="1.9" rx=".4"/>
+      <rect class="hit" x="-12" y="-12" width="27" height="15"/>
+    </g></g></g>
+    <!-- spray from a dive, a cannonball or the orca (on top of the water things) -->
+    <g class="splash" id="splash"><circle cx="-2" cy="0" r=".6"/><circle cx="0" cy="0" r=".7"/><circle cx="2" cy="0" r=".6"/><circle cx="-1" cy="0" r=".5"/><circle cx="1.2" cy="0" r=".5"/></g>
+    <!-- in summer a kayak floats by the bank beside the sauna, right of the jetty -->
     <rect class="hit" id="jettyHit" x="1293" y="448.5" width="18" height="25.5"/>
-    <g class="kayak-moored" id="kayakMoored" transform="translate(1312 474.5) scale(1.4)"><rect class="hit" x="-13" y="-3.2" width="26" height="5"/><path class="pg-hull" d="M-12.5 -1.5 Q-7 .7 0 .8 Q7 .7 12.5 -1.5 Q0 -.9 -12.5 -1.5 Z"/><path class="pg-rim" d="M-3 -1.3 h6"/><path class="pg-shaft" d="M-6.5 -2 L6.5 -2"/></g>
+    <g class="kayak-moored" id="kayakMoored" transform="translate(1325 456.5) scale(1.15)"><rect class="hit" x="-13" y="-3.2" width="26" height="5"/><path class="pg-hull" d="M-12.5 -1.5 Q-7 .7 0 .8 Q7 .7 12.5 -1.5 Q0 -.9 -12.5 -1.5 Z"/><path class="pg-rim" d="M-3 -1.3 h6"/><path class="pg-shaft" d="M-6.5 -2 L6.5 -2"/></g>
     <g class="penguin" id="penguin"><g class="pg-flip"><g class="pg-chair"><path d="M-4.6 -8.2 L-3.8 -3.6 H2.6 M-3.6 -3.6 L-3.9 .2 M2.2 -3.6 L2.5 .2"/></g><g class="pg-waddle">
       <ellipse class="pg-black" cx="0" cy="-5.2" rx="3.4" ry="5.2"/><ellipse class="pg-white" cx="1" cy="-4.8" rx="2.1" ry="3.9"/>
       <circle class="pg-black" cx="0.4" cy="-10.6" r="2.7"/><circle class="pg-white" cx="1.5" cy="-11.2" r="0.55"/>
@@ -674,6 +669,21 @@
     <!-- (a gap at the beaver lodge, and only down to y 447, so the lodge on the shore stays in front) -->
     <defs><clipPath id="frontClip" clipPathUnits="userSpaceOnUse"><rect x="924" y="370" width="140" height="77"/><rect x="1094" y="370" width="68" height="77"/></clipPath></defs>
     <g clip-path="url(#frontClip)"><g id="frontTrees"></g><g id="frontLeafy"></g></g>
+    <!-- the near bank of the lake once more: reflections and splashes on the water end at the grass -->
+    <path class="l-near" d="M900 486 C1100 481 1300 490 1440 485 L1440 520 L900 520 Z"/>
+    <!-- the veranda railing and the path lamps once more, each shown only while the penguin is behind it (on the deck, on the path, by the forest edge) -->
+    <path class="rail" id="frontRail" visibility="hidden" d="M1173.8 449 V443.6 M1180.4 449 V443.6 M1187 449 V443.6 M1193.6 449 V443.6 M1200.2 449 V443.6 M1206.8 449 V443.6 M1173.4 443.8 H1207.2"/>
+    <g class="path-lights" id="frontLamps"><g visibility="hidden" data-y="450.0" transform="translate(1221 450.0)"><path class="post" d="M0 0 V-3"/><circle class="head" cy="-3.4" r=".75"/></g><g visibility="hidden" data-y="450.4" transform="translate(1241 450.4)"><path class="post" d="M0 0 V-3"/><circle class="head" cy="-3.4" r=".75"/></g><g visibility="hidden" data-y="450.5" transform="translate(1257 450.5)"><path class="post" d="M0 0 V-3"/><circle class="head" cy="-3.4" r=".75"/></g><g visibility="hidden" data-y="450.3" transform="translate(1273 450.3)"><path class="post" d="M0 0 V-3"/><circle class="head" cy="-3.4" r=".75"/></g><g visibility="hidden" data-y="449.8" transform="translate(1289 449.8)"><path class="post" d="M0 0 V-3"/><circle class="head" cy="-3.4" r=".75"/></g></g>
+    <!-- ice hockey on the frozen lake (gadgets.js). In the front layer: the penguin referees from behind the rink -->
+    <g class="hockey" id="hockey">
+      <path class="net" d="M1006 465 h-4 v9 h4 M1003 466 v7 M1004.5 465.3 v8.4"/>
+      <path class="net" d="M1266 465 h4 v9 h-4 M1269 466 v7 M1267.5 465.3 v8.4"/>
+      <g class="player red"><rect class="hit" x="-3" y="-15" width="13" height="16"/><g class="figure"><path d="M-2 0 L-.5 -3.5 L0 -7 L2 -4 L1.5 0"/><path class="jersey" d="M0 -7 L2 -11"/><path d="M2 -11 L4 -7.5"/><path class="stick" d="M4 -7.5 L8 -.3 H10"/><circle cx="3" cy="-12.6" r="1.35"/></g></g>
+      <g class="player blue"><rect class="hit" x="-3" y="-15" width="13" height="16"/><g class="figure"><path d="M-2 0 L-.5 -3.5 L0 -7 L2 -4 L1.5 0"/><path class="jersey" d="M0 -7 L2 -11"/><path d="M2 -11 L4 -7.5"/><path class="stick" d="M4 -7.5 L8 -.3 H10"/><circle cx="3" cy="-12.6" r="1.35"/></g></g>
+      <ellipse class="puck" cx="0" cy="0" rx="1" ry=".45"/>
+    </g>
+    <!-- World Penguin Day: a visitor standing nearer than the cottage penguin moves here while it walks past (science.js) -->
+    <g class="visitors" id="visitorsFront"></g>
     <!-- an owl in the Swedish forest: two eyes blink at night; tap them and it flies off -->
     <g class="owl" id="owl" transform="translate(1062 426)">
       <g class="owl-eyes"><circle cx="-1" cy="0" r=".7"/><circle cx="1" cy="0" r=".7"/></g>
@@ -837,11 +847,11 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="notes.js?v=20261003213746"></script>
+<script src="notes.js?v=202610041710"></script>
 <script src="cv-data.js?v=local"></script>
-<script src="script.js?v=20261003213746"></script>
-<script src="extras.js?v=20261003213746"></script>
-<script src="gadgets.js?v=20261003213746"></script>
-<script src="science.js?v=20261003213746"></script>
+<script src="script.js?v=202610041710"></script>
+<script src="extras.js?v=202610041710"></script>
+<script src="gadgets.js?v=202610041710"></script>
+<script src="science.js?v=202610041710"></script>
 </body>
 </html>

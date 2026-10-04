@@ -255,9 +255,16 @@ panHooks.push(() => { spriteM = null; }); // the scene was swiped, zoomed or lai
 // the front door opens while the penguin stands in the doorway, going out or coming home
 const stugaDoor = $('#stugaDoor');
 let doorTimer = 0;
-let pgX = 1195; // where the penguin is (landscape x), for the phone camera
+let pgX = 1195, pgY = 400; // where the penguin is (landscape units): for the phone camera, and what's in front of it
+// the veranda railing and the path lamps are drawn once more in front of the penguin (in the front
+// layer); each copy shows only while the penguin is behind that railing or lamp
+const frontRail = $('#frontRail'), frontLamps = [...$('#frontLamps').children].map((g) => [g, +g.dataset.y, +/\d+/.exec(g.getAttribute('transform'))[0]]);
+const showIf = (el, on) => { if ((el.getAttribute('visibility') !== 'hidden') !== on) el.setAttribute('visibility', on ? 'visible' : 'hidden'); };
 function placePenguin(x, y, scale = 1, dy = 0) {
   if (y > 420) pgX = x;
+  pgY = y;
+  showIf(frontRail, y > 420 && y < 449.4 && x > 1166 && x < 1216); // (y 400: indoors)
+  frontLamps.forEach(([g, ly, lx]) => showIf(g, y > 420 && y < ly - 0.1 && Math.abs(x - lx) < 13));
   const m = spriteMatrix();
   pgSprite.style.transform = `translate3d(${(m.a * x + m.e).toFixed(1)}px, ${(m.d * (y + dy) + m.f).toFixed(1)}px, 0) scale(${(scale / SPRITE).toFixed(3)})`;
   if (Math.hypot(x - 1195, y - 447) < 2.2) { clearTimeout(doorTimer); doorTimer = 0; stugaDoor.classList.add('open'); }
@@ -266,10 +273,6 @@ function placePenguin(x, y, scale = 1, dy = 0) {
 // back inside: close the door behind it
 new MutationObserver(() => { if (!penguinEl.classList.contains('out')) placePenguin(1195, 400); }).observe(penguinEl, { attributes: true, attributeFilter: ['class'] });
 
-const penguinLoop = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-penguinLoop.setAttribute('d', 'M1195 447 C1212 447 1236 448 1238 452 C1240 457 1218 461 1195 461 C1170 461 1150 457 1152 452 C1154 448 1178 447 1195 447');
-penguinLoop.setAttribute('fill', 'none');
-$('#landscapeFx').appendChild(penguinLoop); // paths must be in the page to be measured
 $('#stugaHit').addEventListener('click', () => {
   if (document.documentElement.dataset.cottage === 'on') earnBadge('cottage');
   cottageClicks += 1;
@@ -293,19 +296,21 @@ async function penguinGrill() {
   const spatula = pg.querySelector('.pg-spatula');
   waddle.removeAttribute('clip-path'); pg.querySelector('.pg-ripple').style.opacity = 0;
   spriteM = null; pg.classList.add('out', 'grill');
-  const walk = (from, to, ms) => new Promise((done) => {
+  const walk = ([x0, y0], [x1, y1], ms) => new Promise((done) => {
     let t0 = 0;
     const step = (t) => {
       if (!t0) t0 = t;
-      const k = Math.min(1, (t - t0) / ms);
-      placePenguin(from + (to - from) * k, 447);
-      flip.setAttribute('transform', to < from ? 'scale(-1 1)' : '');
+      const k = Math.min(1, (t - t0) / ms), y = y0 + (y1 - y0) * k;
+      placePenguin(x0 + (x1 - x0) * k, y, perspective(y));
+      flip.setAttribute('transform', x1 < x0 ? 'scale(-1 1)' : '');
       waddle.setAttribute('transform', `rotate(${(Math.sin(t / 90) * 9).toFixed(1)})`);
       if (k < 1 && !routeAbort) requestAnimationFrame(step); else done();
     };
     requestAnimationFrame(step);
   });
-  await walk(1195, 1222, 2600);
+  // along the back of the veranda, off its end, and round in front of the chopping block
+  await walk([1195, 447], [1214.6, 447.2], 1800);
+  await walk([1214.6, 447.2], [1222, 448.9], 900);
   // grilling: lid open, smoke, and the spatula flips something now and then
   root.classList.add('grilling');
   flip.setAttribute('transform', ''); waddle.setAttribute('transform', '');
@@ -321,28 +326,14 @@ async function penguinGrill() {
   });
   spatula.setAttribute('transform', '');
   root.classList.remove('grilling');
-  await walk(1222, 1195, 2600);
+  await walk([1222, 448.9], [1214.6, 447.2], 900);
+  await walk([1214.6, 447.2], [1195, 447], 1800);
   pg.classList.remove('out', 'grill');
   earnBadge('penguin'); earnBadge('bbq');
 }
 
-async function penguinWalk() {
-  const pg = $('#penguin'), flip = pg.querySelector('.pg-flip'), waddle = pg.querySelector('.pg-waddle'), ripple = pg.querySelector('.pg-ripple');
-  const frozen = live.frozen;
-  spriteM = null; pg.classList.add('out');
-  await travel(pg, penguinLoop, 11000, {
-    onStep: (p, q, t) => {
-      const onWater = p.y > 450.5 && !frozen, depth = 1 + (p.y - 447) * 0.014; // a little bigger when it comes towards you
-      placePenguin(p.x, p.y, depth, onWater ? 2.5 : 0);
-      flip.setAttribute('transform', q.x < p.x ? 'scale(-1 1)' : '');
-      waddle.setAttribute('transform', onWater ? '' : `rotate(${(Math.sin(t / 90) * 9).toFixed(1)})`);
-      if (onWater) waddle.setAttribute('clip-path', 'url(#pgClip)'); else waddle.removeAttribute('clip-path');
-      ripple.style.opacity = onWater ? 0.6 : 0;
-    },
-  });
-  pg.classList.remove('out');
-  earnBadge('penguin');
-}
+// a short walk: out along the path and back (penguinStroll, further down)
+function penguinWalk() { return penguinStroll(); }
 
 // write an attribute only when it changes (every write makes the browser restyle; null removes it)
 const setAttr = (el, name, v) => { if (el.getAttribute(name) !== v) { if (v === null) el.removeAttribute(name); else el.setAttribute(name, v); } };
@@ -367,16 +358,16 @@ async function penguinRoute(steps) {
         if (k < 1 && t - pgDrawn < 15) { requestAnimationFrame(step); return; } // at most 60 frames a second (phones run at 120)
         pgDrawn = t;
         const e = s.pose === 'slide' ? 1 - (1 - k) ** 2 : k; // slides slow down
-        let x = from[0] + (to[0] - from[0]) * e, y = from[1] + (to[1] - from[1]) * e, pose = '';
+        let x = from[0] + (to[0] - from[0]) * e, y = from[1] + (to[1] - from[1]) * e, lift = 0, pose = ''; // y: where it is on the ground (its depth); lift: how high in the air
         if (s.pose === 'walk') pose = `rotate(${(Math.sin(t / (s.fast ? 55 : 90)) * 9).toFixed(1)})`;
         if (s.pose === 'slide') pose = 'translate(0 -1.5) rotate(78)';
-        if (s.pose === 'jump') { y -= Math.sin(Math.PI * k) * 9; pose = `rotate(${(20 + 70 * k).toFixed(0)})`; }
+        if (s.pose === 'jump') { lift = Math.sin(Math.PI * k) * 9; pose = `rotate(${(20 + 70 * k).toFixed(0)})`; }
         if (s.pose === 'cannonball') { // into the water: tucked up into a ball, a high arc, and a big splash
-          y -= Math.sin(Math.PI * k) * 11;
+          lift = Math.sin(Math.PI * k) * 11;
           pose = `translate(0 -5) rotate(${(-30 * k).toFixed(0)}) scale(.86 .72) translate(0 5)`;
           if (k >= 1) bigSplash(x, y);
         }
-        if (s.pose === 'hop') y -= Math.sin(Math.PI * k) * 4;
+        if (s.pose === 'hop') lift = Math.sin(Math.PI * k) * 4;
         if (s.pose === 'read') pose = 'translate(0 1.3) rotate(-5)'; // sitting on the veranda chair
         if (s.pose === 'sit') pose = 'translate(0 1.6) rotate(-4)';  // sitting on the picnic blanket
         if (s.pose === 'drive') { pose = `translate(0 2.9) rotate(${(Math.sin(t / 140) * 1.2).toFixed(1)})`; moveTractor(x, y, dir); } // on the tractor seat
@@ -385,7 +376,7 @@ async function penguinRoute(steps) {
         const swimming = s.pose === 'swim', paddling = s.pose === 'paddle' || s.pose === 'drive'; // both sit, cut off at the waist
         if (paddling) { pose = `translate(0 2.9) rotate(${(Math.sin(t / 420) * 3).toFixed(1)})`; /* sitting in the cockpit */ pg.querySelector('.pg-paddle').setAttribute('transform', `rotate(${(Math.sin(t / 280) * 26).toFixed(0)} 0 -6)`); }
         pg.classList.toggle('kayak', s.pose === 'paddle');
-        placePenguin(x, y, 1 + (y - 447) * 0.014, swimming ? 2.5 : 0);
+        placePenguin(x, y, perspective(y), (swimming ? 2.5 : 0) - lift); // nearer is bigger
         if (s.pose === 'walk') stepPrint(x, y, pg); else if (s.pose !== 'wait') lastPrint = null;
         setAttr(flip, 'transform', dir < 0 ? 'scale(-1 1)' : '');
         setAttr(waddle, 'transform', pose);
@@ -405,29 +396,41 @@ async function penguinRoute(steps) {
 
 // the skater steps off the ice while the penguin is out on it (they'd cross each other)
 const offIce = (route) => { const sk = $('#skater'); sk.classList.add('away'); return route.finally(() => { if (!hockeyOn) sk.classList.remove('away'); }); };
+// to the frozen lake and back: across the veranda (behind its railing), down the step and onto the ice
+const toIce = [
+  { to: [1199, 448.2], ms: 500, pose: 'walk' },
+  { to: [1215, 448.6], ms: 900, pose: 'walk' },
+  { to: [1220, 450.2], ms: 300, pose: 'hop' },
+  { to: [1203, 458], ms: 1000, pose: 'walk' },
+];
+const fromIce = (ms) => [
+  { to: [1203, 458], ms, pose: 'walk' },
+  { to: [1220, 450.2], ms: 1000, pose: 'walk' },
+  { to: [1215, 448.6], ms: 300, pose: 'hop' },
+  { to: [1199, 448.2], ms: 900, pose: 'walk' },
+  { to: [1195, 447], ms: 500, pose: 'walk' },
+];
 // frozen lake: a belly slide across the ice
 const penguinSlide = () => offIce(penguinRoute([
-  { to: [1203, 458], ms: 1400, pose: 'walk' },   // out of the door, onto the ice
+  ...toIce,                                      // out of the door, onto the ice
   { to: [1110, 463], ms: 2400, pose: 'slide' },  // belly slide (away from the jetty)
-  { to: [1203, 458], ms: 6500, pose: 'walk' },   // waddle back
-  { to: [1195, 447], ms: 1200, pose: 'walk' },
+  ...fromIce(6500),                              // waddle back
 ]));
 
 // frozen lake: ice fishing (pimpelfiske) at a hole in the ice, until a fish bites
 const penguinFish = () => offIce(penguinRoute([
-  { to: [1203, 458], ms: 1400, pose: 'walk' },
+  ...toIce,
   { to: [1165, 463], ms: 3000, pose: 'walk' },   // the hole is well clear of the jetty
   { ms: 9000, pose: 'wait', tick: (k, pg) => { pg.classList.add('fishing'); pg.classList.toggle('caught', k > 0.72); } },
   { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.remove('fishing', 'caught') },
-  { to: [1203, 458], ms: 5000, pose: 'walk' },
-  { to: [1195, 447], ms: 1200, pose: 'walk' },
+  ...fromIce(5000),
 ]));
 
 // hot summer days: across the veranda, along the lit path, down the jetty, a jump into the lake,
 // a swim to the rocky beach left of the cottage, and back in through the door
 const penguinSwim = () => penguinRoute([
-  { to: [1199, 449], ms: 700, pose: 'walk', fast: true },   // out onto the veranda
-  { to: [1216, 449.3], ms: 1100, pose: 'walk', fast: true }, // across it
+  { to: [1199, 448.2], ms: 700, pose: 'walk', fast: true },   // out onto the veranda
+  { to: [1215, 448.6], ms: 1100, pose: 'walk', fast: true }, // across it
   { to: [1220, 450.2], ms: 350, pose: 'hop' },               // down the step
   { to: [1297, 449.6], ms: 3600, pose: 'walk', fast: true }, // along the path to the jetty
   { to: [1302, 471], ms: 1300, pose: 'walk', fast: true },   // down the jetty
@@ -435,15 +438,18 @@ const penguinSwim = () => penguinRoute([
   { to: [1190, 466], ms: 7500, pose: 'swim' },               // swim to the rocks
   { to: [1168, 455], ms: 2200, pose: 'swim' },
   { to: [1164, 450.5], ms: 700, pose: 'hop' },               // climb out onto the rocks
-  { to: [1176, 449.4], ms: 900, pose: 'walk' },              // over to the veranda
-  { to: [1195, 447], ms: 1100, pose: 'walk' },               // and inside
+  { to: [1180, 450.6], ms: 800, pose: 'walk' },              // along the front of the veranda
+  { to: [1219.5, 450.4], ms: 2600, pose: 'walk' },           // to its step
+  { to: [1215, 448.6], ms: 350, pose: 'hop' },
+  { to: [1199, 448.2], ms: 1000, pose: 'walk' },
+  { to: [1195, 447], ms: 500, pose: 'walk' },                // and inside
 ]);
 
 // under the northern lights: out to the end of the jetty for a selfie (two flashes), and back
 const selfieFlash = (pg) => { pg.classList.remove('snap'); void pg.getBoundingClientRect(); pg.classList.add('snap'); };
 const penguinSelfie = () => { let flashes = 0; return penguinRoute([
-  { to: [1199, 449], ms: 800, pose: 'walk' },
-  { to: [1216, 449.3], ms: 1200, pose: 'walk' },
+  { to: [1199, 448.2], ms: 800, pose: 'walk' },
+  { to: [1215, 448.6], ms: 1200, pose: 'walk' },
   { to: [1220, 450.2], ms: 350, pose: 'hop' },
   { to: [1297, 449.6], ms: 4200, pose: 'walk' },
   { to: [1302, 471], ms: 1800, pose: 'walk' },
@@ -454,20 +460,19 @@ const penguinSelfie = () => { let flashes = 0; return penguinRoute([
   { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.remove('selfie', 'snap') },
   { to: [1297, 449.6], ms: 1800, pose: 'walk' },
   { to: [1220, 450.2], ms: 4200, pose: 'walk' },
-  { to: [1216, 449.3], ms: 350, pose: 'hop' },
-  { to: [1199, 449], ms: 1200, pose: 'walk' },
+  { to: [1215, 448.6], ms: 350, pose: 'hop' },
+  { to: [1199, 448.2], ms: 1200, pose: 'walk' },
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]); };
 // frozen lake: a snow angel on the ice, then a moment to admire it
 const snowAngel = $('#snowAngel');
 const penguinAngel = () => offIce(penguinRoute([
-  { to: [1203, 458], ms: 1400, pose: 'walk' },
+  ...toIce,
   { to: [1216, 462], ms: 1500, pose: 'walk' },
   { to: [1216, 462], ms: 2600, pose: 'slide', tick: (k) => { if (k > 0.3) snowAngel.classList.add('show'); } },
   { to: [1225, 462.5], ms: 900, pose: 'walk' },
   { ms: 1500, pose: 'wait' },
-  { to: [1203, 458], ms: 2000, pose: 'walk' },
-  { to: [1195, 447], ms: 1200, pose: 'walk' },
+  ...fromIce(2000),
 ])).then(() => setTimeout(() => snowAngel.classList.remove('show'), 60000));
 
 // clear nights: a telescope on the veranda, pointed at the space station when it's passing
@@ -484,11 +489,11 @@ function aimScope(pg) {
   pg.querySelector('.pg-tube').setAttribute('transform', `rotate(${(-angle).toFixed(0)} 7.6 -5)`);
 }
 const penguinStargaze = () => penguinRoute([
-  { to: [1199, 449], ms: 800, pose: 'walk' },
-  { to: [1205, 449.2], ms: 700, pose: 'walk' },
+  { to: [1199, 448.2], ms: 800, pose: 'walk' },
+  { to: [1205, 448.3], ms: 700, pose: 'walk' },
   { ms: 22000, pose: 'wait', tick: (k, pg) => { pg.classList.add('stargaze'); aimScope(pg); } },
   { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.remove('stargaze') },
-  { to: [1199, 449], ms: 700, pose: 'walk' },
+  { to: [1199, 448.2], ms: 700, pose: 'walk' },
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]);
 
@@ -505,14 +510,14 @@ const splashAt = (x) => (k) => {
   splash.classList.remove('go'); void splash.getBoundingClientRect(); splash.classList.add('go');
 };
 const penguinRainDance = () => penguinRoute([
-  { to: [1199, 449], ms: 700, pose: 'walk', fast: true },
-  { to: [1216, 449.3], ms: 900, pose: 'walk', fast: true },
+  { to: [1199, 448.2], ms: 700, pose: 'walk', fast: true },
+  { to: [1215, 448.6], ms: 900, pose: 'walk', fast: true },
   { to: [1220, 450.2], ms: 300, pose: 'hop' },
-  { to: [1241, 450.6], ms: 1200, pose: 'walk', fast: true },
-  ...Array.from({ length: 8 }, (_, i) => ({ to: [i % 2 ? 1241 : 1245, 450.6], ms: 430, pose: 'hop', tick: splashAt(i % 2 ? 1241 : 1245) })),
+  { to: [1246, 450.6], ms: 1300, pose: 'walk', fast: true },  // a puddle on the path, between two lamps
+  ...Array.from({ length: 8 }, (_, i) => ({ to: [i % 2 ? 1246 : 1250, 450.6], ms: 430, pose: 'hop', tick: splashAt(i % 2 ? 1246 : 1250) })),
   { to: [1220, 450.2], ms: 1300, pose: 'walk', fast: true },
-  { to: [1216, 449.3], ms: 300, pose: 'hop' },
-  { to: [1199, 449], ms: 900, pose: 'walk', fast: true },
+  { to: [1215, 448.6], ms: 300, pose: 'hop' },
+  { to: [1199, 448.2], ms: 900, pose: 'walk', fast: true },
   { to: [1195, 447], ms: 500, pose: 'walk' },
 ]);
 const rainy = () => live.particle === 'rain' || live.particle === 'drizzle';
@@ -549,30 +554,30 @@ const saunaPlunge = () => {
     { to: [1341, 460], ms: 500, pose: 'hop' },                // brrr, out
     { to: [1335, 449.1], ms: 1100, pose: 'walk', fast: true }, // back into the heat
   ];
-  if (tri) return [
-    { to: [1333, 451], ms: 500, pose: 'walk', fast: true },
-    { to: [1331, 457], ms: 600, pose: 'cannonball' },
+  if (tri) return [ // straight from the bank, right of the moored kayak
+    { to: [1350, 449.8], ms: 700, pose: 'walk', fast: true },
+    { to: [1352, 458], ms: 600, pose: 'cannonball' },
     { ms: 1600, pose: 'swim' },
-    { to: [1331, 450.4], ms: 600, pose: 'hop' },
-    { to: [1335, 449.1], ms: 700, pose: 'walk', fast: true },
+    { to: [1350, 449.8], ms: 600, pose: 'hop' },
+    { to: [1335, 449.1], ms: 800, pose: 'walk', fast: true },
   ];
   return [
     { to: [1297, 449.6], ms: 1500, pose: 'walk', fast: true },  // along the shore to the jetty
     { to: [1302, 471], ms: 1300, pose: 'walk', fast: true },    // down the jetty
     { to: [1307, 481], ms: 750, pose: 'cannonball' }, // and in!
-    { to: [1318, 487], ms: 1800, pose: 'swim' },                 // round the kayak …
-    { to: [1335, 479], ms: 2200, pose: 'swim' },
-    { to: [1334, 462], ms: 2600, pose: 'swim' },
-    { to: [1331, 455.5], ms: 1200, pose: 'swim' },
-    { to: [1331, 450.4], ms: 600, pose: 'hop' },                 // … and out by the sauna
+    { to: [1322, 486], ms: 1800, pose: 'swim' },                 // round the moored kayak …
+    { to: [1347, 478], ms: 2400, pose: 'swim' },
+    { to: [1348, 462], ms: 2600, pose: 'swim' },
+    { to: [1348, 455.5], ms: 1200, pose: 'swim' },
+    { to: [1347, 449.8], ms: 600, pose: 'hop' },                 // … and out onto the bank by the sauna
     { to: [1335, 449.1], ms: 800, pose: 'walk', fast: true },  // back into the heat
   ];
 };
 const penguinSauna = () => {
   saunaSession = true; saunaState();
   return penguinRoute([
-    { to: [1199, 449], ms: 700, pose: 'walk' },
-    { to: [1216, 449.3], ms: 900, pose: 'walk' },
+    { to: [1199, 448.2], ms: 700, pose: 'walk' },
+    { to: [1215, 448.6], ms: 900, pose: 'walk' },
     { to: [1220, 450.2], ms: 350, pose: 'hop' },
     { to: [1297, 449.6], ms: 3800, pose: 'walk' },
     { to: [1335, 449.1], ms: 1800, pose: 'walk' },           // to the sauna door
@@ -585,8 +590,8 @@ const penguinSauna = () => {
     { ms: 400, pose: 'wait', tick: hide(false) },
     { to: [1297, 449.6], ms: 1800, pose: 'walk' },            // and home, steaming
     { to: [1220, 450.2], ms: 3800, pose: 'walk' },
-    { to: [1216, 449.3], ms: 350, pose: 'hop' },
-    { to: [1199, 449], ms: 900, pose: 'walk' },
+    { to: [1215, 448.6], ms: 350, pose: 'hop' },
+    { to: [1199, 448.2], ms: 900, pose: 'walk' },
     { to: [1195, 447], ms: 600, pose: 'walk' },
   ]).then(() => { saunaSession = false; saunaState(); });
 };
@@ -595,21 +600,21 @@ const chanterelles = [...document.querySelectorAll('#chanterelles .cht')];
 const pick = (n) => (k, pg) => { if (k >= 1) { chanterelles[n - 1].classList.add('picked'); pg.classList.remove('p1', 'p2'); pg.classList.add(`p${n}`); } };
 const penguinChanterelles = () => penguinRoute([
   { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.add('basket') },
-  { to: [1199, 449], ms: 800, pose: 'walk' },
-  { to: [1216, 449.3], ms: 1200, pose: 'walk' },
+  { to: [1199, 448.2], ms: 800, pose: 'walk' },
+  { to: [1215, 448.6], ms: 1200, pose: 'walk' },
   { to: [1220, 450.2], ms: 350, pose: 'hop' },
   { to: [1262, 449.8], ms: 2800, pose: 'walk' },
-  { to: [1265, 447.4], ms: 900, pose: 'walk' },                  // off the path, to the edge of the forest
-  { to: [1265, 447.4], ms: 1600, pose: 'bend', tick: pick(1) },  // bend down …
-  { to: [1269.5, 447.8], ms: 900, pose: 'walk' },
-  { to: [1269.5, 447.8], ms: 1600, pose: 'bend', tick: pick(2) },
-  { to: [1274, 447.2], ms: 900, pose: 'walk' },
-  { to: [1274, 447.2], ms: 1600, pose: 'bend', tick: pick(3) },
+  { to: [1264.6, 448.3], ms: 900, pose: 'walk' },                  // off the path, just in front of the mushrooms
+  { to: [1264.6, 448.3], ms: 1600, pose: 'bend', tick: pick(1) },  // bend down …
+  { to: [1269.1, 448.4], ms: 900, pose: 'walk' },
+  { to: [1269.1, 448.4], ms: 1600, pose: 'bend', tick: pick(2) },
+  { to: [1273.6, 448.3], ms: 900, pose: 'walk' },
+  { to: [1273.6, 448.3], ms: 1600, pose: 'bend', tick: pick(3) },
   { ms: 900, pose: 'wait' },
   { to: [1262, 449.8], ms: 1300, pose: 'walk' },
   { to: [1220, 450.2], ms: 2900, pose: 'walk' },
-  { to: [1216, 449.3], ms: 350, pose: 'hop' },
-  { to: [1199, 449], ms: 1200, pose: 'walk' },
+  { to: [1215, 448.6], ms: 350, pose: 'hop' },
+  { to: [1199, 448.2], ms: 1200, pose: 'walk' },
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]).then(() => setTimeout(() => chanterelles.forEach((c) => c.classList.remove('picked')), 10 * 60000)); // they grow back
 
@@ -660,8 +665,8 @@ const chopOne = () => [
   { ms: 700, pose: 'wait', tick: (k) => { if (k >= 1) splitLog.classList.remove('show'); } },
 ];
 const penguinChop = () => penguinRoute([
-  { to: [1199, 449], ms: 800, pose: 'walk' },
-  { to: [1216, 449.3], ms: 1200, pose: 'walk' },
+  { to: [1199, 448.2], ms: 800, pose: 'walk' },
+  { to: [1215, 448.6], ms: 1200, pose: 'walk' },
   { to: [1220, 450.2], ms: 350, pose: 'hop' },
   { to: [1223.4, 449.7], ms: 700, pose: 'walk' },
   { to: [1223.4, 449.7], ms: 900, pose: 'bend', tick: (k, pg) => { if (k > 0.5) { blockAxe.classList.add('taken'); pg.classList.add('axe'); } } }, // pull the axe out of the block
@@ -673,8 +678,8 @@ const penguinChop = () => penguinRoute([
   { to: [1219.6, 449.5], ms: 900, pose: 'walk' },
   { to: [1219.6, 449.5], ms: 1400, pose: 'bend', tick: (k, pg) => { if (k > 0.5 && pg.classList.contains('carrylogs')) { pg.classList.remove('carrylogs'); choppedLogs += 3; updateWoodpile(); } } }, // onto the pile
   { to: [1220, 450.2], ms: 300, pose: 'walk' },
-  { to: [1216, 449.3], ms: 350, pose: 'hop' },
-  { to: [1199, 449], ms: 1200, pose: 'walk' },
+  { to: [1215, 448.6], ms: 350, pose: 'hop' },
+  { to: [1199, 448.2], ms: 1200, pose: 'walk' },
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]);
 
@@ -687,8 +692,8 @@ skyHooks.push(berryState); berryState();
 const pickBerries = (n) => (k, pg) => { if (k >= 1) { blueberryBushes[n - 1].classList.add('picked'); pg.classList.remove('b1', 'b2'); pg.classList.add(`b${n}`); } };
 const penguinBlueberries = () => penguinRoute([
   { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.add('pail') },
-  { to: [1199, 449], ms: 800, pose: 'walk' },
-  { to: [1216, 449.3], ms: 1200, pose: 'walk' },
+  { to: [1199, 448.2], ms: 800, pose: 'walk' },
+  { to: [1215, 448.6], ms: 1200, pose: 'walk' },
   { to: [1220, 450.2], ms: 350, pose: 'hop' },
   { to: [1243, 450], ms: 1700, pose: 'walk' },
   { to: [1245.6, 447.9], ms: 800, pose: 'walk' },                  // off the path, to the bushes
@@ -700,8 +705,8 @@ const penguinBlueberries = () => penguinRoute([
   { ms: 900, pose: 'wait' },
   { to: [1252, 450], ms: 900, pose: 'walk' },
   { to: [1220, 450.2], ms: 2300, pose: 'walk' },
-  { to: [1216, 449.3], ms: 350, pose: 'hop' },
-  { to: [1199, 449], ms: 1200, pose: 'walk' },
+  { to: [1215, 448.6], ms: 350, pose: 'hop' },
+  { to: [1199, 448.2], ms: 1200, pose: 'walk' },
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]).then(() => { bakePie(); setTimeout(() => blueberryBushes.forEach((b) => b.classList.remove('picked')), 10 * 60000); });
 
@@ -709,23 +714,23 @@ const penguinBlueberries = () => penguinRoute([
 const kayakMoored = $('#kayakMoored');
 const moored = (on) => (k) => { if (k >= 1) kayakMoored.classList.toggle('away', !on); };
 const penguinKayak = () => penguinRoute([
-  { to: [1199, 449], ms: 800, pose: 'walk' },
-  { to: [1216, 449.3], ms: 1200, pose: 'walk' },
+  { to: [1199, 448.2], ms: 800, pose: 'walk' },
+  { to: [1215, 448.6], ms: 1200, pose: 'walk' },
   { to: [1220, 450.2], ms: 350, pose: 'hop' },
   { to: [1297, 449.6], ms: 4200, pose: 'walk' },
-  { to: [1302, 471], ms: 1800, pose: 'walk' },
-  { to: [1311, 474.5], ms: 500, pose: 'hop', tick: moored(false) }, // in
-  { to: [1350, 479], ms: 5000, pose: 'paddle' },
-  { to: [1410, 475], ms: 6500, pose: 'paddle' },
+  { to: [1325, 449.8], ms: 1800, pose: 'walk' },                    // along the bank to the kayak, beside the sauna
+  { to: [1325, 456.5], ms: 500, pose: 'hop', tick: moored(false) }, // in
+  { to: [1352, 468], ms: 3400, pose: 'paddle' },
+  { to: [1410, 475], ms: 5500, pose: 'paddle' },
   { to: [1425, 469], ms: 2500, pose: 'paddle' },
   { to: [1370, 466], ms: 5500, pose: 'paddle' },
-  { to: [1318, 470], ms: 5000, pose: 'paddle' },
-  { to: [1311, 474.5], ms: 1800, pose: 'paddle' },
-  { to: [1302, 471], ms: 500, pose: 'hop', tick: (k) => { if (k > 0) kayakMoored.classList.remove('away'); } }, // out
+  { to: [1336, 462], ms: 3600, pose: 'paddle' },
+  { to: [1325, 456.5], ms: 1600, pose: 'paddle' },
+  { to: [1325, 449.8], ms: 500, pose: 'hop', tick: (k) => { if (k > 0) kayakMoored.classList.remove('away'); } }, // out onto the bank
   { to: [1297, 449.6], ms: 1800, pose: 'walk' },
   { to: [1220, 450.2], ms: 4200, pose: 'walk' },
-  { to: [1216, 449.3], ms: 350, pose: 'hop' },
-  { to: [1199, 449], ms: 1200, pose: 'walk' },
+  { to: [1215, 448.6], ms: 350, pose: 'hop' },
+  { to: [1199, 448.2], ms: 1200, pose: 'walk' },
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]);
 const calm = () => ((simulated || weatherNow)?.wind ?? 0) < 15;
@@ -733,13 +738,13 @@ const calm = () => ((simulated || weatherNow)?.wind ?? 0) < 15;
 
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date()); // 2026-11-16
 const outDoor = [ // out of the door, along the veranda and down the step
-  { to: [1199, 449], ms: 800, pose: 'walk' },
-  { to: [1216, 449.3], ms: 1200, pose: 'walk' },
+  { to: [1199, 448.2], ms: 800, pose: 'walk' },
+  { to: [1215, 448.6], ms: 1200, pose: 'walk' },
   { to: [1220, 450.2], ms: 350, pose: 'hop' },
 ];
 const homeAgain = [
-  { to: [1216, 449.3], ms: 350, pose: 'hop' },
-  { to: [1199, 449], ms: 1200, pose: 'walk' },
+  { to: [1215, 448.6], ms: 350, pose: 'hop' },
+  { to: [1199, 448.2], ms: 1200, pose: 'walk' },
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ];
 
@@ -820,10 +825,10 @@ skyHooks.push(drawTracks); drawTracks();
 const penguinStroll = () => penguinRoute([
   ...outDoor,
   { to: [1246, 450.3], ms: 2600, pose: 'walk' },
-  { to: [1252, 447.4], ms: 1500, pose: 'walk' },
-  { to: [1268, 446.9], ms: 3200, pose: 'walk' },
+  { to: [1262, 449], ms: 1700, pose: 'walk' },
+  { to: [1282, 447.4], ms: 2800, pose: 'walk' },   // to the edge of the forest (past the berries and mushrooms)
   { ms: 1500, pose: 'wait' },
-  { to: [1276, 450.9], ms: 1800, pose: 'walk' },
+  { to: [1279, 450.9], ms: 1800, pose: 'walk' },
   { ms: 1200, pose: 'wait' },
   { to: [1220, 450.2], ms: 5200, pose: 'walk' },
   ...homeAgain,
@@ -909,7 +914,7 @@ let orcaOn = false, orcaLeapAt = 0;
 // big one on the right (from x 1293): it surfaces out there, swims a gentle curve and dives away.
 function orcaSwim(force = false) {
   if (orcaOn || reduceMotion || live.ice > 0.2) return;
-  if (!force && (!heroVisible() || ['penguinKayak', 'penguinSwim', 'penguinSauna'].includes(penguinJob))) return;
+  if (!force && (!heroVisible() || ['penguinKayak', 'penguinSwim', 'penguinSauna'].includes(penguinJob) || document.documentElement.dataset.forestwalk === 'yes')) return;
   orcaOn = true; orcaLeapAt = 0;
   const dir = Math.random() < 0.5 ? 1 : -1, r = (a, b) => a + Math.random() * (b - a);
   const west = [r(985, 1010), r(462, 468)], east = [r(1228, 1250), r(462, 468)], mid = [r(1060, 1180), r(458, 463)];
@@ -953,8 +958,8 @@ function orcaSwim(force = false) {
       body = `translate(0 ${(ORCA_CRUISE + down).toFixed(2)})`;
     }
     orcaBody.setAttribute('transform', body);
-    orca.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
-    if ((u < 1 || leaping) && orcaOn) requestAnimationFrame(step); // a leap is never cut short
+    orca.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${perspective(y, 463).toFixed(3)})`);
+    if ((u < 1 || leaping) && orcaOn && !(live.ice > 0.2)) requestAnimationFrame(step); // a leap is never cut short (but ice ends it)
     else { orca.classList.remove('on', 'under', 'blow'); orcaOn = false; }
   };
   requestAnimationFrame(step);
@@ -1078,10 +1083,11 @@ const tractor = $('#tractor'), gulls = $('#gulls'), gullEls = [...gulls.children
 const PARK = [873, 452];
 let tractorX = PARK[0], tractorRoll = 0, lastTx = PARK[0];
 function moveTractor(x, y, dir) { // x, y: where the penguin sits
-  const gx = x + 3.8 * dir, gy = y + 4.5; // the tractor's ground point (the seat is 3.8 behind it, 6 up)
+  const s = perspective(y); // the same size as the penguin driving it
+  const gx = x + 3.8 * dir * s, gy = y + 4.5 * s; // the tractor's ground point (the seat is 3.8 behind it, 6 up)
   tractorX = gx;
-  tractorRoll += (gx - lastTx) * dir; lastTx = gx;
-  tractor.setAttribute('transform', `translate(${gx.toFixed(2)} ${gy.toFixed(2)}) scale(${dir} 1)`);
+  tractorRoll += (gx - lastTx) * dir / s; lastTx = gx;
+  tractor.setAttribute('transform', `translate(${gx.toFixed(2)} ${gy.toFixed(2)}) scale(${(dir * s).toFixed(3)} ${s.toFixed(3)})`);
   tractor.querySelector('.tr-rear').setAttribute('transform', `translate(-3.6 -3) rotate(${(tractorRoll / 3 * 57.3).toFixed(0)})`);
   tractor.querySelector('.tr-front').setAttribute('transform', `translate(5 -1.7) rotate(${(tractorRoll / 1.7 * 57.3).toFixed(0)})`);
   tractor.querySelector('.tr-reel-spokes').setAttribute('transform', `rotate(${(-tractorRoll * 40).toFixed(0)} 8.6 -3.4)`);
@@ -1091,7 +1097,8 @@ function moveTractor(x, y, dir) { // x, y: where the penguin sits
   }
 }
 function parkTractor() {
-  tractor.setAttribute('transform', `translate(${PARK[0]} ${PARK[1]}) scale(-1 1)`);
+  const s = perspective(PARK[1] - 4.5).toFixed(3); // the size it has with the penguin on it there
+  tractor.setAttribute('transform', `translate(${PARK[0]} ${PARK[1]}) scale(-${s} ${s})`);
   tractor.classList.remove('running', 'ploughing', 'reaping');
   gulls.classList.remove('on');
   tractorX = lastTx = PARK[0];
@@ -1103,30 +1110,34 @@ const FARM_GATE = [905, 452.5]; // in front of the barn
 // Behind the cottage (no trees there, the clearing) it is out of sight; along the far shore it walks
 // just behind the first row of trees (y 446, the trees stand at 449), which are drawn once more in
 // front of it (#landscapeFront), so it shows only now and then between the trunks.
+// the copy of the trees in front only exists while the penguin walks behind them, so nothing else
+// (a leaping orca, say) can ever disappear behind it
+const forestWalk = (on) => (k) => { if (k >= 1 || on) setData('forestwalk', on ? 'yes' : 'no'); };
 const outLeft = [
+  { ms: 1, pose: 'wait', tick: forestWalk(true) },
   ...outDoor,
-  { to: [1249, 447.6], ms: 2200, pose: 'walk' },
-  { to: [1252, 446.2], ms: 500, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.add('inside'); } }, // behind the cottage
-  { to: [1158, 446], ms: 4400, pose: 'walk', fast: true, tick: (k, pg) => { if (k >= 1) pg.classList.remove('inside'); } },
+  { to: [1259.8, 448.6], ms: 2400, pose: 'walk' },  // between the blueberry bushes and the mushrooms
+  { to: [1259.8, 446.2], ms: 500, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.add('inside'); } }, // into the trees behind the cottage
+  { to: [1158, 446], ms: 4500, pose: 'walk', fast: true, tick: (k, pg) => { if (k >= 1) pg.classList.remove('inside'); } },
   { to: [1040, 446], ms: 5400, pose: 'walk', fast: true },                                                       // behind the trees
-  { to: [936, 446.4], ms: 4800, pose: 'walk', fast: true },
-  { to: [918, 447.8], ms: 900, pose: 'walk' },                                                                   // out of the forest
+  { to: [940, 445.6], ms: 4600, pose: 'walk', fast: true },
+  { to: [918, 447.8], ms: 1000, pose: 'walk', tick: (k) => { if (k > 0.41) forestWalk(false)(1); } },           // out of the forest (in front of the trees from y 446.5)
   { to: FARM_GATE, ms: 1100, pose: 'walk' },
 ];
 const homeLeft = [
   { to: [918, 447.8], ms: 1100, pose: 'walk' },
-  { to: [936, 446.4], ms: 900, pose: 'walk' },
-  { to: [1040, 446], ms: 4800, pose: 'walk', fast: true },
+  { to: [940, 445.6], ms: 1000, pose: 'walk', tick: (k) => { if (k > 0.59) forestWalk(true)(1); } },             // into the forest (behind the trees from y 446.5)
+  { to: [1040, 446], ms: 4600, pose: 'walk', fast: true },
   { to: [1158, 446], ms: 5400, pose: 'walk', fast: true, tick: (k, pg) => { if (k >= 1) pg.classList.add('inside'); } },
-  { to: [1252, 446.2], ms: 4400, pose: 'walk', fast: true, tick: (k, pg) => { if (k >= 1) pg.classList.remove('inside'); } },
-  { to: [1249, 447.6], ms: 500, pose: 'walk' },
-  { to: [1220, 450.2], ms: 2200, pose: 'walk' },
+  { to: [1259.8, 446.2], ms: 4500, pose: 'walk', fast: true, tick: (k, pg) => { if (k >= 1) pg.classList.remove('inside'); } },
+  { to: [1259.8, 448.6], ms: 500, pose: 'walk', tick: forestWalk(false) },
+  { to: [1220, 450.2], ms: 2400, pose: 'walk' },
   ...homeAgain,
 ];
 // keep the copy of the shoreline trees in front in step with the real ones (seasons, the fractal forest)
 const frontTrees = $('#frontTrees'), frontLeafy = $('#frontLeafy');
 function buildFrontTrees() {
-  const near = (x) => x > 915 && x < 1170;
+  const near = (x) => x > 925 && x < 1170; // the trees the forest path passes behind (the one at 921 stands higher up, behind the path)
   frontTrees.replaceChildren(...[...$('#trees').children].filter((el) => { const b = el.getBBox(); return near(b.x + b.width / 2); }).map((el) => el.cloneNode(true)));
   frontTrees.setAttribute('class', $('#trees').getAttribute('class') || '');
   frontLeafy.replaceChildren(...[...$('#leafy').children].filter((el) => near(+(el.getAttribute('cx') ?? (+el.getAttribute('x') + 1.5)))).map((el) => el.cloneNode(true)));
@@ -1134,7 +1145,11 @@ function buildFrontTrees() {
 new MutationObserver(buildFrontTrees).observe($('#trees'), { childList: true, attributes: true, attributeFilter: ['class'] });
 new MutationObserver(buildFrontTrees).observe($('#leafy'), { childList: true });
 buildFrontTrees();
-const seat = (gx, gy, dir) => [gx - 3.8 * dir, gy - 4.5]; // where the penguin sits for a tractor ground point
+const seat = (gx, gy, dir) => { // where the penguin sits for a tractor ground point (both drawn at the size for their depth)
+  let y = gy - 4.5;
+  for (let i = 0; i < 3; i++) y = gy - 4.5 * perspective(y);
+  return [gx - 3.8 * dir * perspective(y), y];
+};
 const ROW = (f) => [FIELD.x1 + 4, fP(FIELD.x1, f) + 1];
 // a tractor job: on, two passes along the field (left along the far half, right along the near half), back
 function tractorJob({ mode, next, bales = true, onDone }) {
@@ -1222,11 +1237,11 @@ skyHooks.push(picnicState); picnicState();
 const penguinPicnic = () => penguinRoute([
   ...outLeft,
   { to: [916, 471], ms: 2400, pose: 'walk' },                // across the end of the road
-  { to: [890, 491.5], ms: 2800, pose: 'walk' },
-  { to: [884.5, 493.4], ms: 600, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.add('picnic'); } },
+  { to: [880, 489], ms: 2800, pose: 'walk' },                // round the basket (on the right of the blanket) …
+  { to: [884.5, 493.4], ms: 800, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.add('picnic'); } }, // … onto the blanket
   { ms: 22000, pose: 'sit', tick: (k, pg) => pg.classList.toggle('bite', Math.sin(k * 22000 / 900) > 0.6) }, // a bite now and then
   { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.remove('picnic', 'bite') },
-  { to: [890, 491.5], ms: 600, pose: 'walk' },
+  { to: [880, 489], ms: 800, pose: 'walk' },
   { to: [916, 471], ms: 2800, pose: 'walk' },
   { to: FARM_GATE, ms: 2400, pose: 'walk' },
   ...homeLeft,
@@ -1265,8 +1280,8 @@ const trophy = $('#trophy');
 const penguinTrophy = () => penguinRoute([
   { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.add('carrytrophy') },
   { to: [1190, 447.8], ms: 800, pose: 'walk' },
-  { to: [1181.5, 448.4], ms: 1400, pose: 'walk' },
-  { to: [1181.5, 448.4], ms: 1500, pose: 'bend', tick: (k, pg) => { if (k > 0.5) { pg.classList.remove('carrytrophy'); trophy.classList.add('show'); } } },
+  { to: [1180.2, 448.4], ms: 1400, pose: 'walk' },
+  { to: [1180.2, 448.4], ms: 1500, pose: 'bend', tick: (k, pg) => { if (k > 0.5) { pg.classList.remove('carrytrophy'); trophy.classList.add('show'); } } },
   { ms: 900, pose: 'hop' },
   { to: [1195, 447], ms: 1300, pose: 'walk' },
 ]);
@@ -1285,7 +1300,7 @@ earnBadge = function (id) {
 let penguinDayPreview = false;
 const penguinDay = () => penguinDayPreview || params.has('penguinday') || new Intl.DateTimeFormat('en-GB', { timeZone: TZ, month: 'numeric', day: 'numeric' }).format(new Date()) === '25/04';
 const visitorsG = $('#visitors');
-[[1244.5, 449.4, 1], [1249, 448.3, -1], [1253.2, 450.1, 1], [1261.5, 448.4, -1], [1266, 450.2, 1], [1279.5, 448.7, 1], [1284.6, 450.3, -1], [1302.6, 454, -1]].forEach(([x, y, dir]) => {
+[[1244.5, 449.4, 1], [1249, 448.3, -1], [1253.2, 450.1, 1], [1261.5, 448.4, -1], [1266, 450.2, 1], [1279.5, 448.7, 1], [1284.6, 450.3, -1], [1302.6, 454, -1]].sort((u, v) => u[1] - v[1]).forEach(([x, y, dir]) => { // farthest first
   const s = 0.86 * (1 + (y - 447) * 0.014);
   visitorsG.insertAdjacentHTML('beforeend', `<g transform="translate(${x} ${y}) scale(${(dir * s).toFixed(3)} ${s.toFixed(3)})"><g class="pgv"><use href="#pgMini"/></g></g>`);
 });
@@ -1299,12 +1314,12 @@ every(2, 5, () => { // a little hop, one at a time
 });
 const penguinGreet = () => penguinRoute([
   ...outDoor,
-  { to: [1240.5, 450.3], ms: 1500, pose: 'walk' },
+  { to: [1249, 449.6], ms: 1900, pose: 'walk' },   // along the path, stopping by each group of visitors
   { ms: 500, pose: 'hop' },
-  { to: [1257.5, 450.5], ms: 2400, pose: 'walk' },
+  { to: [1264, 449.6], ms: 2000, pose: 'walk' },
   { ms: 900, pose: 'wait' },
   { ms: 450, pose: 'hop' },
-  { to: [1272.5, 449.9], ms: 2000, pose: 'walk' },
+  { to: [1281.5, 449.5], ms: 2000, pose: 'walk' },
   { ms: 1400, pose: 'wait' },
   { ms: 450, pose: 'hop' },
   { to: [1220, 450.2], ms: 5200, pose: 'walk' },
@@ -1328,14 +1343,14 @@ const rakeUpTo = (x0, x1, fromLeft) => (k) => {
   leafEls.forEach((el) => {
     if (el.dataset.piled || (fromLeft ? +el.dataset.x > x : +el.dataset.x < x)) return;
     el.dataset.piled = '1'; raked++;
-    leafTo(el, 1261 + (Math.random() - 0.5) * 5, 447.6 + (Math.random() - 0.5) * 1.2);
-    leafPile.setAttribute('transform', `translate(1261 448.6) scale(${(raked / leafEls.length).toFixed(2)})`);
+    leafTo(el, 1264 + (Math.random() - 0.5) * 5, 447.6 + (Math.random() - 0.5) * 1.2);
+    leafPile.setAttribute('transform', `translate(1264 448.6) scale(${(raked / leafEls.length).toFixed(2)})`);
   });
 };
 const leafBurst = () => {
   const leaves = $('#leaves');
   leaves.classList.add('burst');
-  leafPile.setAttribute('transform', 'translate(1261 448.6) scale(0)');
+  leafPile.setAttribute('transform', 'translate(1264 448.6) scale(0)');
   leafEls.forEach((el) => { delete el.dataset.piled; leafTo(el, 1236 + Math.random() * 50, 446.6 + Math.random() * 2.6); });
   raked = 0;
   setTimeout(() => leaves.classList.remove('burst'), 800);
@@ -1348,7 +1363,7 @@ const penguinRake = () => penguinRoute([
   { to: [1268, 448.2], ms: 4200, pose: 'walk', tick: rakeUpTo(1291, 1268, false) },  // … and from the right
   { to: [1250, 448.5], ms: 1800, pose: 'walk', tick: (k, pg) => { if (k >= 1) pg.classList.remove('rake'); } },
   { ms: 900, pose: 'wait' },
-  { to: [1261, 448], ms: 650, pose: 'jump', tick: (k) => { if (k >= 1) leafBurst(); } },   // wheee
+  { to: [1264, 448], ms: 650, pose: 'jump', tick: (k) => { if (k >= 1) leafBurst(); } },   // wheee
   { ms: 1300, pose: 'wait' },
   { to: [1220, 450.2], ms: 3000, pose: 'walk' },
   ...homeAgain,
@@ -1394,11 +1409,11 @@ const cake = $('#cake');
 const birthdayToday = () => params.has('birthday') || new Intl.DateTimeFormat('en-GB', { timeZone: TZ, month: 'numeric', day: 'numeric' }).format(new Date()) === '16/11';
 const penguinCake = () => penguinRoute([
   { ms: 1, pose: 'wait', tick: (k, pg) => pg.classList.add('carrycake') },
-  { to: [1199, 449], ms: 900, pose: 'walk' },
-  { to: [1206.5, 449.2], ms: 1300, pose: 'walk' },
-  { to: [1206.5, 449.2], ms: 1500, pose: 'bend', tick: (k, pg) => { if (k > 0.5) { pg.classList.remove('carrycake'); cake.classList.add('show'); } } },
+  { to: [1199, 448.2], ms: 900, pose: 'walk' },
+  { to: [1206.5, 448.3], ms: 1300, pose: 'walk' },
+  { to: [1206.5, 448.3], ms: 1500, pose: 'bend', tick: (k, pg) => { if (k > 0.5) { pg.classList.remove('carrycake'); cake.classList.add('show'); } } },
   { ms: 1200, pose: 'wait' },
-  { to: [1199, 449], ms: 1100, pose: 'walk' },
+  { to: [1199, 448.2], ms: 1100, pose: 'walk' },
   { to: [1195, 447], ms: 700, pose: 'walk' },
 ]);
 cake.querySelector('.hit').addEventListener('click', () => { cake.classList.add('out'); earnBadge('cake'); });
@@ -1470,6 +1485,7 @@ function penguinCleanUp() {
   pg.querySelector('.pg-flip').removeAttribute('transform'); pg.querySelector('.pg-ripple').style.opacity = 0;
   pg.querySelectorAll('.pg-axe, .pg-paddle, .pg-spatula').forEach((el) => el.removeAttribute('transform'));
   document.documentElement.classList.remove('grilling');
+  setData('forestwalk', 'no');
   kayakMoored.classList.remove('away'); blockAxe.classList.remove('taken'); splitLog.classList.remove('show'); porchLamp.classList.remove('on');
   if (saunaSession) { saunaSession = false; saunaState(); }
   if (typeof parkTractor === 'function') { parkTractor(); farmRevealClear(); renderField(); }
@@ -1527,7 +1543,8 @@ function alongRoad(el, { reverse = false, back = !reverse, speed = 70, onStep, t
       if (t - drawnAt >= 15 || pos >= len) { // at most 60 frames a second (phones run at 120)
         drawnAt = t;
         const angle = Math.atan2(q.y - p.y, q.x - p.x) * 180 / Math.PI;
-        el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${angle.toFixed(1)})${towardsLake ? '' : ' scale(-1 1)'}`);
+        const s = perspective(p.y, 474); // bigger where the road comes nearer
+        el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${angle.toFixed(1)}) scale(${(towardsLake ? s : -s).toFixed(3)} ${s.toFixed(3)})`);
         if (onStep) onStep(t, p);
       }
       if (pos < len) requestAnimationFrame(step);
@@ -1662,15 +1679,16 @@ async function triathlon(force = false) {
   await dive();
   swimmer.classList.add('out');
   await travel(swimmer, $('#swimLane'), 11000, { onStep: (p, q, t) => {
-    swimmer.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`); // drawn facing left, the way it swims
+    swimmer.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) scale(${perspective(p.y, 474).toFixed(3)})`); // drawn facing left, the way it swims
     swimmer.classList.toggle('alt', Math.sin(t / 260) > 0);
   } });
   swimmer.classList.remove('out');
   // up the ladder of the small jetty and along it to the road (transition)
   runner.classList.add('out');
-  await animate(1500, (k) => runner.setAttribute('transform', `translate(958.3 ${(468.8 - 8.4 * k).toFixed(1)})`));
-  await animate(2000, (k, t) => { runner.setAttribute('transform', `translate(${(958 - 27 * k).toFixed(1)} ${(460.4 + 0.5 * k).toFixed(1)}) scale(-1 1)`); runPose(runner, t); });
-  await animate(900, (k, t) => { runner.setAttribute('transform', `translate(${(931 - 5 * k).toFixed(1)} ${(460.9 + 10 * k).toFixed(1)}) scale(-1 1)`); runPose(runner, t); });
+  const runAt = (x, y, dir = 1) => { const s = perspective(y, 474); runner.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(dir * s).toFixed(3)} ${s.toFixed(3)})`); };
+  await animate(1500, (k) => runAt(958.3, 468.8 - 8.4 * k));
+  await animate(2000, (k, t) => { runAt(958 - 27 * k, 460.4 + 0.5 * k, -1); runPose(runner, t); });
+  await animate(900, (k, t) => { runAt(931 - 5 * k, 460.9 + 10 * k, -1); runPose(runner, t); });
   runner.classList.remove('out');
   // bike (back through the valley), then run
   await ride({ reverse: true, force: true });
@@ -2189,6 +2207,9 @@ const herd = [[395, 447], [462, 455], [548, 444]].map(([x, y], i) => {
 // now and then a cow swishes its tail
 every(3, 8, () => { if (!heroVisible() || reduceMotion) return; const c = herd[Math.floor(Math.random() * herd.length)].el; c.classList.add('swish'); setTimeout(() => c.classList.remove('swish'), 1000); });
 function drawCow(c, t = 0) {
+  // the cow closest to us is drawn in front (rearranged only when that order changes)
+  const order = herd.slice().sort((a, b) => a.y - b.y);
+  if (order.some((o, i) => cowsEl.children[i] !== o.el)) order.forEach((o) => cowsEl.appendChild(o.el));
   const s = 0.95 + (c.y - 440) * 0.012; // a little bigger closer to us
   c.el.setAttribute('transform', `translate(${c.x.toFixed(1)} ${c.y.toFixed(1)}) scale(${(s * c.dir).toFixed(3)} ${s.toFixed(3)})`);
   const swing = c.walking ? Math.sin(t / 160) * 14 : 0;
@@ -2230,8 +2251,6 @@ function cowStep(t) {
   if (t - cowDrawn > 50) { // 20 frames a second is plenty for cows
     cowDrawn = t;
     herd.forEach((c) => { if (!c.busy) drawCow(c, t); });
-    // the cow closest to us is drawn in front
-    herd.slice().sort((a, b) => a.y - b.y).forEach((c) => cowsEl.appendChild(c.el));
   }
   // every frame while someone moves; while they all just graze, a look twice a second is enough
   const moving = herd.some((c) => c.walking || c.busy);
@@ -2285,7 +2304,7 @@ async function ufoVisit(force = false) {
   beamTo(80); ufo.classList.add('beaming');
   const s0 = 0.95 + (cow.y - 440) * 0.012, y0 = cow.y;
   await animate(3600, (k, t) => {
-    const e = ease(k), s = s0 * (1 - 0.55 * e);
+    const e = ease(k), s = s0; // straight up, so it stays the same size (it is no further away)
     cow.el.setAttribute('transform', `translate(${(hx + Math.sin(t / 300) * 1.5).toFixed(1)} ${(y0 - 76 * e).toFixed(1)}) rotate(${(Math.sin(t / 250) * 12 * e).toFixed(1)}) scale(${(s * cow.dir).toFixed(3)} ${s.toFixed(3)})`);
     place(hx, hy + Math.sin(t / 120) * 1.2);
   });
@@ -2295,7 +2314,7 @@ async function ufoVisit(force = false) {
   // … and back it goes, facing the other way
   cow.dir *= -1; cow.el.style.opacity = 1; ufo.classList.add('beaming');
   await animate(3200, (k, t) => {
-    const e = ease(k), s = s0 * (0.45 + 0.55 * e);
+    const e = ease(k), s = s0;
     cow.el.setAttribute('transform', `translate(${hx.toFixed(1)} ${(y0 - 76 * (1 - e)).toFixed(1)}) rotate(${(Math.sin(t / 250) * 12 * (1 - e)).toFixed(1)}) scale(${(s * cow.dir).toFixed(3)} ${s.toFixed(3)})`);
     place(hx, hy + Math.sin(t / 120) * 1.2);
   });
@@ -2425,9 +2444,9 @@ async function hockeyGame() {
   const puck = { x: 1136, y: 472, vx: 0, vy: 0 };
   // the referee skates (well, waddles) out to the far side of the rink
   const referee = penguinRoute([
-    { to: [1203, 458], ms: 1400, pose: 'walk' }, { to: [1138, 463], ms: 3500, pose: 'walk' },
+    ...toIce, { to: [1138, 463], ms: 3500, pose: 'walk' },
     { ms: 34000, pose: 'wait' },
-    { to: [1203, 458], ms: 3500, pose: 'walk' }, { to: [1195, 447], ms: 1200, pose: 'walk' },
+    ...fromIce(3500),
   ]);
   await new Promise((done) => {
     let t0 = 0, last = 0;
@@ -2462,9 +2481,15 @@ async function hockeyGame() {
       });
       P.forEach((p, i) => {
         const jump = p.hop && t - p.hop < 500 ? Math.sin((t - p.hop) / 500 * Math.PI) * 3 : 0;
-        hockeyPlayers[i].setAttribute('transform', `translate(${p.x.toFixed(1)} ${(p.y - jump).toFixed(1)}) scale(${p.dir} 1)`);
+        const s = perspective(p.y, 473);
+        hockeyPlayers[i].setAttribute('transform', `translate(${p.x.toFixed(1)} ${(p.y - jump).toFixed(1)}) scale(${(p.dir * s).toFixed(3)} ${s.toFixed(3)})`);
       });
       puckEl.setAttribute('transform', `translate(${puck.x.toFixed(1)} ${puck.y.toFixed(1)})`);
+      // the nearer player (lower on the ice) is drawn in front of the other
+      if (Math.abs(P[0].y - P[1].y) > 0.3) {
+        const [far, near] = P[0].y < P[1].y ? hockeyPlayers : [hockeyPlayers[1], hockeyPlayers[0]];
+        if (near.compareDocumentPosition(far) & Node.DOCUMENT_POSITION_FOLLOWING) far.after(near);
+      }
       if (t - t0 < 38000 && !routeAbort) requestAnimationFrame(step); else done();
     };
     requestAnimationFrame(step);

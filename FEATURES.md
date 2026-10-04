@@ -70,7 +70,7 @@ Everything at the top of the page follows the real conditions in **Vienna** (set
 
 - **Time of day:** the sky follows the real height of the sun above (or below) the horizon for the place and day, calculated, not fixed. Full daylight above 12°, dawn and dusk colours around the horizon, and full night only once the sun is 12° below it. So twilight is short in winter and long in summer, and where the sun never sinks that far (Stockholm around midsummer, -7°) the night stays light: a deep blue sky with a glow in the north and only a few stars. Vienna gets properly dark even in June. Backstage: *light summer night* shows a Stockholm midsummer night.
 - **Sun and moon:** the sun travels across the sky during the day, the moon at night. Behind clouds they fade: fully visible up to half cloud cover, gone when it's overcast, raining, snowing or foggy. The sun climbs as high as it really does where you are: all the way up only at midsummer noon, low all day in winter (in Vienna about 65° in June, 18° in December; in Stockholm 54° and 7°).
-- **Shadows:** the cottage, the sauna and the snowman cast soft shadows from the real sun: long in the morning and evening and all winter day, short at summer noon; to the right when the sun is low on the left in the morning, towards you around noon, to the left in the evening. Faint on the water and bluish on snow. The sun has to be out: full shadows up to about a quarter cloud cover, fading to none at 85% cloud, and none in rain, snow or fog. Preview: `?sky=dawn` / `?sky=dusk` on a clear day.
+- **Shadows:** the cottage, the sauna, the barn and the snowman cast soft shadows from the real sun: long in the morning and evening and all winter day, short at summer noon; to the right when the sun is low on the left in the morning, towards you around noon, to the left in the evening. Faint on the water and bluish on snow. The sun has to be out: full shadows up to about a quarter cloud cover, fading to none at 85% cloud, and none in rain, snow or fog. Preview: `?sky=dawn` / `?sky=dusk` on a clear day.
 - **Moon phase:** the moon shows its real shape for that night (crescent, half, gibbous, full).
 - **Moon position:** the moon rises and sets at its real times where you are and climbs as high as it really does (low-precision lunar theory, as in the SunCalc library). When it's up during the day it shows as a pale day moon (e.g. a waning moon in the morning, opposite the rising sun). Clouds hide it; the moonlight path on the lake only appears while it's up. Terminal `moon` also tells today's moonrise, moonset and its height right now.
 - **Stars:** they appear after sunset and some twinkle.
@@ -143,7 +143,37 @@ Based on the date in Vienna.
 
 ## What's in front of what
 
-The moving things are drawn back to front: the farm first (so riders, skiers, the moose and cows on the road pass in front of the field and the barn), the orca and the beaver behind the ducks and the rowing boat, the owl in front of the shoreline trees (it sits in one). The moose comes out of the forest edge, crosses the field and the road, and its warning sign stands on the near side of the road.
+Everything is placed by how far away it is: lower in the picture means nearer, drawn on top and a little bigger.
+- **Order:** the farm first (so riders, skiers, the moose and cows on the road pass in front of the field and the barn); the owl in front of the shoreline trees (it sits in one). The Christmas tree and the midsommar pole stand behind the rocks, lamps, grill and chopping block in front of them.
+- **On the lake** the order is worked out live, a few times a second: the beaver lodge, the orca, the beaver, each duck, the triathlete, the rowing boat and the skater. So a duck paddling in front of the orca or the swimmer covers it, and one behind is covered. The two hockey players swap too, whoever is nearer.
+- **The penguin** has a layer of its own on top. Whatever is nearer goes in front of it:
+  - On the veranda it walks on the deck **behind the white railing**, and in and out by the step at the open end (never through the railing, also on its way to the ice).
+  - Along the path it passes **behind the lamps**. A lamp only covers it while it really is behind that lamp.
+  - Anything nearer and right beside it goes in front of it for that moment:
+    - a duck while it swims;
+    - a cyclist or skier on the road below the field it is working;
+    - the moose crossing;
+    - a visitor on World Penguin Day.
+  - At ice hockey it referees from the far side of the rink, behind the players.
+  - Only while it walks through the forest to the farm do the far-shore trees go in front of it. It goes in and out between the blueberry bushes and the mushrooms, and the trees cover it exactly from the moment it steps behind the tree line. The rest of the time nothing covers the lake, so the orca's leap and the beaver are never hidden by trees.
+- **Sizes follow one perspective** (the ground and the lake recede towards a horizon). These all grow as they come nearer, at the same rate:
+  - the penguin and the tractor it drives;
+  - the cyclist, roller/cross-country skier and runner on the road;
+  - the swimmer, the hockey players, the ducks, the beaver and the orca.
+
+  Hops, jumps and cannonballs don't change the penguin's size (it's no further away in the air), and a cow beamed up by the UFO keeps its size too.
+- **The near bank of the lake** is drawn once more in front of everything on the water, so reflections and splashes end at the grass.
+- **Where things stand:**
+  - The orange kayak is moored at the bank beside the sauna (not at the jetty).
+  - The barn casts a shadow like the cottage and the sauna.
+  - The moose comes out of the forest edge, crosses the field and the road, and its warning sign stands on the near side of the road.
+  - At the grill the penguin stands in front of the chopping block. Its short walk goes along the path to the forest edge past the blueberries and the mushrooms (not through them), and it picks the mushrooms from just in front of them.
+  - The trophy stands between two railing posts.
+  - The birthday cake stands at the back of the deck against the wall.
+  - The leaf pile is between two lamps.
+  - The greeting stops on World Penguin Day are in front of each group of visitors.
+  - The Easter eggs and the bunny are in the grass (none on the road). The spring flowers keep off the road, the field and the farmyard.
+  - If the lake freezes while the orca is out (only possible from backstage), it dives away.
 
 ## The far shore
 
@@ -208,7 +238,7 @@ If the penguin ever seems to be missing: type `penguin` in the terminal. It says
 | **Flagpole** by the cottage | The Swedish flag only on 6 June (Sweden's National Day), the Austrian flag only on 26 October (Austria's National Day), between sunrise and sunset (Swedish custom). Every other time the pole is empty. Hidden at Christmas (the tree stands there). Preview: `?flag=se`, `?flag=at`. |
 | **Penguin on the ice** | When the lake is frozen, every 45 to 100 seconds it comes out by itself: either a belly slide across the ice, or ice fishing (*pimpelfiske*): it sits at a hole in the ice with a rod until a fish bites, then waddles home. |
 | **Jetty and summer swims** | A wooden jetty (*brygga*) on the lake. On hot days (from 25 °C, sunny, not raining), every 1 to 2 minutes the penguin runs along the shore and down the jetty, jumps in and swims back to the cottage. |
-| **Penguin** | Every 5th click on the cottage: it walks out, does a loop (swimming if the lake isn't frozen) and goes back in. No message, just the penguin. |
+| **Penguin** | Every 5th click on the cottage: it walks out across the veranda, along the path to the edge of the forest, has a look, and goes back in. No message, just the penguin. |
 
 Everything pauses when the top of the page is scrolled out of view.
 
@@ -543,7 +573,7 @@ Physics, maths, machine learning and biology hidden in the landscape. Nothing po
 | **Rainbow** | After rain, when the sun is out again, and only while the sun is lower than 42° (a rainbow is a 42° circle around the point opposite the sun): so never at a high summer noon. The lower the sun, the higher the arc. Backstage: *rainbow* (late afternoon). | `?weather=rainbow&sky=dusk` |
 | **Hot-air balloon** | Spring to autumn, on calm mornings (up to 3 h after sunrise) and evenings (the last 3 h before sunset), only when the real wind is under 12 km/h and it's dry and clear enough. It drifts slowly across the sky; click it and the burner fires and it climbs (badge *Up and away*). | `?balloon` |
 | **Cranes** | In spring the migrating V is cranes flying north (long necks, legs trailing, slower wingbeats); in autumn geese fly south. | `?birds&season=spring` |
-| **Penguin kayaking** | Summer days, dry and calm (wind under 15 km/h), once in a while at random: down the jetty into the orange kayak moored there, a paddle round the bay, and back. | `?kayak&season=summer&sky=day` |
+| **Penguin kayaking** | Summer days, dry and calm (wind under 15 km/h), once in a while at random: along the bank to the orange kayak moored beside the sauna, a paddle round the bay, and back. | `?kayak&season=summer&sky=day` |
 | **Penguin picking chanterelles** | Autumn days, when dry: with a basket to the forest edge behind the path, bends down for three chanterelles, and home. They grow back after 10 minutes. | `?chanterelles&season=autumn&sky=day` |
 | **Penguin picking blueberries** | July and August (Vienna date), on dry days: three low blueberry bushes grow at the forest edge between the path lights. Now and then the penguin takes a pail, bends down at each bush (the berries disappear from the bush and the pail fills up) and carries them home. The berries grow back after 10 minutes. | `?season=summer&sky=day&blueberries`, backstage: *blueberries* |
 | **Blueberry pie** | 20 seconds after the penguin comes home with the blueberries, a pie appears on the sill of the right window. It steams for 10 minutes; after half an hour a slice is missing, after an hour it's gone. | `?pie`, backstage: *blueberry pie* |

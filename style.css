@@ -169,6 +169,7 @@ kbd {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 #trees path, #frontTrees path { fill: var(--tree); }
+#frontTrees, #frontLeafy { visibility: hidden; } [data-forestwalk="yes"] #frontTrees, [data-forestwalk="yes"] #frontLeafy { visibility: visible; }
 .landscape.front { pointer-events: none; }
 #trees.fractal path, #frontTrees.fractal path { fill: none; stroke: var(--tree); stroke-width: .8; stroke-linecap: round; }
 .l-snow { fill: var(--snow); transition: fill 1.5s; }

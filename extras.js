@@ -314,12 +314,12 @@ function buildDecorations() {
   $('#xmasLights').innerHTML = lights;
 
   const eggColors = ['#F4B6C2', '#A7D3F2', '#F6E27F', '#B9E3A8', '#D5B8F0'];
-  let eggs = '';
-  [[120, 470], [205, 488], [300, 462], [390, 497], [470, 475], [560, 490], [640, 470], [740, 500], [820, 478]].forEach(([x, y], i) => {
+  let eggs = ''; // in the grass, none on the road
+  [[120, 474], [205, 488], [300, 462], [390, 497], [470, 475], [560, 490], [628, 488], [740, 500], [790, 500]].forEach(([x, y], i) => {
     eggs += `<ellipse cx="${x}" cy="${y}" rx="3.2" ry="4.2" fill="${eggColors[i % eggColors.length]}"/>` +
       `<path d="M${x - 3} ${y} q3 -1.5 6 0" stroke="#FFFFFF" stroke-width=".9" fill="none" opacity=".8"/>`;
   });
-  eggs += `<g class="bunny" transform="translate(520 478)"><ellipse cx="0" cy="-5" rx="7" ry="5"/><circle cx="-6" cy="-10" r="3.6"/>` +
+  eggs += `<g class="bunny" transform="translate(520 500)"><ellipse cx="0" cy="-5" rx="7" ry="5"/><circle cx="-6" cy="-10" r="3.6"/>` +
     `<ellipse cx="-7" cy="-17" rx="1.3" ry="4.5" transform="rotate(-12 -7 -17)"/><ellipse cx="-4.5" cy="-17" rx="1.3" ry="4.5" transform="rotate(8 -4.5 -17)"/>` +
     `<circle cx="7" cy="-6" r="2" class="tail"/></g>`;
   $('#easter').innerHTML = eggs;
